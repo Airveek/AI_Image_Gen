@@ -117,7 +117,7 @@ The main outcome is white K2D at `64px / 1.2`. The secondary commercial-use stat
 
 ### Primary CTA
 
-The CTA uses the supplied Artistly background artwork, centered white K2D, and a subtle text shadow. Hover brightens and lifts by `2px`; focus receives a visible yellow outline. The original artwork determines the shape, so it should not be replaced with a generic rounded rectangle.
+The CTA uses the supplied Artistly background artwork with `background-size: contain`, centered white K2D, and a subtle text shadow. Hover brightens and lifts by `2px`; focus receives a visible yellow outline. The original artwork determines the shape, so it should not be stretched or replaced with a generic rounded rectangle.
 
 ### Trust surfaces
 
