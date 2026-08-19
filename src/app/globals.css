@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --page-background: #020825;
+  --page-background: #050a29;
   --page-foreground: #ffffff;
-  --page-muted: #b3b6d3;
+  --page-muted: #b7bfd8;
 }
 
 @theme inline {
@@ -30,6 +30,16 @@ body {
   font-family: var(--font-inter), Arial, sans-serif;
 }
 
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: #f06cc7;
+  color: #050a29;
+}
+
 img {
   height: auto;
   max-width: 100%;
@@ -42,11 +52,6 @@ a {
 :focus-visible {
   outline: 3px solid #fff254;
   outline-offset: 4px;
-}
-
-::selection {
-  background: #e065fe;
-  color: #020825;
 }
 
 @media (prefers-reduced-motion: reduce) {
