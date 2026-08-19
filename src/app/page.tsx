@@ -2,6 +2,8 @@ import { HeroSection } from "@/components/artistly/hero-section";
 import { PromoBar } from "@/components/artistly/promo-bar";
 import { SiteHeader } from "@/components/artistly/site-header";
 
+import { PricingRecapSection } from "@/components/artistly/pricing-recap-section";
+
 export default function Home() {
   return (
     <div id="top" className="min-h-screen bg-[#020825]">
@@ -10,6 +12,8 @@ export default function Home() {
         <SiteHeader />
         <main>
           <HeroSection />
+          
+          <PricingRecapSection />
         </main>
       </div>
     </div>
