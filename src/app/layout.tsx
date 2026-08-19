@@ -31,6 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${inter.variable} ${k2d.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background font-sans text-foreground">
