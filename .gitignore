@@ -29,6 +29,11 @@ yarn-error.log*
 /.pnpm-cache/
 /.pnpm-store/
 
+# local browser QA
+/.playwright-mcp/
+/.next-dev.*.log
+/*-local-*.png
+
 # env files (can opt-in for committing if needed)
 .env*
 

@@ -1,4 +1,5 @@
 import Image, { type StaticImageData } from "next/image";
+import { Star as StarIcon } from "lucide-react";
 
 type TrustBadge = {
   src: string | StaticImageData;
@@ -53,24 +54,11 @@ const ratings = [
   ["Functionality", "4.8"],
 ] as const;
 
-function StarIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="artistly-rating-star"
-      focusable="false"
-    >
-      <path d="m12 2.7 2.75 5.58 6.16.9-4.46 4.34 1.05 6.13L12 16.76l-5.5 2.89 1.05-6.13-4.46-4.34 6.16-.9L12 2.7Z" />
-    </svg>
-  );
-}
-
 function DownArrow() {
   return (
     <div className="artistly-down-arrow" aria-hidden="true">
       <svg viewBox="0 0 26 26" focusable="false">
-        <path d="M13 3v17M6.5 14.5 13 21l6.5-6.5" />
+        <path d="m6 6 7 7 7-7M6 13l7 7 7-7" />
       </svg>
     </div>
   );
@@ -83,7 +71,7 @@ export function HeroSection() {
         <p className="artistly-eyebrow">AI Designs With Perfect Text</p>
 
         <h1 id="hero-title" className="artistly-title">
-          Produce Stunning Images, Logos &amp; Art
+          Produce <span>Stunning Images, Logos &amp; Art</span>
           <br className="hidden sm:block" /> With Just a Keyword Using AI
         </h1>
 
@@ -111,7 +99,10 @@ export function HeroSection() {
           <p>For a One-Time Price</p>
 
           <a className="artistly-cta" href="https://artistly.ai/#table">
-            Get Instant Access to Artistly
+            <span>Get Instant Access to Artistly</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+              <path d="M5 12h14M14 7l5 5-5 5" />
+            </svg>
           </a>
 
           <Image
@@ -157,7 +148,11 @@ export function HeroSection() {
               <dd>
                 <span className="artistly-rating-stars" aria-hidden="true">
                   {Array.from({ length: 5 }, (_, index) => (
-                    <StarIcon key={index} />
+                    <StarIcon
+                      key={index}
+                      className="artistly-rating-star"
+                      strokeWidth={1.75}
+                    />
                   ))}
                 </span>
                 <span>{score}</span>
