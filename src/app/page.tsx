@@ -1,6 +1,7 @@
 import { HeroSection } from "@/components/artistly/hero-section";
 import { PromoBar } from "@/components/artistly/promo-bar";
 import { SiteHeader } from "@/components/artistly/site-header";
+import { UnlockCreativitySection } from "@/components/artistly/unlock-creativity-section";
 
 export default function Home() {
   return (
@@ -10,6 +11,7 @@ export default function Home() {
         <SiteHeader />
         <main>
           <HeroSection />
+          <UnlockCreativitySection />
         </main>
       </div>
     </div>
