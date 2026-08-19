@@ -19,24 +19,19 @@
 
 | Role | Hex | CSS Variable |
 |------|-----|--------------|
-| Primary | `#7C3AED` | `--color-primary` |
-| On Primary | `#FFFFFF` | `--color-on-primary` |
-| Secondary | `#6366F1` | `--color-secondary` |
-| On Secondary | `#000000` | `--color-on-secondary` |
-| Accent/CTA | `#EC4899` | `--color-accent` |
-| On Accent/CTA | `#000000` | `--color-on-accent` |
-| Background | `#FAF5FF` | `--color-background` |
-| Foreground | `#0F172A` | `--color-foreground` |
-| Card | `#FFFFFF` | `--color-card` |
-| Card Foreground | `#0F172A` | `--color-card-foreground` |
-| Muted | `#F7F3FD` | `--color-muted` |
-| Muted Foreground | `#475569` | `--color-muted-foreground` |
-| Border | `#EFE7FC` | `--color-border` |
-| Destructive | `#DC2626` | `--color-destructive` |
-| On Destructive | `#FFFFFF` | `--color-on-destructive` |
-| Ring | `#7C3AED` | `--color-ring` |
+| Primary | `#83FF00` | `--brand-neon` |
+| Secondary | `#2AC414` | `--brand-green` |
+| On Primary | `#040404` | `--brand-black` |
+| Background | `#040404` | `--page-background` |
+| Foreground | `#FDFDFD` | `--page-foreground` |
+| Soft text | `#D9FFB8` | `--brand-soft` |
+| Muted text | `#6F6F6F` | `--brand-gray` |
+| Dark grey | `#3A3A3A` | `--brand-dark-gray` |
+| Card | `#0B120B` | `--brand-panel` |
+| Raised card | `#111A11` | `--brand-panel-raised` |
+| Ring | `#83FF00` | `--brand-neon` |
 
-**Color Notes:** AI purple + generation pink
+**Color Notes:** Black-first, neon-green brand signal, secondary green glow, restrained neutral hierarchy.
 
 ### Typography
 

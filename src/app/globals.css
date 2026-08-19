@@ -1,15 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  --page-background: #050a29;
-  --page-foreground: #ffffff;
-  --page-muted: #b7bfd8;
+  --brand-neon: #83ff00;
+  --brand-green: #2ac414;
+  --brand-white: #fdfdfd;
+  --brand-gray: #6f6f6f;
+  --brand-dark-gray: #3a3a3a;
+  --brand-black: #040404;
+  --brand-panel: #0b120b;
+  --brand-panel-raised: #111a11;
+  --brand-soft: #d9ffb8;
+  --page-background: var(--brand-black);
+  --page-foreground: var(--brand-white);
+  --page-muted: #a4b19e;
 }
 
 @theme inline {
   --color-background: var(--page-background);
   --color-foreground: var(--page-foreground);
   --color-muted: var(--page-muted);
+  --color-brand-neon: var(--brand-neon);
+  --color-brand-green: var(--brand-green);
+  --color-brand-white: var(--brand-white);
+  --color-brand-gray: var(--brand-gray);
+  --color-brand-dark-gray: var(--brand-dark-gray);
+  --color-brand-black: var(--brand-black);
   --font-sans: var(--font-inter);
   --font-display: var(--font-k2d);
 }
@@ -36,8 +51,8 @@ a {
 }
 
 ::selection {
-  background: #f06cc7;
-  color: #050a29;
+  background: var(--brand-neon);
+  color: var(--brand-black);
 }
 
 img {
@@ -50,8 +65,24 @@ a {
 }
 
 :focus-visible {
-  outline: 3px solid #fff254;
+  outline: 3px solid var(--brand-neon);
   outline-offset: 4px;
+}
+
+/* Artistly brand surface helpers: black-first, green-led, and deliberately restrained. */
+.brand-glow {
+  background:
+    radial-gradient(circle at 82% 14%, rgb(131 255 0 / 0.2), transparent 28%),
+    radial-gradient(circle at 12% 42%, rgb(42 196 20 / 0.16), transparent 32%),
+    var(--brand-black);
+}
+
+.cta-primary {
+  color: var(--brand-black) !important;
+}
+
+.brand-logo {
+  filter: hue-rotate(178deg) saturate(1.35) brightness(1.08);
 }
 
 @media (prefers-reduced-motion: reduce) {

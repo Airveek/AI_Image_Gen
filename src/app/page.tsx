@@ -19,10 +19,10 @@ import { FaqSection } from "@/components/artistly/faq-section";
 
 export default function Home() {
   return (
-    <div id="top" className="min-h-screen overflow-hidden bg-[#050a29]">
+    <div id="top" className="min-h-screen overflow-hidden bg-[#040404]">
       <PromoBar />
       <SiteHeader />
-      <main className="bg-[url('/images/artistly/hero-background.jpg')] bg-[length:100%_auto] bg-top bg-no-repeat">
+      <main className="brand-glow">
         <HeroSection />
         <TrustStrip />
         <GallerySection />
