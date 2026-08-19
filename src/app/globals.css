@@ -1,45 +1,667 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f8fa;
-  --foreground: #18181b;
-  --surface: #ffffff;
-  --muted: #52525b;
-  --border: #e4e4e7;
-  --accent: #18181b;
+  --color-ink: #040d30;
+  --color-ink-deep: #020825;
+  --color-surface: #1e1f39;
+  --color-surface-raised: #252245;
+  --color-text: #ffffff;
+  --color-text-muted: #b3b6d3;
+  --color-promo-start: #c7208f;
+  --color-promo-end: #6a14d1;
+  --color-yellow: #fff254;
+  --color-cyan: #0dcbff;
+  --color-blue: #4760ff;
+  --color-pink: #e065fe;
+  --color-coral: #f34491;
+  --color-orange: #fcc257;
+  --container-page: 1320px;
+  --container-hero: 1150px;
+  --container-video: 760px;
+  --radius-sm: 10px;
+  --radius-md: 20px;
+  --radius-lg: 25px;
+  --shadow-coral: 0 0 45px rgb(251 105 73 / 40%);
+  --shadow-purple: 0 0 20px rgb(130 24 212 / 50%);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-surface: var(--surface);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-  --color-accent: var(--accent);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--color-ink);
+  --color-foreground: var(--color-text);
+  --color-muted: var(--color-text-muted);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-k2d);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  margin: 0;
+  background: var(--color-ink);
+  color: var(--color-text);
+  font-family: var(--font-inter), Arial, sans-serif;
+}
+
+img {
+  height: auto;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
+  outline: 3px solid var(--color-yellow);
+  outline-offset: 4px;
 }
 
 ::selection {
-  background: var(--foreground);
-  color: var(--surface);
+  background: var(--color-pink);
+  color: var(--color-ink-deep);
+}
+
+.artistly-promo {
+  min-height: 74px;
+  display: grid;
+  place-items: center;
+  padding: 10px 20px;
+  background: linear-gradient(71deg, var(--color-promo-start), var(--color-promo-end));
+  color: var(--color-yellow);
+  text-align: center;
+}
+
+.artistly-promo p {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.artistly-promo span {
+  display: block;
+}
+
+.artistly-hero-shell {
+  min-height: calc(100vh - 74px);
+  overflow: hidden;
+  background-color: var(--color-ink-deep);
+  background-image: url("/images/artistly/hero-background.jpg");
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.artistly-header {
+  display: flex;
+  justify-content: center;
+  padding: 50px 20px 20px;
+}
+
+.artistly-header a {
+  display: inline-flex;
+}
+
+.artistly-logo {
+  width: 236px;
+}
+
+.artistly-hero {
+  padding-bottom: 200px;
+  text-align: center;
+}
+
+.artistly-container {
+  width: calc(100% - 24px);
+  margin-inline: auto;
+}
+
+.artistly-eyebrow {
+  position: relative;
+  width: fit-content;
+  min-width: 400px;
+  margin: 0 auto;
+  padding: 15px 20px;
+  border-radius: 999px;
+  background: linear-gradient(115deg, var(--color-cyan), var(--color-blue));
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.artistly-eyebrow::before,
+.artistly-eyebrow::after {
+  position: absolute;
+  top: 20px;
+  width: 80px;
+  height: 19px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: "";
+}
+
+.artistly-eyebrow::before {
+  right: calc(100% + 10px);
+  background-image: url("/images/artistly/eyebrow-left.png");
+}
+
+.artistly-eyebrow::after {
+  left: calc(100% + 10px);
+  background-image: url("/images/artistly/eyebrow-right.png");
+}
+
+.artistly-title,
+.artistly-subtitle,
+.artistly-offer h2,
+.artistly-offer > p,
+.artistly-cta,
+.artistly-rating-card dt {
+  font-family: var(--font-k2d), sans-serif;
+}
+
+.artistly-title {
+  max-width: var(--container-hero);
+  margin: 0 auto;
+  padding: 15px 0;
+  color: var(--color-text);
+  font-size: clamp(44px, 4.45vw, 64px);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.artistly-subtitle {
+  position: relative;
+  margin: 15px 0 80px;
+  padding: 10px 25px;
+  border: 2px solid transparent;
+  border-image: linear-gradient(45deg, var(--color-pink), var(--color-orange)) 1;
+  background: linear-gradient(90deg, var(--color-pink), var(--color-coral), var(--color-orange));
+  background-clip: text;
+  color: transparent;
+  font-size: clamp(44px, 4.45vw, 64px);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.artistly-subtitle > span {
+  display: block;
+}
+
+.artistly-subtitle-final {
+  color: var(--color-orange);
+}
+
+.artistly-corner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.artistly-corner-tl {
+  left: -6px;
+  top: -6px;
+  background: var(--color-pink);
+}
+
+.artistly-corner-tr {
+  right: -6px;
+  top: -6px;
+  background: var(--color-orange);
+}
+
+.artistly-corner-bl {
+  bottom: -6px;
+  left: -6px;
+  background: var(--color-pink);
+}
+
+.artistly-corner-br {
+  right: -6px;
+  bottom: -6px;
+  background: var(--color-orange);
+}
+
+.artistly-video-frame {
+  position: relative;
+  z-index: 1;
+  width: min(100%, var(--container-video));
+  height: 425px;
+  margin-inline: auto;
+  border-inline: 5px solid var(--color-coral);
+  background: var(--color-surface);
+}
+
+.artistly-video-frame::before,
+.artistly-video-frame::after {
+  position: absolute;
+  z-index: -1;
+  width: 400px;
+  height: 20px;
+  background: var(--color-surface);
+  clip-path: polygon(0 100%, 4% 0, 96% 0, 100% 100%);
+  content: "";
+}
+
+.artistly-video-frame::before {
+  top: -20px;
+  right: 0;
+}
+
+.artistly-video-frame::after {
+  bottom: -20px;
+  left: 0;
+  transform: rotate(180deg);
+}
+
+.artistly-video-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.artistly-video-accent {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+}
+
+.artistly-video-accent::before,
+.artistly-video-accent::after {
+  position: absolute;
+  width: 35px;
+  height: 26px;
+  background: url("/images/artistly/video-shape.png") center / contain no-repeat;
+  content: "";
+}
+
+.artistly-video-accent::before {
+  top: -31px;
+  right: -35px;
+}
+
+.artistly-video-accent::after {
+  bottom: -31px;
+  left: -35px;
+  transform: rotate(180deg);
+}
+
+.artistly-offer {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.artistly-offer h2,
+.artistly-offer > p {
+  margin: 0;
+  font-size: 46px;
+  line-height: 1.2;
+}
+
+.artistly-offer h2 {
+  padding: 40px 0 0;
+  font-weight: 800;
+}
+
+.artistly-offer > p {
+  background: linear-gradient(90deg, #f28e27, #fd644f);
+  background-clip: text;
+  color: transparent;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.artistly-cta {
+  display: block;
+  width: 100%;
+  margin: 20px auto;
+  padding: 17px 24px;
+  background-image: url("/images/artistly/button-background.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  color: var(--color-text);
+  font-size: 35px;
+  font-weight: 800;
+  line-height: 1.5;
+  text-decoration: none;
+  text-shadow: 0 2px 2px rgb(0 0 0 / 25%);
+  transition: filter 160ms ease, transform 160ms ease;
+}
+
+.artistly-cta:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+}
+
+.artistly-benefits {
+  display: block;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px 0 30px;
+  color: var(--color-text-muted);
+  font-size: 16px;
+  line-height: 1.5;
+  list-style: none;
+}
+
+.artistly-benefits li {
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.artistly-payments,
+.artistly-guarantee-apps {
+  display: block;
+  width: min(calc(100% - 30px), 410px);
+  margin-inline: auto;
+}
+
+.artistly-guarantee-apps {
+  width: min(calc(100% - 30px), 458px);
+}
+
+.artistly-trust-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  width: min(100%, 1250px);
+  margin-inline: auto;
+  padding: 40px 0 0;
+}
+
+.artistly-trust-badge {
+  width: 180px;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 15px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.artistly-trust-badge:nth-child(3) {
+  width: 160px;
+}
+
+.artistly-trust-badge:nth-child(4) {
+  width: 150px;
+}
+
+.artistly-trust-badge img {
+  width: 150px;
+  object-fit: contain;
+}
+
+.artistly-ratings {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  width: min(100%, 1000px);
+  margin: 30px auto 20px;
+}
+
+.artistly-rating-card {
+  padding: 25px 15px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.artistly-rating-card dt {
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+
+.artistly-rating-card dd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--color-yellow);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.artistly-rating-star {
+  width: 14px;
+  fill: var(--color-yellow);
+}
+
+.artistly-rating-stars {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.artistly-down-arrow {
+  height: 27px;
+}
+
+.artistly-down-arrow svg {
+  display: block;
+  width: 26px;
+  height: 26px;
+  margin-inline: auto;
+  fill: none;
+  stroke: var(--color-text);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+@media (max-width: 991px) {
+  .artistly-trust-badge,
+  .artistly-trust-badge:nth-child(3),
+  .artistly-trust-badge:nth-child(4) {
+    width: min(30%, 180px);
+  }
+
+  .artistly-offer h2,
+  .artistly-offer > p {
+    font-size: 38px;
+  }
+}
+
+@media (max-width: 767px) {
+  .artistly-eyebrow {
+    min-width: 350px;
+    font-size: 22px;
+  }
+
+  .artistly-eyebrow::before,
+  .artistly-eyebrow::after {
+    display: none;
+  }
+
+  .artistly-title,
+  .artistly-subtitle {
+    font-size: 40px;
+  }
+
+  .artistly-subtitle {
+    margin-bottom: 60px;
+  }
+
+  .artistly-ratings {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+@media (max-width: 575px) {
+  .artistly-promo {
+    min-height: 64px;
+    padding: 8px 12px;
+  }
+
+  .artistly-promo p {
+    font-size: 16px;
+  }
+
+  .artistly-hero-shell {
+    min-height: calc(100vh - 64px);
+  }
+
+  .artistly-header {
+    padding-top: 50px;
+  }
+
+  .artistly-benefits {
+    width: calc(100% - 30px);
+    padding: 10px 0;
+  }
+
+  .artistly-trust-badge,
+  .artistly-trust-badge:nth-child(3),
+  .artistly-trust-badge:nth-child(4) {
+    width: 45%;
+  }
+
+  .artistly-trust-badge img {
+    width: 120px;
+  }
+
+  .artistly-trust-badges {
+    gap: 15px;
+  }
+
+  .artistly-ratings {
+    width: calc(100% + 24px);
+    margin-right: -12px;
+    margin-left: -12px;
+    padding-inline: 12px;
+    column-gap: 24px;
+    row-gap: 24px;
+  }
+}
+
+@media (max-width: 425px) {
+  .artistly-header {
+    padding-bottom: 20px;
+  }
+
+  .artistly-logo {
+    width: 236px;
+  }
+
+  .artistly-hero {
+    padding-bottom: 200px;
+  }
+
+  .artistly-eyebrow {
+    min-width: 250px;
+    padding: 15px 20px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .artistly-title,
+  .artistly-subtitle {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+
+  .artistly-title {
+    max-width: 360px;
+  }
+
+  .artistly-subtitle {
+    margin: 15px 0 40px;
+    padding: 10px 15px;
+  }
+
+  .artistly-video-frame {
+    width: min(100%, 348px);
+    height: 190px;
+  }
+
+  .artistly-video-frame::before,
+  .artistly-video-frame::after {
+    width: 180px;
+    height: 10px;
+  }
+
+  .artistly-video-frame::before {
+    top: -10px;
+  }
+
+  .artistly-video-frame::after {
+    bottom: -10px;
+  }
+
+  .artistly-video-accent {
+    display: none;
+  }
+
+  .artistly-offer h2,
+  .artistly-offer > p {
+    font-size: 27px;
+  }
+
+  .artistly-offer h2 {
+    padding: 20px 10px 0;
+    font-weight: 600;
+  }
+
+  .artistly-cta {
+    width: calc(100% - 30px);
+    margin: 20px auto;
+    padding: 12px 10px;
+    font-size: 19px;
+  }
+
+  .artistly-rating-card {
+    padding: 20px 10px;
+  }
+
+  .artistly-rating-card dt {
+    font-size: 16px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .artistly-rating-card dd {
+    gap: 5px;
+    line-height: 19.5px;
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 375px) {
+  .artistly-promo {
+    padding-block: 5px;
+  }
+
+  .artistly-promo p {
+    font-size: 14px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {
-    scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
