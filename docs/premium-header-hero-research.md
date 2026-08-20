@@ -1,6 +1,6 @@
 # Premium Header and Hero Research
 
-This note records the research and design reasoning behind the premium Artistly Header/Hero refresh completed on August 19, 2026. It supplements `design-system.md`; the original content, section order, and brand palette remain unchanged.
+This note records the research and design reasoning behind the premium Airveek Header/Hero refresh completed on August 19, 2026. It supplements `design-system.md`; the content structure remains conversion-led while the identity now follows the supplied Airveek logo and green/black palette.
 
 ## Research sample
 
@@ -31,7 +31,7 @@ A bespoke AI-generated illustration adds creative depth at the outer edges while
 
 ### 4. Editorial typography
 
-K2D remains the Artistly display family and Inter remains the supporting family. Larger fluid sizing, tighter display leading, subtle text shadows, and a restrained gradient highlight make the hierarchy feel more intentional without changing copy.
+K2D remains the Airveek display family and Inter remains the supporting family. Larger fluid sizing, tighter display leading, subtle text shadows, and a restrained green highlight make the hierarchy feel more intentional without changing the type system.
 
 ### 5. A restrained surface hierarchy
 
@@ -43,14 +43,14 @@ Only low-amplitude effects are used: backdrop drift, a pill sheen, CTA shimmer, 
 
 ## AI-generated asset
 
-`public/images/artistly/hero-premium-generated.png` was created with the built-in image generation tool for this project. The production prompt requested a wide midnight-navy creative environment with glass prisms, luminous ribbons, subtle generative particles, a low-detail center, Artistly's existing accent palette, and no text, people, logos, or generic robot/brain imagery.
+`public/images/airveek/hero-premium-generated.png` was created with the built-in image generation tool for this project. The production prompt requested a wide dark creative environment with restrained green light, subtle generative particles, a low-detail center, and no text, people, logos, or generic robot/brain imagery.
 
 The asset is loaded through `next/image` with responsive sizing and high priority so Next.js can serve an appropriately optimized format rather than shipping the full source PNG indiscriminately.
 
 ## Guardrails
 
 - Preserve every existing string and the original section sequence.
-- Keep the Artistly logo, product video, payment marks, review badges, and ratings authentic; generated art must not replace factual trust signals.
+- Keep the Airveek logo, product video, payment marks, review badges, and ratings authentic; generated art must not replace factual trust signals.
 - Use decoration only where it strengthens hierarchy.
 - Maintain a dark center behind text across crops.
 - Keep the experience fully legible and operable without animation.

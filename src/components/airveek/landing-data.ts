@@ -42,18 +42,18 @@ export type Audience = {
 };
 
 export const artworks: Artwork[] = [
-  { src: "/images/artistly/unlock/slider/ul-s1.png", width: 244, height: 302, alt: "Colorful illustrated character artwork" },
-  { src: "/images/artistly/unlock/slider/ul-s2.png", width: 300, height: 300, alt: "AI-generated portrait artwork" },
-  { src: "/images/artistly/unlock/slider/ul-s3.png", width: 220, height: 300, alt: "AI-generated fantasy artwork" },
-  { src: "/images/artistly/unlock/slider/ul-s4.png", width: 220, height: 300, alt: "AI-generated illustrated artwork" },
-  { src: "/images/artistly/unlock/slider/ul-s5.png", width: 220, height: 250, alt: "AI-generated product artwork" },
-  { src: "/images/artistly/unlock/slider/ul-s6.png", width: 300, height: 250, alt: "AI-generated landscape artwork" },
-  { src: "/images/artistly/unlock/slider/ul-s7.png", width: 220, height: 300, alt: "AI-generated character artwork" },
-  { src: "/images/artistly/unlock/slider/ul-s8.png", width: 220, height: 250, alt: "AI-generated colorful artwork" },
-  { src: "/images/artistly/unlock/slider/ul-s9.png", width: 220, height: 300, alt: "AI-generated editorial artwork" },
-  { src: "/images/artistly/unlock/slider/ul-s10.png", width: 300, height: 250, alt: "AI-generated scene artwork" },
-  { src: "/images/artistly/unlock/slider/ul-s11.png", width: 220, height: 300, alt: "AI-generated digital art" },
-  { src: "/images/artistly/unlock/slider/ul-s12.png", width: 220, height: 300, alt: "AI-generated fantasy portrait" },
+  { src: "/images/airveek/unlock/slider/ul-s1.png", width: 244, height: 302, alt: "Colorful illustrated character artwork" },
+  { src: "/images/airveek/unlock/slider/ul-s2.png", width: 300, height: 300, alt: "AI-generated portrait artwork" },
+  { src: "/images/airveek/unlock/slider/ul-s3.png", width: 220, height: 300, alt: "AI-generated fantasy artwork" },
+  { src: "/images/airveek/unlock/slider/ul-s4.png", width: 220, height: 300, alt: "AI-generated illustrated artwork" },
+  { src: "/images/airveek/unlock/slider/ul-s5.png", width: 220, height: 250, alt: "AI-generated product artwork" },
+  { src: "/images/airveek/unlock/slider/ul-s6.png", width: 300, height: 250, alt: "AI-generated landscape artwork" },
+  { src: "/images/airveek/unlock/slider/ul-s7.png", width: 220, height: 300, alt: "AI-generated character artwork" },
+  { src: "/images/airveek/unlock/slider/ul-s8.png", width: 220, height: 250, alt: "AI-generated colorful artwork" },
+  { src: "/images/airveek/unlock/slider/ul-s9.png", width: 220, height: 300, alt: "AI-generated editorial artwork" },
+  { src: "/images/airveek/unlock/slider/ul-s10.png", width: 300, height: 250, alt: "AI-generated scene artwork" },
+  { src: "/images/airveek/unlock/slider/ul-s11.png", width: 220, height: 300, alt: "AI-generated digital art" },
+  { src: "/images/airveek/unlock/slider/ul-s12.png", width: 220, height: 300, alt: "AI-generated fantasy portrait" },
 ];
 
 export const features: Feature[] = [
@@ -246,12 +246,12 @@ export const recapFeatures = [
 
 export const faqs = [
   {
-    question: "How is Artistly different from other apps?",
-    answer: "Artistly brings image generation, editing, mockups, background tools, upscaling, and commercial-ready workflows into one simple creative suite. You pay once instead of stacking monthly subscriptions.",
+    question: "How is Airveek different from other apps?",
+    answer: "Airveek brings image generation, editing, mockups, background tools, upscaling, and commercial-ready workflows into one simple creative suite. You pay once instead of stacking monthly subscriptions.",
   },
   {
     question: "Does it include unlimited design generation?",
-    answer: "The Artistly offer is built around unlimited design creation with no monthly fees. Your plan details and usage terms are shown clearly at checkout.",
+    answer: "The Airveek offer is built around unlimited design creation with no monthly fees. Your plan details and usage terms are shown clearly at checkout.",
   },
   {
     question: "Can I use my designs commercially?",
@@ -263,14 +263,14 @@ export const faqs = [
   },
   {
     question: "Is there a money-back guarantee?",
-    answer: "Yes. Artistly includes a 30-day money-back guarantee so you can try the workflow with less risk.",
+    answer: "Yes. Airveek includes a 30-day money-back guarantee so you can try the workflow with less risk.",
   },
   {
     question: "Do I need design or AI experience?",
     answer: "No. Start with a keyword or a short prompt, choose a style or setting, and review the generated results. The workflow is made for beginners.",
   },
   {
-    question: "Can Artistly create logos and original artwork?",
+    question: "Can Airveek create logos and original artwork?",
     answer: "Yes. Create logos, illustrations, characters, book covers, posters, product visuals, and more from simple prompts, then keep refining them.",
   },
   {
@@ -283,6 +283,6 @@ export const faqs = [
   },
   {
     question: "Are step-by-step tutorials included?",
-    answer: "Artistly includes a simple workflow and supporting training resources so you can move from idea to finished visual without a complicated setup.",
+    answer: "Airveek includes a simple workflow and supporting training resources so you can move from idea to finished visual without a complicated setup.",
   },
 ];

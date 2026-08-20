@@ -58,7 +58,7 @@ export function HeroSection() {
           <div className="absolute -inset-8 rounded-[3rem] bg-gradient-to-br from-[#83ff00]/20 via-[#2ac414]/10 to-transparent blur-3xl" aria-hidden="true" />
           <div className="relative overflow-hidden rounded-[2rem] border border-[#83ff00]/20 bg-[#0b120b]/90 p-3 shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:p-5">
             <div className="flex items-center justify-between border-b border-white/10 px-2 pb-4 text-xs text-[#81927c]">
-              <span className="inline-flex items-center gap-2 font-bold text-[#fdfdfd]"><span className="h-2 w-2 rounded-full bg-[#83ff00]" /> Artistly Studio</span>
+              <span className="inline-flex items-center gap-2 font-bold text-[#fdfdfd]"><span className="h-2 w-2 rounded-full bg-[#83ff00]" /> Airveek Studio</span>
               <span>Prompt → result</span>
             </div>
             <div className="grid gap-4 pt-4 sm:grid-cols-[0.85fr_1.15fr]">
@@ -90,7 +90,7 @@ export function HeroSection() {
 
 export function TrustStrip() {
   return (
-    <section className="border-y border-[#83ff00]/10 bg-[#080d08] px-4 py-8 sm:px-6" aria-label="Artistly trust signals">
+    <section className="border-y border-[#83ff00]/10 bg-[#080d08] px-4 py-8 sm:px-6" aria-label="Airveek trust signals">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-5 text-center sm:grid-cols-2 lg:grid-cols-4">
         {[
@@ -106,8 +106,8 @@ export function TrustStrip() {
         ))}
         </div>
         <div className="mt-6 flex flex-col items-center justify-between gap-5 border-t border-white/10 pt-6 sm:flex-row">
-          <Image className="h-auto w-[min(100%,410px)]" src="/images/artistly/payments.png" alt="PayPal, American Express, Mastercard, Visa, and 30-day money-back guarantee" width={410} height={50} />
-          <Image className="h-auto w-[min(100%,458px)] sm:w-[360px]" src="/images/artistly/guarantee-apps.png" alt="Artistly works with Mac OS, Windows, and ChromeOS" width={458} height={46} />
+          <Image className="h-auto w-[min(100%,410px)]" src="/images/airveek/payments.png" alt="PayPal, American Express, Mastercard, Visa, and 30-day money-back guarantee" width={410} height={50} />
+          <Image className="h-auto w-[min(100%,458px)] sm:w-[360px]" src="/images/airveek/guarantee-apps.png" alt="Airveek works with Mac OS, Windows, and ChromeOS" width={458} height={46} />
         </div>
       </div>
     </section>
@@ -119,12 +119,12 @@ export function GallerySection() {
     <section className="relative overflow-hidden px-4 py-20 sm:px-6 lg:py-28" aria-labelledby="gallery-title">
       <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-[#83ff00]/10 to-transparent" aria-hidden="true" />
       <div className="relative mx-auto max-w-7xl">
-        <SectionHeading titleId="gallery-title" eyebrow="See what you can create" title="One idea can become a whole library of finished visuals." description="From product images and logos to coloring pages and social posts, Artistly gives you a faster way to make the work you already need." />
+        <SectionHeading titleId="gallery-title" eyebrow="See what you can create" title="One idea can become a whole library of finished visuals." description="From product images and logos to coloring pages and social posts, Airveek gives you a faster way to make the work you already need." />
         <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {artworks.map((artwork, index) => (
             <div className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-[#0b120b] ${index % 5 === 0 ? "sm:row-span-2" : ""}`} key={artwork.src}>
               <Image className="h-full min-h-44 w-full object-cover transition duration-500 group-hover:scale-105" src={artwork.src} alt={artwork.alt} width={artwork.width} height={artwork.height} sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 17vw" />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#040404] to-transparent px-3 pb-3 pt-10 text-xs font-bold text-[#fdfdfd] opacity-0 transition duration-200 group-hover:opacity-100">Artistly creation</div>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#040404] to-transparent px-3 pb-3 pt-10 text-xs font-bold text-[#fdfdfd] opacity-0 transition duration-200 group-hover:opacity-100">Airveek creation</div>
             </div>
           ))}
         </div>
@@ -155,8 +155,8 @@ export function StepsSection() {
           ))}
         </div>
         <div className="mx-auto mt-12 max-w-4xl overflow-hidden rounded-3xl border border-[#83ff00]/20 bg-[#040404] p-2 shadow-[0_0_60px_rgba(131,255,0,0.12)] sm:p-4">
-          <div className="flex items-center justify-between border-b border-white/10 px-3 pb-3 text-xs text-[#81927c]"><span className="font-bold text-[#fdfdfd]">Artistly walkthrough</span><span>See the full workflow</span></div>
-          <iframe className="mt-3 aspect-video w-full rounded-2xl border-0" src="https://www.loom.com/embed/62e71dd47a7644cea41dbd274be3cef5?sid=7fbf1819-1127-4d0d-88b0-a6891d37768f&hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true" title="Artistly walkthrough video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
+          <div className="flex items-center justify-between border-b border-white/10 px-3 pb-3 text-xs text-[#81927c]"><span className="font-bold text-[#fdfdfd]">Airveek walkthrough</span><span>See the full workflow</span></div>
+          <iframe className="mt-3 aspect-video w-full rounded-2xl border-0" src="https://www.loom.com/embed/62e71dd47a7644cea41dbd274be3cef5?sid=7fbf1819-1127-4d0d-88b0-a6891d37768f&hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true" title="Airveek walkthrough video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
         </div>
       </div>
     </section>
@@ -242,14 +242,14 @@ export function BusinessSection() {
   return (
     <section className="border-y border-white/10 bg-[#080d08] px-4 py-20 sm:px-6 lg:py-28" aria-labelledby="business-title">
       <div className="mx-auto max-w-7xl">
-        <SectionHeading titleId="business-title" eyebrow="Create for yourself—or sell your work" title="Save money, save effort, and make more from every idea." description="Artistly gives you a faster way to create the visuals your business needs, then reuse them across products, campaigns, and client work." />
+        <SectionHeading titleId="business-title" eyebrow="Create for yourself—or sell your work" title="Save money, save effort, and make more from every idea." description="Airveek gives you a faster way to create the visuals your business needs, then reuse them across products, campaigns, and client work." />
         <div className="mt-12 grid gap-6 lg:grid-cols-2">
           <div className="rounded-3xl border border-white/10 bg-[#0b120b] p-6 sm:p-8">
             <div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#83ff00]/15 text-[#83ff00]"><CircleDollarSign className="h-5 w-5" aria-hidden="true" /></span><h3 className="font-display text-2xl font-bold text-[#fdfdfd]">Stop paying for multiple AI tools</h3></div>
             <div className="mt-8 space-y-3">
               {["Image generator", "Product mockup tool", "Background editor", "Image upscaler", "Design tool"].map((tool) => <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-[#a4b19e]" key={tool}><span>{tool}</span><span className="text-xs font-bold uppercase tracking-[0.14em] text-[#b8ff6b]">Monthly</span></div>)}
             </div>
-            <div className="mt-5 flex items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-[#2ac414]/25 to-[#83ff00]/10 px-4 py-4"><span className="text-sm font-bold text-[#fdfdfd]">Artistly</span><span className="font-display text-xl font-extrabold text-[#83ff00]">$49 once</span></div>
+            <div className="mt-5 flex items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-[#2ac414]/25 to-[#83ff00]/10 px-4 py-4"><span className="text-sm font-bold text-[#fdfdfd]">Airveek</span><span className="font-display text-xl font-extrabold text-[#83ff00]">$49 once</span></div>
           </div>
           <div className="rounded-3xl border border-[#83ff00]/20 bg-gradient-to-br from-[#83ff00]/10 via-white/[0.04] to-[#2ac414]/10 p-6 sm:p-8">
             <div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#83ff00]/15 text-[#83ff00]"><Zap className="h-5 w-5" aria-hidden="true" /></span><h3 className="font-display text-2xl font-bold text-[#fdfdfd]">Ways to put your creations to work</h3></div>
@@ -316,7 +316,7 @@ export function GuaranteeSection() {
     <section className="px-4 py-16 sm:px-6 lg:py-20" aria-labelledby="guarantee-title">
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 rounded-[2rem] border border-[#83ff00]/30 bg-gradient-to-r from-[#83ff00]/10 via-[#2ac414]/10 to-transparent p-8 text-center sm:p-12">
         <div className="grid h-16 w-16 place-items-center rounded-full border border-[#83ff00]/40 bg-[#83ff00]/10 text-[#83ff00]"><ShieldCheck className="h-8 w-8" aria-hidden="true" /></div>
-        <div><p className="mb-3 text-xs font-black uppercase tracking-[0.2em] text-[#83ff00]">Try it without the pressure</p><h2 id="guarantee-title" className="font-display text-3xl font-extrabold text-[#fdfdfd] sm:text-4xl">30-day money-back guarantee</h2><p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#a4b19e]">Create, test, and see if Artistly fits your workflow. If it is not right for you, the guarantee gives you a clear way out.</p></div>
+        <div><p className="mb-3 text-xs font-black uppercase tracking-[0.2em] text-[#83ff00]">Try it without the pressure</p><h2 id="guarantee-title" className="font-display text-3xl font-extrabold text-[#fdfdfd] sm:text-4xl">30-day money-back guarantee</h2><p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#a4b19e]">Create, test, and see if Airveek fits your workflow. If it is not right for you, the guarantee gives you a clear way out.</p></div>
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-xs font-bold text-[#d9ffb8]"><span className="inline-flex items-center gap-2"><Clock3 className="h-4 w-4 text-[#83ff00]" aria-hidden="true" /> One-time payment</span><span className="inline-flex items-center gap-2"><BadgeCheck className="h-4 w-4 text-[#83ff00]" aria-hidden="true" /> Commercial-ready plans</span></div>
       </div>
     </section>
@@ -327,7 +327,7 @@ export function RecapSection() {
   return (
     <section className="border-y border-white/10 bg-[#080d08] px-4 py-20 sm:px-6 lg:py-28" aria-labelledby="recap-title">
       <div className="mx-auto grid max-w-7xl items-start gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
-        <div className="lg:sticky lg:top-28"><p className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-[#83ff00]">Everything in one place</p><h2 id="recap-title" className="font-display text-4xl font-extrabold leading-tight text-[#fdfdfd] sm:text-5xl">Here&apos;s what you get from day one.</h2><p className="mt-5 text-base leading-7 text-[#a4b19e]">A practical creative toolkit for the visuals you need now—and the projects you want to try next.</p><CtaButton className="mt-8" href="#pricing">Get Artistly for $49</CtaButton></div>
+        <div className="lg:sticky lg:top-28"><p className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-[#83ff00]">Everything in one place</p><h2 id="recap-title" className="font-display text-4xl font-extrabold leading-tight text-[#fdfdfd] sm:text-5xl">Here&apos;s what you get from day one.</h2><p className="mt-5 text-base leading-7 text-[#a4b19e]">A practical creative toolkit for the visuals you need now—and the projects you want to try next.</p><CtaButton className="mt-8" href="#pricing">Get Airveek for $49</CtaButton></div>
         <div className="grid gap-3 sm:grid-cols-2">{recapFeatures.map((feature) => <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.045] px-4 py-3 text-sm font-semibold text-[#d9ffb8]" key={feature}><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#83ff00]" aria-hidden="true" />{feature}</div>)}</div>
       </div>
     </section>
@@ -338,8 +338,8 @@ export function Footer() {
   return (
     <footer className="bg-[#040404] px-4 pb-10 pt-16 sm:px-6" id="footer">
       <div className="mx-auto max-w-7xl">
-        <div className="flex flex-col justify-between gap-8 border-b border-white/10 pb-10 md:flex-row md:items-end"><div><Image src="/images/artistly/logo.png" alt="Artistly 6.0" width={236} height={52} className="brand-logo w-[180px]" /><p className="mt-4 max-w-sm text-sm leading-6 text-[#a4b19e]">Create more, spend less, and turn your ideas into finished visuals with Artistly.</p><p className="mt-3 text-xs text-[#6f6f6f]">980 Fraser Drive, Suite 209, Burlington ON L7L 5P5, Canada</p></div><div className="flex max-w-xl flex-wrap gap-x-5 gap-y-3 text-sm font-semibold text-[#a4b19e]"><Link className="transition hover:text-[#83ff00]" href="#features">Features</Link><Link className="transition hover:text-[#83ff00]" href="#pricing">Pricing</Link><Link className="transition hover:text-[#83ff00]" href="#faq">FAQ</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/affiliates/">Affiliates</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/support/">Support</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/terms/terms.php">Terms</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/terms/privacy.php">Privacy</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/tutorials/">Tutorials</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/fb/">FB Group</Link></div></div>
-        <div className="flex flex-col justify-between gap-4 pt-6 text-xs text-[#6f6f6f] sm:flex-row"><span>© Artistly. All rights reserved.</span><span className="inline-flex items-center gap-1">Made with <Heart className="h-3.5 w-3.5 fill-[#83ff00] text-[#83ff00]" aria-hidden="true" /> in Canada</span></div>
+        <div className="flex flex-col justify-between gap-8 border-b border-white/10 pb-10 md:flex-row md:items-end"><div><Image src="/images/airveek/logo.png" alt="Airveek" width={1881} height={358} className="w-[234px]" /><p className="mt-4 max-w-sm text-sm leading-6 text-[#a4b19e]">Create more, spend less, and turn your ideas into finished visuals with Airveek.</p><p className="mt-3 text-xs text-[#6f6f6f]">980 Fraser Drive, Suite 209, Burlington ON L7L 5P5, Canada</p></div><div className="flex max-w-xl flex-wrap gap-x-5 gap-y-3 text-sm font-semibold text-[#a4b19e]"><Link className="transition hover:text-[#83ff00]" href="#features">Features</Link><Link className="transition hover:text-[#83ff00]" href="#pricing">Pricing</Link><Link className="transition hover:text-[#83ff00]" href="#faq">FAQ</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/affiliates/">Affiliates</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/support/">Support</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/terms/terms.php">Terms</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/terms/privacy.php">Privacy</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/tutorials/">Tutorials</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/fb/">FB Group</Link></div></div>
+        <div className="flex flex-col justify-between gap-4 pt-6 text-xs text-[#6f6f6f] sm:flex-row"><span>© Airveek. All rights reserved.</span><span className="inline-flex items-center gap-1">Made with <Heart className="h-3.5 w-3.5 fill-[#83ff00] text-[#83ff00]" aria-hidden="true" /> in Canada</span></div>
       </div>
     </footer>
   );

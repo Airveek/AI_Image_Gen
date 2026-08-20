@@ -18,11 +18,15 @@ const k2d = K2D({
 
 export const metadata: Metadata = {
   title: {
-    default: "Artistly: All-in-One AI Image Generator",
-    template: "%s | Artistly",
+    default: "Airveek: All-in-One AI Image Generator",
+    template: "%s | Airveek",
   },
   description:
-    "Create images, logos, and commercial artwork from a keyword with Artistly AI.",
+    "Create images, logos, and commercial artwork from a keyword with Airveek.",
+  icons: {
+    icon: "/images/airveek/mark-square.png",
+    apple: "/images/airveek/mark-square.png",
+  },
 };
 
 export default function RootLayout({
