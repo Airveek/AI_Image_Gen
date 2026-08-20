@@ -1,5 +1,5 @@
-import { PromoBar } from "@/components/artistly/promo-bar";
-import { SiteHeader } from "@/components/artistly/site-header";
+import { PromoBar } from "@/components/airveek/promo-bar";
+import { SiteHeader } from "@/components/airveek/site-header";
 import {
   AudienceSection,
   BusinessSection,
@@ -14,8 +14,8 @@ import {
   TextProofSection,
   TrustStrip,
   UseCasesSection,
-} from "@/components/artistly/landing-sections";
-import { FaqSection } from "@/components/artistly/faq-section";
+} from "@/components/airveek/landing-sections";
+import { FaqSection } from "@/components/airveek/faq-section";
 
 export default function Home() {
   return (

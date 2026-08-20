@@ -15,29 +15,29 @@ type Artwork = {
 };
 
 const artworks: Artwork[] = [
-  { src: "/images/artistly/unlock/slider/ul-s1.png", width: 244, height: 302 },
-  { src: "/images/artistly/unlock/slider/ul-s2.png", width: 300, height: 300 },
-  { src: "/images/artistly/unlock/slider/ul-s3.png", width: 220, height: 300 },
-  { src: "/images/artistly/unlock/slider/ul-s4.png", width: 220, height: 300 },
-  { src: "/images/artistly/unlock/slider/ul-s5.png", width: 220, height: 250 },
-  { src: "/images/artistly/unlock/slider/ul-s6.png", width: 300, height: 250 },
-  { src: "/images/artistly/unlock/slider/ul-s7.png", width: 220, height: 300 },
-  { src: "/images/artistly/unlock/slider/ul-s8.png", width: 220, height: 250 },
-  { src: "/images/artistly/unlock/slider/ul-s9.png", width: 220, height: 300 },
-  { src: "/images/artistly/unlock/slider/ul-s10.png", width: 300, height: 250 },
-  { src: "/images/artistly/unlock/slider/ul-s11.png", width: 220, height: 300 },
-  { src: "/images/artistly/unlock/slider/ul-s12.png", width: 220, height: 300 },
-  { src: "/images/artistly/unlock/slider/ul-s13.png", width: 220, height: 250 },
-  { src: "/images/artistly/unlock/slider/ul-s14.png", width: 300, height: 300 },
-  { src: "/images/artistly/unlock/slider/ul-s15.png", width: 220, height: 300 },
-  { src: "/images/artistly/unlock/slider/ul-s16.png", width: 220, height: 250 },
-  { src: "/images/artistly/unlock/slider/ul-s17.png", width: 220, height: 300 },
-  { src: "/images/artistly/unlock/slider/ul-s18.png", width: 300, height: 300 },
-  { src: "/images/artistly/unlock/slider/ul-s19.png", width: 220, height: 300 },
-  { src: "/images/artistly/unlock/slider/ul-s20.png", width: 220, height: 300 },
-  { src: "/images/artistly/unlock/slider/ul-s21.png", width: 220, height: 250 },
-  { src: "/images/artistly/unlock/slider/ul-s22.png", width: 300, height: 300 },
-  { src: "/images/artistly/unlock/slider/ul-s23.png", width: 220, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s1.png", width: 244, height: 302 },
+  { src: "/images/airveek/unlock/slider/ul-s2.png", width: 300, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s3.png", width: 220, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s4.png", width: 220, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s5.png", width: 220, height: 250 },
+  { src: "/images/airveek/unlock/slider/ul-s6.png", width: 300, height: 250 },
+  { src: "/images/airveek/unlock/slider/ul-s7.png", width: 220, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s8.png", width: 220, height: 250 },
+  { src: "/images/airveek/unlock/slider/ul-s9.png", width: 220, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s10.png", width: 300, height: 250 },
+  { src: "/images/airveek/unlock/slider/ul-s11.png", width: 220, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s12.png", width: 220, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s13.png", width: 220, height: 250 },
+  { src: "/images/airveek/unlock/slider/ul-s14.png", width: 300, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s15.png", width: 220, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s16.png", width: 220, height: 250 },
+  { src: "/images/airveek/unlock/slider/ul-s17.png", width: 220, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s18.png", width: 300, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s19.png", width: 220, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s20.png", width: 220, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s21.png", width: 220, height: 250 },
+  { src: "/images/airveek/unlock/slider/ul-s22.png", width: 300, height: 300 },
+  { src: "/images/airveek/unlock/slider/ul-s23.png", width: 220, height: 300 },
 ];
 
 const benefits = ["unlimited designs", "unique images", "commercial use"];
@@ -82,14 +82,14 @@ export function UnlockCreativitySection() {
   return (
     <section
       id="unlock-creativity"
-      className="relative z-0 -mt-[130px] bg-[url('/images/artistly/unlock/background.png')] bg-cover bg-center bg-no-repeat py-[170px] text-center max-[575px]:py-20"
+      className="relative z-0 -mt-[130px] bg-[url('/images/airveek/unlock/background.png')] bg-cover bg-center bg-no-repeat py-[170px] text-center max-[575px]:py-20"
       aria-labelledby="unlock-creativity-title"
     >
       <div className={containerClass}>
         <div className="relative inline-block rounded-[40px] bg-[#312a44] py-[5px] pl-[120px] pr-10 max-[575px]:px-5">
           <Image
             className="absolute -left-[70px] -top-[60px] h-[150px] w-[169px] max-[575px]:hidden"
-            src="/images/artistly/unlock/heading.png"
+            src="/images/airveek/unlock/heading.png"
             alt=""
             width={169}
             height={150}
@@ -106,7 +106,7 @@ export function UnlockCreativitySection() {
         <div className="relative mx-auto mt-10 max-w-[910px] rounded-[20px] bg-black/30 px-5 py-[15px] max-[575px]:mt-[60px]">
           <Image
             className="absolute -left-1 top-1/2 h-32 w-2 -translate-y-1/2"
-            src="/images/artistly/unlock/orange-line.png"
+            src="/images/airveek/unlock/orange-line.png"
             alt=""
             width={8}
             height={128}
@@ -114,7 +114,7 @@ export function UnlockCreativitySection() {
           />
           <Image
             className="absolute -right-1 top-1/2 h-32 w-2 -translate-y-1/2"
-            src="/images/artistly/unlock/yellow-line.png"
+            src="/images/airveek/unlock/yellow-line.png"
             alt=""
             width={8}
             height={128}
@@ -159,7 +159,7 @@ export function UnlockCreativitySection() {
               <Image
                 className="h-auto w-full rounded-[10px]"
                 src={artwork.src}
-                alt={`Artistly AI artwork example ${index + 1}`}
+                alt={`Airveek AI artwork example ${index + 1}`}
                 width={artwork.width}
                 height={artwork.height}
                 sizes="(max-width: 574px) 48vw, (max-width: 767px) 32vw, (max-width: 991px) 24vw, (max-width: 1199px) 19vw, 12vw"
@@ -193,7 +193,7 @@ export function UnlockCreativitySection() {
             <li className="flex items-center" key={benefit}>
               <Image
                 className="h-[60px] w-[57px] shrink-0"
-                src="/images/artistly/unlock/success-icon.png"
+                src="/images/airveek/unlock/success-icon.png"
                 alt=""
                 width={57}
                 height={60}

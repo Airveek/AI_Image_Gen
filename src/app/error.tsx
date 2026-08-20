@@ -9,7 +9,7 @@ export default function ErrorPage({
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl items-center px-6 py-16">
       <section aria-labelledby="error-title">
-        <p className="text-sm font-medium text-muted">Something went wrong</p>
+        <p className="text-sm font-medium text-[#83ff00]">Airveek</p>
         <h1
           id="error-title"
           className="mt-3 text-4xl font-semibold tracking-tight"
@@ -22,7 +22,7 @@ export default function ErrorPage({
         <button
           type="button"
           onClick={reset}
-          className="mt-8 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-85"
+          className="mt-8 rounded-full bg-[#83ff00] px-5 py-3 text-sm font-semibold text-[#040404] transition-opacity hover:opacity-85"
         >
           Try again
         </button>
