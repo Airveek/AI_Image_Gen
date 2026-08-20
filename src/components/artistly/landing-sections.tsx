@@ -72,7 +72,16 @@ export function HeroSection() {
                 <div className="mt-6 flex items-center gap-2 text-xs font-bold text-[#83ff00]"><span className="grid h-5 w-5 place-items-center rounded-full bg-[#83ff00]/15"><Check className="h-3 w-3" aria-hidden="true" /></span> Ready in seconds</div>
               </div>
               <div className="relative min-h-[290px] overflow-hidden rounded-2xl border border-[#83ff00]/30 bg-gradient-to-br from-[#2ac414]/20 to-[#83ff00]/10">
-                <Image className="absolute inset-0 h-full w-full object-cover" src={artworks[4].src} alt="Finished AI-generated product design" width={artworks[4].width} height={artworks[4].height} priority sizes="(max-width: 767px) 100vw, 50vw" />
+                <Image
+                  className="absolute inset-0 h-full w-full object-cover"
+                  src="/images/artistly/hero-coffee-campaign-v3.png"
+                  alt="AI-generated Summer Coffee Sale campaign with a giant iced coffee racing along a coastal road"
+                  width={1254}
+                  height={1254}
+                  preload
+                  quality={90}
+                  sizes="(max-width: 767px) 100vw, 50vw"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#040404]/90 via-transparent to-transparent" />
                 <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4">
                   <div><p className="m-0 text-xs font-bold uppercase tracking-[0.16em] text-[#b8ff6b]">Generated result</p><p className="mt-1 text-sm font-bold text-[#fdfdfd]">Readable text. Ready to use.</p></div>
