@@ -9,19 +9,34 @@ type FeatureCardProps = {
 export function FeatureCard({ feature }: FeatureCardProps) {
   const Icon = feature.icon;
   const artwork = feature.artwork ?? artworks[feature.imageIndex % artworks.length];
+  const isContainedArtwork = artwork.fit === "contain" || artwork.width <= artwork.height;
+  const isLogoArtwork = artwork.src.includes("ai-logo-maker");
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-white/10 bg-white/[0.05] transition duration-200 hover:-translate-y-1 hover:border-[#83ff00]/50 hover:bg-[#83ff00]/[0.06]">
-      <div className="relative aspect-[1.35] overflow-hidden bg-[#0b120b]">
+      <div className={`relative aspect-[1.35] overflow-hidden ${isContainedArtwork ? "bg-[#030708]" : "bg-[#0b120b]"}`}>
+        {isContainedArtwork ? (
+          <>
+            <Image
+              className="absolute inset-0 z-0 h-full w-full scale-110 object-cover opacity-90 blur-md"
+              src={artwork.src}
+              alt=""
+              width={artwork.width}
+              height={artwork.height}
+              aria-hidden="true"
+              sizes="(max-width: 767px) 100vw, (max-width: 1199px) 50vw, 33vw"
+            />
+          </>
+        ) : null}
         <Image
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          className={`absolute inset-0 z-10 transition duration-500 ${isContainedArtwork ? `m-auto h-auto w-auto max-h-full max-w-full object-contain ${isLogoArtwork ? "scale-110" : ""}` : "h-full w-full min-h-full min-w-full object-cover group-hover:scale-105"}`}
           src={artwork.src}
           alt={artwork.alt}
           width={artwork.width}
           height={artwork.height}
           sizes="(max-width: 767px) 100vw, (max-width: 1199px) 50vw, 33vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#040404]/85 via-transparent to-transparent" />
+        <div className="absolute inset-0 z-20 bg-gradient-to-t from-[#040404]/85 via-transparent to-transparent" />
         {feature.tag ? <span className="absolute left-4 top-4 rounded-full bg-[#83ff00] px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-[#040404]">{feature.tag}</span> : null}
       </div>
       <div className="p-5 sm:p-6">
