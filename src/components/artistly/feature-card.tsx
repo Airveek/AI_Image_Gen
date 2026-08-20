@@ -8,7 +8,7 @@ type FeatureCardProps = {
 
 export function FeatureCard({ feature }: FeatureCardProps) {
   const Icon = feature.icon;
-  const artwork = artworks[feature.imageIndex % artworks.length];
+  const artwork = feature.artwork ?? artworks[feature.imageIndex % artworks.length];
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-white/10 bg-white/[0.05] transition duration-200 hover:-translate-y-1 hover:border-[#83ff00]/50 hover:bg-[#83ff00]/[0.06]">

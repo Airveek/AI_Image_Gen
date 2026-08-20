@@ -31,6 +31,7 @@ export type Feature = {
   description: string;
   icon: LucideIcon;
   imageIndex: number;
+  artwork?: Artwork;
   tag?: string;
 };
 
@@ -56,18 +57,44 @@ export const artworks: Artwork[] = [
   { src: "/images/artistly/unlock/slider/ul-s12.png", width: 220, height: 300, alt: "AI-generated fantasy portrait" },
 ];
 
+export const featureArtworks = {
+  unlimitedAiImageCreator: { src: "/images/artistly/features/unlimited-ai-image-creator-v2.png", width: 1536, height: 1024, alt: "Prismatic AI creativity studio surrounded by diverse generated artworks" },
+  perfectTextInAiImages: { src: "/images/artistly/features/perfect-text-in-ai-images.png", width: 1536, height: 1024, alt: "Premium coffee campaign poster reading Summer Coffee Sale" },
+  aiProductMockupCreator: { src: "/images/artistly/features/ai-product-mockup-creator.png", width: 1536, height: 1024, alt: "Premium ecommerce product mockup collection" },
+  aiProductPhotographer: { src: "/images/artistly/features/ai-product-photographer.png", width: 1536, height: 1024, alt: "Glass water bottle surrounded by glowing crystal water" },
+  instantSceneBackgroundEditor: { src: "/images/artistly/features/instant-scene-background-editor.png", width: 1536, height: 1024, alt: "Cinematic moon landscape with Earth behind a seated person" },
+  smartImageExpander: { src: "/images/artistly/features/smart-image-expander.png", width: 1536, height: 1024, alt: "Alpine valley panorama surrounding a mountain cabin" },
+  aiLogoMaker: { src: "/images/artistly/features/ai-logo-maker-v2.png", width: 1536, height: 1024, alt: "Coral, cobalt, lilac, and gold logo identity moodboard" },
+  canvasStyleImageEditor: { src: "/images/artistly/features/canvas-style-image-editor-v2.png", width: 1536, height: 1024, alt: "Layered creative canvas with cobalt, coral, lilac, and saffron collage elements" },
+  coloringBookGenerator: { src: "/images/artistly/features/coloring-book-generator.png", width: 1536, height: 1024, alt: "Premium woodland coloring-book spread with colored pencils" },
+  consistentCharacter: { src: "/images/artistly/features/consistent-character-v2.png", width: 1536, height: 1024, alt: "The same woman with an identical face across lavender, coral, and snowy scenes" },
+  aiImageUpscaler: { src: "/images/artistly/features/ai-image-upscaler-v2.png", width: 1536, height: 1024, alt: "Kingfisher photo transitioning from visible pixels to sharp feather detail" },
+  aiHumanInpainting: { src: "/images/artistly/features/ai-human-inpainting-v2.png", width: 1536, height: 1024, alt: "Portrait transformation with a brush boundary changing hair, clothing, and background" },
+  aiStyleReplicator: { src: "/images/artistly/features/ai-style-replicator.png", width: 1536, height: 1024, alt: "Portrait, landscape, and floral artworks sharing one painterly style" },
+  personalizedStorybookMaker: { src: "/images/artistly/features/personalized-storybook-maker.png", width: 1536, height: 1024, alt: "Child and fox discovering a glowing doorway in an enchanted forest" },
+  talkingStorybookCreator: { src: "/images/artistly/features/talking-storybook-creator.png", width: 1536, height: 1024, alt: "Fox storyteller and child with glowing sound waves above an open storybook" },
+  multilingualStorybookMaker: { src: "/images/artistly/features/multilingual-storybook-maker.png", width: 1536, height: 1024, alt: "Children from different cultures exploring one glowing storybook" },
+  virtualModelCreator: { src: "/images/artistly/features/virtual-model-creator-v2.png", width: 1536, height: 1024, alt: "Three models wearing the same cobalt overshirt in a studio lookbook" },
+  aiFashionDesigner: { src: "/images/artistly/features/ai-fashion-designer-v2.png", width: 1536, height: 1024, alt: "Couture model in a sapphire, tangerine, blush, and gold fashion design" },
+  aiThumbnailMaker: { src: "/images/artistly/features/ai-thumbnail-maker.png", width: 1536, height: 1024, alt: "Creator holding a camera against bold cobalt, lime, and coral shapes" },
+  aiCharacterCreator: { src: "/images/artistly/features/ai-character-creator.png", width: 1536, height: 1024, alt: "Fantasy skyship captain with a floating mechanical companion" },
+  bulkClipartDesigner: { src: "/images/artistly/features/bulk-clipart-designer.png", width: 1536, height: 1024, alt: "Collection of colorful standalone clipart illustrations" },
+} satisfies Record<string, Artwork>;
+
 export const features: Feature[] = [
   {
     title: "Unlimited AI Image Creator",
     description: "Turn a few words into professional visuals for marketing, social media, and presentations.",
     icon: WandSparkles,
     imageIndex: 0,
+    artwork: featureArtworks.unlimitedAiImageCreator,
   },
   {
     title: "Perfect Text in AI Images",
     description: "Create posters, logos, shirts, and ads with readable text that looks right the first time.",
     icon: TypeIcon,
     imageIndex: 1,
+    artwork: featureArtworks.perfectTextInAiImages,
     tag: "Popular",
   },
   {
@@ -75,42 +102,49 @@ export const features: Feature[] = [
     description: "Put your designs on shirts, mugs, packaging, and more without a photoshoot.",
     icon: ShoppingBag,
     imageIndex: 2,
+    artwork: featureArtworks.aiProductMockupCreator,
   },
   {
     title: "AI Product Photographer",
     description: "Place a product into polished scenes for your store, ads, or social posts.",
     icon: Camera,
     imageIndex: 3,
+    artwork: featureArtworks.aiProductPhotographer,
   },
   {
     title: "Instant Scene Background Editor",
     description: "Replace backgrounds, refine lighting, and create realistic shadows in minutes.",
     icon: ImageIcon,
     imageIndex: 4,
+    artwork: featureArtworks.instantSceneBackgroundEditor,
   },
   {
     title: "Smart Image Expander",
     description: "Extend an image beyond its edges and fill in the missing details naturally.",
     icon: Expand,
     imageIndex: 5,
+    artwork: featureArtworks.smartImageExpander,
   },
   {
     title: "AI Logo Maker",
     description: "Create editable logos and brand assets with a simple prompt and unlimited revisions.",
     icon: PenTool,
     imageIndex: 6,
+    artwork: featureArtworks.aiLogoMaker,
   },
   {
     title: "Canvas-Style Image Editor",
     description: "Add text, graphics, and effects with a simple drag-and-drop editing workflow.",
     icon: LayoutTemplate,
     imageIndex: 7,
+    artwork: featureArtworks.canvasStyleImageEditor,
   },
   {
     title: "Coloring Book Generator",
     description: "Make kid-friendly coloring pages for activities, books, gifts, or Etsy products.",
     icon: Palette,
     imageIndex: 8,
+    artwork: featureArtworks.coloringBookGenerator,
     tag: "New",
   },
   {
@@ -118,30 +152,35 @@ export const features: Feature[] = [
     description: "Keep a character looking the same across scenes, outfits, stories, and brand content.",
     icon: Users,
     imageIndex: 9,
+    artwork: featureArtworks.consistentCharacter,
   },
   {
     title: "AI Image Upscaler",
     description: "Increase image size and sharpness for high-quality downloads and print projects.",
     icon: Sparkles,
     imageIndex: 10,
+    artwork: featureArtworks.aiImageUpscaler,
   },
   {
     title: "AI Human Inpainting",
     description: "Change hair, clothing, accessories, and backgrounds with one simple prompt.",
     icon: Eraser,
     imageIndex: 11,
+    artwork: featureArtworks.aiHumanInpainting,
   },
   {
     title: "AI Style Replicator",
     description: "Upload a style reference and create new artwork that keeps the look and feel consistent.",
     icon: Palette,
     imageIndex: 2,
+    artwork: featureArtworks.aiStyleReplicator,
   },
   {
     title: "Personalized Storybook Maker",
     description: "Create illustrated stories with personal details, custom characters, and ready-to-share pages.",
     icon: BookOpen,
     imageIndex: 3,
+    artwork: featureArtworks.personalizedStorybookMaker,
     tag: "New",
   },
   {
@@ -149,6 +188,7 @@ export const features: Feature[] = [
     description: "Add lifelike narration to story pages for immersive digital and educational experiences.",
     icon: WandSparkles,
     imageIndex: 5,
+    artwork: featureArtworks.talkingStorybookCreator,
     tag: "New",
   },
   {
@@ -156,6 +196,7 @@ export const features: Feature[] = [
     description: "Translate and customize stories for bilingual families, learners, and global audiences.",
     icon: BookOpen,
     imageIndex: 7,
+    artwork: featureArtworks.multilingualStorybookMaker,
     tag: "New",
   },
   {
@@ -163,18 +204,21 @@ export const features: Feature[] = [
     description: "Place your designs on realistic models for ecommerce listings without a studio shoot.",
     icon: Users,
     imageIndex: 6,
+    artwork: featureArtworks.virtualModelCreator,
   },
   {
     title: "AI Fashion Designer",
     description: "Change outfits, textures, colors, and accessories with a simple prompt.",
     icon: Shirt,
     imageIndex: 9,
+    artwork: featureArtworks.aiFashionDesigner,
   },
   {
     title: "AI Thumbnail Maker",
     description: "Turn a title or topic into bold thumbnails for YouTube, blogs, and social media.",
     icon: Megaphone,
     imageIndex: 10,
+    artwork: featureArtworks.aiThumbnailMaker,
     tag: "New",
   },
   {
@@ -182,12 +226,14 @@ export const features: Feature[] = [
     description: "Describe a hero, sidekick, or villain and create an original character for your story or game.",
     icon: Users,
     imageIndex: 1,
+    artwork: featureArtworks.aiCharacterCreator,
   },
   {
     title: "Bulk Clipart Designer",
     description: "Generate a large collection of unique clipart from one prompt for digital products and stickers.",
     icon: Layers3,
     imageIndex: 8,
+    artwork: featureArtworks.bulkClipartDesigner,
     tag: "New",
   },
 ];
