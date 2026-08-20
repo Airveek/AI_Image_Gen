@@ -24,6 +24,7 @@ export type Artwork = {
   width: number;
   height: number;
   alt: string;
+  fit?: "contain" | "cover";
 };
 
 export type Feature = {
@@ -57,15 +58,33 @@ export const artworks: Artwork[] = [
   { src: "/images/airveek/unlock/slider/ul-s12.png", width: 220, height: 300, alt: "AI-generated fantasy portrait" },
 ];
 
+export const galleryArtworks: Artwork[] = [
+  { src: "/images/artistly/features/AI-Image/nickype-ai-generated-8783349_1920.jpg", width: 1086, height: 1920, alt: "AI-generated vertical fantasy artwork" },
+  { src: "/images/artistly/features/AI-Image/StockCake-Gothic_Cathedral_Warrior-4972014-standard.png", width: 1408, height: 1408, alt: "AI-generated gothic cathedral warrior artwork" },
+  { src: "/images/artistly/features/AI-Image/01-0429668-65bba28868e06.png", width: 1024, height: 1360, alt: "AI-generated portrait artwork" },
+  { src: "/images/artistly/features/AI-Image/12-0315400-65a0b7e5f1c4c.png", width: 1024, height: 1360, alt: "AI-generated illustrated character artwork" },
+  { src: "/images/artistly/features/AI-Image/07-0656752-6639ead607bd2.png", width: 1024, height: 1360, alt: "AI-generated fantasy character artwork" },
+  { src: "/images/artistly/features/AI-Image/01-0427665-65baefc40c9e8.png", width: 1024, height: 1360, alt: "AI-generated astronaut artwork" },
+  { src: "/images/artistly/features/AI-Image/18-0353466-65a9506e2dbb8.png", width: 1024, height: 1360, alt: "AI-generated portrait with glowing light artwork" },
+  { src: "/images/artistly/features/AI-Image/07-0560076-65e984ea0be17.png", width: 1024, height: 1360, alt: "AI-generated tiger warrior artwork" },
+  { src: "/images/artistly/features/AI-Image/13-0470100-65cb24b6b28e6.png", width: 1024, height: 1360, alt: "AI-generated fantasy illustration" },
+  { src: "/images/artistly/features/AI-Image/22-1096280-6a393c2dcc74f.png", width: 896, height: 1200, alt: "AI-generated illustrated scene" },
+  { src: "/images/artistly/features/AI-Image/17-0344968-65a7a11b019db.png", width: 1024, height: 1024, alt: "AI-generated square portrait artwork" },
+  { src: "/images/artistly/features/AI-Image/StockCake-Pop_Art_Portrait-4952110-standard.png", width: 1024, height: 1024, alt: "AI-generated pop art portrait" },
+  { src: "/images/artistly/features/AI-Image/StockCake-Cyberpunk_Canine_Glow-2204566-standard.png", width: 768, height: 1344, alt: "AI-generated cyberpunk canine artwork" },
+  { src: "/images/artistly/features/AI-Image/StockCake-Ethereal_Anime_Magic-4713678-standard.png", width: 768, height: 1344, alt: "AI-generated ethereal anime magic artwork" },
+  { src: "/images/artistly/features/AI-Image/StockCake-Industrial_Watercolor_Portrait-4968131-standard.png", width: 720, height: 1280, alt: "AI-generated industrial watercolor portrait" },
+];
+
 export const featureArtworks = {
-  unlimitedAiImageCreator: { src: "/images/artistly/features/unlimited-ai-image-creator-v2.png", width: 1536, height: 1024, alt: "Prismatic AI creativity studio surrounded by diverse generated artworks" },
-  perfectTextInAiImages: { src: "/images/artistly/features/perfect-text-in-ai-images.png", width: 1536, height: 1024, alt: "Premium coffee campaign poster reading Summer Coffee Sale" },
-  aiProductMockupCreator: { src: "/images/artistly/features/ai-product-mockup-creator.png", width: 1536, height: 1024, alt: "Premium ecommerce product mockup collection" },
-  aiProductPhotographer: { src: "/images/artistly/features/ai-product-photographer.png", width: 1536, height: 1024, alt: "Glass water bottle surrounded by glowing crystal water" },
-  instantSceneBackgroundEditor: { src: "/images/artistly/features/instant-scene-background-editor.png", width: 1536, height: 1024, alt: "Cinematic moon landscape with Earth behind a seated person" },
-  smartImageExpander: { src: "/images/artistly/features/smart-image-expander.png", width: 1536, height: 1024, alt: "Alpine valley panorama surrounding a mountain cabin" },
-  aiLogoMaker: { src: "/images/artistly/features/ai-logo-maker-v2.png", width: 1536, height: 1024, alt: "Coral, cobalt, lilac, and gold logo identity moodboard" },
-  canvasStyleImageEditor: { src: "/images/artistly/features/canvas-style-image-editor-v2.png", width: 1536, height: 1024, alt: "Layered creative canvas with cobalt, coral, lilac, and saffron collage elements" },
+  unlimitedAiImageCreator: { src: "/images/artistly/features/unlimited-ai-image-creator-v3.png", width: 1536, height: 1024, alt: "Luminous AI creativity studio with floating portrait, landscape, astronaut, perfume, and abstract artwork panels" },
+  perfectTextInAiImages: { src: "/images/artistly/features/perfect-text-in-ai-images-v2.png", width: 1536, height: 1024, alt: "Premium coffee campaign poster with perfectly readable Summer Coffee Sale typography" },
+  aiProductMockupCreator: { src: "/images/artistly/features/ai-product-mockup-creator-v2.png", width: 960, height: 1696, alt: "Airveek branded glowing water bottle product mockup suspended between crystalline rocks" },
+  aiProductPhotographer: { src: "/images/artistly/features/ai-product-photographer-v2.png", width: 1254, height: 1254, alt: "Chocolate spread jar photographed in a miniature snowy mountain scene with tiny skiers" },
+  instantSceneBackgroundEditor: { src: "/images/artistly/features/instant-scene-background-editor-v3.png", width: 1536, height: 1024, alt: "Surreal tropical scene with a scooter rider, tigers, palm trees, and a motion-blurred road" },
+  smartImageExpander: { src: "/images/artistly/features/smart-image-expander-v2.png", width: 1536, height: 1024, alt: "Expanded panoramic alpine valley with a warmly lit cabin, winding river, and snow-capped mountains" },
+  aiLogoMaker: { src: "/images/artistly/features/ai-logo-maker-v3.jpg", width: 1200, height: 1800, alt: "Futuristic black, gold, and electric blue gaming logo emblem" },
+  canvasStyleImageEditor: { src: "/images/artistly/features/canvas-style-image-editor-v3.jpg", width: 1200, height: 1600, alt: "Painterly portrait surrounded by colorful expressive brush strokes" },
   coloringBookGenerator: { src: "/images/artistly/features/coloring-book-generator.png", width: 1536, height: 1024, alt: "Premium woodland coloring-book spread with colored pencils" },
   consistentCharacter: { src: "/images/artistly/features/consistent-character-v2.png", width: 1536, height: 1024, alt: "The same woman with an identical face across lavender, coral, and snowy scenes" },
   aiImageUpscaler: { src: "/images/artistly/features/ai-image-upscaler-v2.png", width: 1536, height: 1024, alt: "Kingfisher photo transitioning from visible pixels to sharp feather detail" },
@@ -76,7 +95,7 @@ export const featureArtworks = {
   multilingualStorybookMaker: { src: "/images/artistly/features/multilingual-storybook-maker.png", width: 1536, height: 1024, alt: "Children from different cultures exploring one glowing storybook" },
   virtualModelCreator: { src: "/images/artistly/features/virtual-model-creator-v2.png", width: 1536, height: 1024, alt: "Three models wearing the same cobalt overshirt in a studio lookbook" },
   aiFashionDesigner: { src: "/images/artistly/features/ai-fashion-designer-v2.png", width: 1536, height: 1024, alt: "Couture model in a sapphire, tangerine, blush, and gold fashion design" },
-  aiThumbnailMaker: { src: "/images/artistly/features/ai-thumbnail-maker.png", width: 1536, height: 1024, alt: "Creator holding a camera against bold cobalt, lime, and coral shapes" },
+  aiThumbnailMaker: { src: "/images/artistly/features/ai-thumbnail-maker.png", width: 1452, height: 1083, alt: "Creator holding a camera against bold cobalt, lime, and coral shapes", fit: "contain" },
   aiCharacterCreator: { src: "/images/artistly/features/ai-character-creator.png", width: 1536, height: 1024, alt: "Fantasy skyship captain with a floating mechanical companion" },
   bulkClipartDesigner: { src: "/images/artistly/features/bulk-clipart-designer.png", width: 1536, height: 1024, alt: "Collection of colorful standalone clipart illustrations" },
 } satisfies Record<string, Artwork>;

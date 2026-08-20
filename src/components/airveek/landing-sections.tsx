@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { CtaButton } from "./cta-button";
 import { FeatureCard } from "./feature-card";
-import { audiences, artworks, features, recapFeatures, useCases } from "./landing-data";
+import { audiences, artworks, features, galleryArtworks, recapFeatures, useCases } from "./landing-data";
 import { SectionHeading } from "./section-heading";
 
 const trustItems = ["Commercial use", "No monthly fee", "HD downloads", "30-day guarantee"];
@@ -129,10 +129,10 @@ export function GallerySection() {
       <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-[#83ff00]/10 to-transparent" aria-hidden="true" />
       <div className="relative mx-auto max-w-7xl">
         <SectionHeading titleId="gallery-title" eyebrow="See what you can create" title="One idea can become a whole library of finished visuals." description="From product images and logos to coloring pages and social posts, Airveek gives you a faster way to make the work you already need." />
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {artworks.map((artwork, index) => (
-            <div className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-[#0b120b] ${index % 5 === 0 ? "sm:row-span-2" : ""}`} key={artwork.src}>
-              <Image className="h-full min-h-44 w-full object-cover transition duration-500 group-hover:scale-105" src={artwork.src} alt={artwork.alt} width={artwork.width} height={artwork.height} sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 17vw" />
+        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {galleryArtworks.map((artwork) => (
+            <div className="group relative flex aspect-[4/5] items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#0b120b]" key={artwork.src}>
+              <Image className="h-full w-full object-contain p-1 transition duration-500 sm:p-2" src={artwork.src} alt={artwork.alt} width={artwork.width} height={artwork.height} sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 17vw" />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#040404] to-transparent px-3 pb-3 pt-10 text-xs font-bold text-[#fdfdfd] opacity-0 transition duration-200 group-hover:opacity-100">Airveek creation</div>
             </div>
           ))}
