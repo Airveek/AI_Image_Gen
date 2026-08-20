@@ -69,7 +69,7 @@ a {
   outline-offset: 4px;
 }
 
-/* Artistly brand surface helpers: black-first, green-led, and deliberately restrained. */
+/* Airveek brand surface helpers: black-first, green-led, and deliberately restrained. */
 .brand-glow {
   background:
     radial-gradient(circle at 82% 14%, rgb(131 255 0 / 0.2), transparent 28%),
@@ -79,10 +79,6 @@ a {
 
 .cta-primary {
   color: var(--brand-black) !important;
-}
-
-.brand-logo {
-  filter: hue-rotate(178deg) saturate(1.35) brightness(1.08);
 }
 
 @media (prefers-reduced-motion: reduce) {

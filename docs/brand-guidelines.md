@@ -1,10 +1,10 @@
-# Artistly Green Signal Brand Guidelines
+# Airveek Green Signal Brand Guidelines
 
 ## Brand direction
 
-Artistly now uses a black-first visual identity built around one high-energy green signal. The system should feel focused, technical, confident, and minimal: dark surfaces create depth, neon green indicates action and progress, and neutral text keeps the page readable.
+Airveek uses a black-first visual identity built around one high-energy green signal. The system should feel focused, technical, confident, and minimal: dark surfaces create depth, neon green indicates action and progress, and neutral text keeps the page readable.
 
-The supplied reference is the source for the palette. The original Artistly typography is intentionally preserved: Inter for body copy and K2D for display headings.
+The supplied Airveek logo reference is the source for the identity. The existing typography is intentionally preserved: Inter for body copy and K2D for display headings.
 
 ## Color palette
 

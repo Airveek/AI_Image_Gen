@@ -6,8 +6,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-20 border-b border-[#83ff00]/15 bg-[#040404]/85 px-4 py-3 backdrop-blur-xl sm:px-6">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-        <Link className="shrink-0 rounded-lg" href="#top" aria-label="Artistly home">
-          <Image src="/images/artistly/logo.png" alt="Artistly 6.0" width={236} height={52} className="brand-logo h-auto w-[154px] sm:w-[190px]" priority />
+        <Link className="shrink-0 rounded-lg" href="#top" aria-label="Airveek home">
+          <Image src="/images/airveek/logo.png" alt="Airveek" width={1881} height={358} className="h-auto w-[200px] sm:w-[247px]" priority />
         </Link>
         <nav className="hidden items-center gap-6 text-sm font-semibold text-[#a4b19e] lg:flex" aria-label="Main navigation">
           <Link className="transition hover:text-[#83ff00]" href="#how-it-works">How it works</Link>
