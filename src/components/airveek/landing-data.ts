@@ -41,6 +41,7 @@ export type Audience = {
   description: string;
   icon: LucideIcon;
   imageIndex: number;
+  artwork?: Artwork;
 };
 
 export const artworks: Artwork[] = [
@@ -78,7 +79,7 @@ export const galleryArtworks: Artwork[] = [
 
 export const featureArtworks = {
   unlimitedAiImageCreator: { src: "/images/artistly/features/unlimited-ai-image-creator-v3.png", width: 1536, height: 1024, alt: "Luminous AI creativity studio with floating portrait, landscape, astronaut, perfume, and abstract artwork panels" },
-  perfectTextInAiImages: { src: "/images/artistly/features/perfect-text-in-ai-images-v2.png", width: 1536, height: 1024, alt: "Premium coffee campaign poster with perfectly readable Summer Coffee Sale typography" },
+  perfectTextInAiImages: { src: "/images/artistly/features/perfect-text-in-ai-images-v3.png", width: 1536, height: 1024, alt: "Futuristic sneaker launch poster with perfectly readable RUN THE FUTURE and NIGHT SHIFT / 01 typography" },
   aiProductMockupCreator: { src: "/images/artistly/features/ai-product-mockup-creator-v2.png", width: 960, height: 1696, alt: "Airveek branded glowing water bottle product mockup suspended between crystalline rocks" },
   aiProductPhotographer: { src: "/images/artistly/features/ai-product-photographer-v2.png", width: 1254, height: 1254, alt: "Chocolate spread jar photographed in a miniature snowy mountain scene with tiny skiers" },
   instantSceneBackgroundEditor: { src: "/images/artistly/features/instant-scene-background-editor-v3.png", width: 1536, height: 1024, alt: "Surreal tropical scene with a scooter rider, tigers, palm trees, and a motion-blurred road" },
@@ -96,6 +97,12 @@ export const featureArtworks = {
   virtualModelCreator: { src: "/images/artistly/features/virtual-model-creator-v2.png", width: 1536, height: 1024, alt: "Three models wearing the same cobalt overshirt in a studio lookbook" },
   aiFashionDesigner: { src: "/images/artistly/features/ai-fashion-designer-v2.png", width: 1536, height: 1024, alt: "Couture model in a sapphire, tangerine, blush, and gold fashion design" },
   aiThumbnailMaker: { src: "/images/artistly/features/ai-thumbnail-maker.png", width: 1452, height: 1083, alt: "Creator holding a camera against bold cobalt, lime, and coral shapes", fit: "contain" },
+  printOnDemand: { src: "/images/artistly/audiences/print-on-demand-merchandise-v1.png", width: 1536, height: 1024, alt: "Blank cream t-shirt, charcoal hoodie, ceramic mug, and canvas tote arranged for print-on-demand merchandise" },
+  ecommerceAudience: { src: "/images/artistly/audiences/ecommerce-product-mockup-v1.png", width: 1254, height: 1254, alt: "Minimal skincare bottle and packaging arranged on a stone pedestal for ecommerce" },
+  marketingAudience: { src: "/images/artistly/audiences/marketing-campaign-visual-v1.png", width: 1254, height: 1254, alt: "Bold cobalt, lime, and coral campaign poster installation for marketing graphics" },
+  digitalProductsAudience: { src: "/images/artistly/audiences/digital-products-workspace-v1.png", width: 1254, height: 1254, alt: "Printable pages, illustrated book cover, and tablet layout on a creative desk" },
+  freelanceWorkAudience: { src: "/images/artistly/audiences/freelance-workspace-v1.png", width: 1254, height: 1254, alt: "Freelance designer workspace with laptop moodboards and client-ready visual boards" },
+  personalCreativityAudience: { src: "/images/artistly/audiences/personal-creativity-studio-v1.png", width: 1254, height: 1254, alt: "Personal art studio with sketchbook, paint palette, brushes, and character artwork" },
   aiCharacterCreator: { src: "/images/artistly/features/ai-character-creator.png", width: 1536, height: 1024, alt: "Fantasy skyship captain with a floating mechanical companion" },
   bulkClipartDesigner: { src: "/images/artistly/features/bulk-clipart-designer.png", width: 1536, height: 1024, alt: "Collection of colorful standalone clipart illustrations" },
 } satisfies Record<string, Artwork>;
@@ -258,12 +265,12 @@ export const features: Feature[] = [
 ];
 
 export const audiences: Audience[] = [
-  { title: "Print-on-Demand", description: "T-shirts, mugs, hoodies, and merchandise", icon: Shirt, imageIndex: 0 },
-  { title: "Ecommerce", description: "Product photos, scenes, and mockups", icon: ShoppingBag, imageIndex: 2 },
-  { title: "Marketing", description: "Ads, posters, social graphics, and banners", icon: Megaphone, imageIndex: 4 },
-  { title: "Digital Products", description: "Coloring pages, printables, and book covers", icon: BookOpen, imageIndex: 8 },
-  { title: "Freelance Work", description: "Create polished graphics for clients", icon: BriefcaseBusiness, imageIndex: 6 },
-  { title: "Personal Creativity", description: "Art, characters, portraits, and ideas", icon: Sparkles, imageIndex: 1 },
+  { title: "Print-on-Demand", description: "T-shirts, mugs, hoodies, and merchandise", icon: Shirt, imageIndex: 0, artwork: featureArtworks.printOnDemand },
+  { title: "Ecommerce", description: "Product photos, scenes, and mockups", icon: ShoppingBag, imageIndex: 2, artwork: featureArtworks.ecommerceAudience },
+  { title: "Marketing", description: "Ads, posters, social graphics, and banners", icon: Megaphone, imageIndex: 4, artwork: featureArtworks.marketingAudience },
+  { title: "Digital Products", description: "Coloring pages, printables, and book covers", icon: BookOpen, imageIndex: 8, artwork: featureArtworks.digitalProductsAudience },
+  { title: "Freelance Work", description: "Create polished graphics for clients", icon: BriefcaseBusiness, imageIndex: 6, artwork: featureArtworks.freelanceWorkAudience },
+  { title: "Personal Creativity", description: "Art, characters, portraits, and ideas", icon: Sparkles, imageIndex: 1, artwork: featureArtworks.personalCreativityAudience },
 ];
 
 export const useCases = [
