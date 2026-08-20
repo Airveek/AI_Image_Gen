@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   description:
     "Create images, logos, and commercial artwork from a keyword with Airveek.",
   icons: {
-    icon: "/images/airveek/mark-square.png",
+    icon: "/favicon.ico",
     apple: "/images/airveek/mark-square.png",
   },
 };
