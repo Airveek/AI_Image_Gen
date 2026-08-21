@@ -15,7 +15,11 @@ export function SiteHeader() {
           <Link className="transition hover:text-[#83ff00]" href="#pricing">Pricing</Link>
           <Link className="transition hover:text-[#83ff00]" href="#faq">FAQ</Link>
         </nav>
-        <CtaButton className="px-4 py-2 text-xs sm:px-5 sm:text-sm" href="#pricing">Get lifetime access</CtaButton>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link className="hidden rounded-full px-3 py-2 text-sm font-semibold text-[#a4b19e] transition hover:text-[#83ff00] sm:inline-flex" href="/login">Log in</Link>
+          <Link className="hidden rounded-full border border-[#83ff00]/35 px-3 py-2 text-sm font-semibold text-[#fdfdfd] transition hover:border-[#83ff00] hover:bg-[#83ff00]/10 sm:inline-flex" href="/register">Create account</Link>
+          <CtaButton className="px-4 py-2 text-xs sm:px-5 sm:text-sm" href="#pricing">Get lifetime access</CtaButton>
+        </div>
       </div>
     </header>
   );
