@@ -298,8 +298,8 @@ export function PricingSection() {
       <div className="mx-auto max-w-7xl">
         <SectionHeading titleId="pricing-title" eyebrow="One-time pricing" title="Get unlimited access without another monthly bill." description="Choose the level of creative freedom you need today. Both plans are paid once and include a 30-day money-back guarantee." />
         <div className="mx-auto mt-12 grid max-w-5xl gap-5 lg:grid-cols-2">
-          <PricingCard title="Commercial" price="$49" description="The simple starting point for creators, sellers, marketers, and freelancers." features={commercial} checkoutHref="https://paykstrt.com/50543/131587?click_id=0" featured />
-          <PricingCard title="Premium" price="$147" description="More powerful workflows for people who want every premium creation tool." features={premium} checkoutHref="https://paykstrt.com/53843/131587?cc=secret10&click_id=0" />
+          <PricingCard title="Commercial" price="$49" description="The simple starting point for creators, sellers, marketers, and freelancers." features={commercial} planKey="commercial" featured />
+          <PricingCard title="Premium" price="$147" description="More powerful workflows for people who want every premium creation tool." features={premium} planKey="premium" />
         </div>
         <p className="mt-8 text-center text-xs font-semibold text-[#81927c]">Use coupon <span className="text-[#83ff00]">SECRET10</span> for 10% off · No upsells · No hidden fees · No monthly charges</p>
       </div>
@@ -307,16 +307,16 @@ export function PricingSection() {
   );
 }
 
-type PricingCardProps = { title: string; price: string; description: string; features: string[]; checkoutHref: string; featured?: boolean };
+type PricingCardProps = { title: string; price: string; description: string; features: string[]; planKey: "commercial" | "premium"; featured?: boolean };
 
-function PricingCard({ title, price, description, features: planFeatures, checkoutHref, featured = false }: PricingCardProps) {
+function PricingCard({ title, price, description, features: planFeatures, planKey, featured = false }: PricingCardProps) {
   return (
     <article className={`relative rounded-[2rem] border p-6 sm:p-8 ${featured ? "border-[#83ff00]/70 bg-gradient-to-b from-[#83ff00]/15 to-[#0b120b] shadow-[0_0_60px_rgba(131,255,0,0.14)]" : "border-white/10 bg-[#0b120b]"}`}>
       {featured ? <span className="absolute right-6 top-6 rounded-full bg-[#83ff00] px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#040404]">Best value</span> : null}
       <p className="text-xs font-black uppercase tracking-[0.2em] text-[#b8ff6b]">{title}</p>
       <div className="mt-5 flex items-end gap-2"><span className="font-display text-6xl font-extrabold leading-none text-[#fdfdfd]">{price}</span><span className="pb-1 text-sm font-semibold text-[#81927c]">one time</span></div>
       <p className="mt-5 min-h-14 text-sm leading-6 text-[#a4b19e]">{description}</p>
-      <CtaButton className="mt-6 w-full" href={checkoutHref}>Get instant access</CtaButton>
+      <CtaButton className="mt-6 w-full" href={`/checkout?plan=${planKey}`}>Get instant access</CtaButton>
       <ul className="mt-7 space-y-3 border-t border-white/10 pt-6">{planFeatures.map((item) => <li className="flex items-start gap-3 text-sm text-[#d9ffb8]" key={item}><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#83ff00]" aria-hidden="true" />{item}</li>)}</ul>
     </article>
   );
