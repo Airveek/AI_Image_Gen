@@ -165,7 +165,10 @@ export function StepsSection() {
         </div>
         <div className="mx-auto mt-12 max-w-4xl overflow-hidden rounded-3xl border border-[#83ff00]/20 bg-[#040404] p-2 shadow-[0_0_60px_rgba(131,255,0,0.12)] sm:p-4">
           <div className="flex items-center justify-between border-b border-white/10 px-3 pb-3 text-xs text-[#81927c]"><span className="font-bold text-[#fdfdfd]">Airveek walkthrough</span><span>See the full workflow</span></div>
-          <iframe className="mt-3 aspect-video w-full rounded-2xl border-0" src="https://www.loom.com/embed/62e71dd47a7644cea41dbd274be3cef5?sid=7fbf1819-1127-4d0d-88b0-a6891d37768f&hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true" title="Airveek walkthrough video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
+          <video className="mt-3 aspect-video w-full rounded-2xl bg-[#071007] object-cover" autoPlay controls loop muted playsInline preload="auto" poster="/videos/airveek-walkthrough-poster-v3.png" aria-label="Airveek creative workflow walkthrough">
+            <source src="/videos/airveek-walkthrough-v3.mp4" type="video/mp4" />
+            Your browser does not support the Airveek walkthrough video.
+          </video>
         </div>
       </div>
     </section>
