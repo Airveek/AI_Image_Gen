@@ -24,7 +24,7 @@ export function HeroSection() {
   return (
     <section className="relative overflow-hidden px-4 pb-20 pt-16 sm:px-6 sm:pt-24 lg:pb-28 lg:pt-28" aria-labelledby="hero-title">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(131,255,0,0.2),transparent_32%),radial-gradient(circle_at_15%_30%,rgba(42,196,20,0.16),transparent_28%)]" />
-      <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16">
+      <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
         <div className="text-center lg:text-left">
           <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#83ff00]/30 bg-[#83ff00]/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-[#b8ff6b] sm:text-sm">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
@@ -54,14 +54,14 @@ export function HeroSection() {
           </div>
         </div>
 
-        <div className="relative mx-auto w-full max-w-[620px]">
+        <div className="relative mx-auto w-full max-w-[620px] lg:max-w-none">
           <div className="absolute -inset-8 rounded-[3rem] bg-gradient-to-br from-[#83ff00]/20 via-[#2ac414]/10 to-transparent blur-3xl" aria-hidden="true" />
-          <div className="relative overflow-hidden rounded-[2rem] border border-[#83ff00]/20 bg-[#0b120b]/90 p-3 shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:p-5 lg:min-h-[560px]">
+          <div className="relative overflow-hidden rounded-[2rem] border border-[#83ff00]/20 bg-[#0b120b]/90 p-3 shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:p-5 lg:min-h-[660px]">
             <div className="flex items-center justify-between border-b border-white/10 px-2 pb-4 text-xs text-[#81927c]">
               <span className="inline-flex items-center gap-2 font-bold text-[#fdfdfd]"><span className="h-2 w-2 rounded-full bg-[#83ff00]" /> Airveek Studio</span>
               <span>Prompt → result</span>
             </div>
-            <div className="grid gap-4 pt-4 sm:grid-cols-[0.72fr_1.28fr] sm:min-h-[390px]">
+            <div className="grid gap-4 pt-4 sm:grid-cols-[0.6fr_1.4fr] sm:min-h-[440px]">
               <div className="rounded-2xl border border-white/10 bg-[#040404] p-4">
                 <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-[#83ff00]">Your prompt</p>
                 <p className="m-0 text-sm leading-6 text-[#fdfdfd]">A premium coffee poster saying “Summer Coffee Sale”, warm light, clean layout.</p>
@@ -71,6 +71,7 @@ export function HeroSection() {
                 </div>
                 <div className="mt-6 flex items-center gap-2 text-xs font-bold text-[#83ff00]"><span className="grid h-5 w-5 place-items-center rounded-full bg-[#83ff00]/15"><Check className="h-3 w-3" aria-hidden="true" /></span> Ready in seconds</div>
               </div>
+              
               <div className="relative aspect-square overflow-hidden rounded-2xl border border-[#83ff00]/30 bg-gradient-to-br from-[#2ac414]/20 to-[#83ff00]/10">
                 <Image
                   className="object-contain"
