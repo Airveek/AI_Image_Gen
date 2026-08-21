@@ -18,6 +18,7 @@ import {
   isObfuscatedSignupUser,
   registrationPendingMessage,
 } from "@/lib/auth/auth-messages";
+import { getPathWithNext } from "@/lib/auth/redirect-path";
 import { createClient } from "@/lib/supabase/client";
 
 type AuthMode = "login" | "register";
@@ -27,9 +28,10 @@ type FieldErrors = Partial<Record<FieldName, string>>;
 type AuthFormProps = {
   mode: AuthMode;
   initialError?: string;
+  nextPath?: string;
 };
 
-export function AuthForm({ mode, initialError }: AuthFormProps) {
+export function AuthForm({ mode, initialError, nextPath = "/dashboard" }: AuthFormProps) {
   const isRegister = mode === "register";
   const router = useRouter();
   const emailRef = useRef<HTMLInputElement>(null);
@@ -60,8 +62,8 @@ export function AuthForm({ mode, initialError }: AuthFormProps) {
       requestAnimationFrame(() => toast.error(message));
     }
 
-    router.replace("/login");
-  }, [initialError, router]);
+    router.replace(getPathWithNext("/login", nextPath));
+  }, [initialError, nextPath, router]);
 
   const clearFieldError = (field: FieldName) => {
     setFieldErrors((currentErrors) => {
@@ -130,7 +132,7 @@ export function AuthForm({ mode, initialError }: AuthFormProps) {
           email: normalizedEmail,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
           },
         });
 
@@ -163,7 +165,7 @@ export function AuthForm({ mode, initialError }: AuthFormProps) {
         }
       }
 
-      router.replace("/dashboard");
+      router.replace(nextPath);
     } catch (error: unknown) {
       toast.error(getAuthErrorMessage(error, mode));
     } finally {
@@ -276,7 +278,7 @@ export function AuthForm({ mode, initialError }: AuthFormProps) {
 
           <p className="mt-6 text-center text-sm text-[#a4b19e]">
             {isRegister ? "Already have an account?" : "New to Airveek?"}{" "}
-            <Link className="font-bold text-[#83ff00] underline-offset-4 hover:underline" href={isRegister ? "/login" : "/register"}>
+            <Link className="font-bold text-[#83ff00] underline-offset-4 hover:underline" href={getPathWithNext(isRegister ? "/login" : "/register", nextPath)}>
               {isRegister ? "Log in" : "Create an account"}
             </Link>
           </p>

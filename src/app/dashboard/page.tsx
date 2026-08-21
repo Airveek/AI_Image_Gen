@@ -3,6 +3,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { LogoutButton } from "@/components/dashboard/logout-button";
 import { createClient } from "@/lib/supabase/server";
+import type { WhopEntitlementStatus } from "@/lib/supabase/database.types";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,24 @@ export default async function DashboardPage() {
   if (!user) {
     redirect("/login");
   }
+
+  const { data: entitlement } = await supabase
+    .from("whop_entitlements")
+    .select("whop_plan_id, status")
+    .eq("user_id", user.id)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const entitlementStatus = entitlement?.status as WhopEntitlementStatus | undefined;
+  const hasActiveAccess = entitlementStatus === "active" || entitlementStatus === "trialing";
+  const planName = entitlement?.whop_plan_id === process.env.WHOP_PREMIUM_PLAN_ID
+    ? "Premium"
+    : entitlement?.whop_plan_id === process.env.WHOP_COMMERCIAL_PLAN_ID
+      ? "Commercial"
+      : entitlement?.whop_plan_id
+        ? "Paid plan"
+        : "No plan yet";
 
   return (
     <main className="brand-glow min-h-screen px-4 py-6 sm:px-6 sm:py-8">
@@ -41,6 +60,11 @@ export default async function DashboardPage() {
           <div className="mt-8 rounded-2xl border border-white/10 bg-[#111a11] p-5">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#6f6f6f]">Signed in as</p>
             <p className="mt-2 break-all text-base font-semibold text-[#d9ffb8]">{user.email}</p>
+          </div>
+          <div className="mt-4 rounded-2xl border border-white/10 bg-[#111a11] p-5">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#6f6f6f]">Airveek access</p>
+            <p className="mt-2 text-base font-semibold text-[#d9ffb8]">{planName}</p>
+            <p className="mt-1 text-sm text-[#a4b19e]">{hasActiveAccess ? "Your paid access is active." : "Complete checkout to unlock your paid workspace."}</p>
           </div>
         </section>
       </div>
