@@ -12,6 +12,7 @@ export function SiteHeader() {
         <nav className="hidden items-center gap-6 text-sm font-semibold text-[#a4b19e] lg:flex" aria-label="Main navigation">
           <Link className="transition hover:text-[#83ff00]" href="/#how-it-works">How it works</Link>
           <Link className="transition hover:text-[#83ff00]" href="/#features">Features</Link>
+          <Link className="transition hover:text-[#83ff00]" href="/tutorials">Tutorials</Link>
           <Link className="transition hover:text-[#83ff00]" href="/#pricing">Pricing</Link>
           <Link className="transition hover:text-[#83ff00]" href="/#faq">FAQ</Link>
         </nav>
