@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { CtaButton } from "./cta-button";
 import { FeatureCard } from "./feature-card";
-import { audiences, artworks, features, recapFeatures, useCases } from "./landing-data";
+import { audiences, artworks, features, galleryArtworks, recapFeatures, useCases } from "./landing-data";
 import { SectionHeading } from "./section-heading";
 
 const trustItems = ["Commercial use", "No monthly fee", "HD downloads", "30-day guarantee"];
@@ -24,7 +24,7 @@ export function HeroSection() {
   return (
     <section className="relative overflow-hidden px-4 pb-20 pt-16 sm:px-6 sm:pt-24 lg:pb-28 lg:pt-28" aria-labelledby="hero-title">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(131,255,0,0.2),transparent_32%),radial-gradient(circle_at_15%_30%,rgba(42,196,20,0.16),transparent_28%)]" />
-      <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16">
+      <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
         <div className="text-center lg:text-left">
           <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#83ff00]/30 bg-[#83ff00]/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-[#b8ff6b] sm:text-sm">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
@@ -54,14 +54,14 @@ export function HeroSection() {
           </div>
         </div>
 
-        <div className="relative mx-auto w-full max-w-[620px]">
+        <div className="relative mx-auto w-full max-w-[620px] lg:max-w-none">
           <div className="absolute -inset-8 rounded-[3rem] bg-gradient-to-br from-[#83ff00]/20 via-[#2ac414]/10 to-transparent blur-3xl" aria-hidden="true" />
-          <div className="relative overflow-hidden rounded-[2rem] border border-[#83ff00]/20 bg-[#0b120b]/90 p-3 shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:p-5">
+          <div className="relative overflow-hidden rounded-[2rem] border border-[#83ff00]/20 bg-[#0b120b]/90 p-3 shadow-[0_24px_90px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:p-5 lg:min-h-[660px]">
             <div className="flex items-center justify-between border-b border-white/10 px-2 pb-4 text-xs text-[#81927c]">
               <span className="inline-flex items-center gap-2 font-bold text-[#fdfdfd]"><span className="h-2 w-2 rounded-full bg-[#83ff00]" /> Airveek Studio</span>
               <span>Prompt → result</span>
             </div>
-            <div className="grid gap-4 pt-4 sm:grid-cols-[0.85fr_1.15fr]">
+            <div className="grid gap-4 pt-4 sm:grid-cols-[0.6fr_1.4fr] sm:min-h-[440px]">
               <div className="rounded-2xl border border-white/10 bg-[#040404] p-4">
                 <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-[#83ff00]">Your prompt</p>
                 <p className="m-0 text-sm leading-6 text-[#fdfdfd]">A premium coffee poster saying “Summer Coffee Sale”, warm light, clean layout.</p>
@@ -71,8 +71,17 @@ export function HeroSection() {
                 </div>
                 <div className="mt-6 flex items-center gap-2 text-xs font-bold text-[#83ff00]"><span className="grid h-5 w-5 place-items-center rounded-full bg-[#83ff00]/15"><Check className="h-3 w-3" aria-hidden="true" /></span> Ready in seconds</div>
               </div>
-              <div className="relative min-h-[290px] overflow-hidden rounded-2xl border border-[#83ff00]/30 bg-gradient-to-br from-[#2ac414]/20 to-[#83ff00]/10">
-                <Image className="absolute inset-0 h-full w-full object-cover" src={artworks[4].src} alt="Finished AI-generated product design" width={artworks[4].width} height={artworks[4].height} priority sizes="(max-width: 767px) 100vw, 50vw" />
+              
+              <div className="relative aspect-square overflow-hidden rounded-2xl border border-[#83ff00]/30 bg-gradient-to-br from-[#2ac414]/20 to-[#83ff00]/10">
+                <Image
+                  className="object-contain"
+                  src="/images/artistly/hero-coffee-campaign-v3.png"
+                  alt="AI-generated Summer Coffee Sale campaign with a giant iced coffee racing along a coastal road"
+                  fill
+                  preload
+                  quality={90}
+                  sizes="(max-width: 767px) 100vw, 50vw"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#040404]/90 via-transparent to-transparent" />
                 <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4">
                   <div><p className="m-0 text-xs font-bold uppercase tracking-[0.16em] text-[#b8ff6b]">Generated result</p><p className="mt-1 text-sm font-bold text-[#fdfdfd]">Readable text. Ready to use.</p></div>
@@ -120,10 +129,10 @@ export function GallerySection() {
       <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-[#83ff00]/10 to-transparent" aria-hidden="true" />
       <div className="relative mx-auto max-w-7xl">
         <SectionHeading titleId="gallery-title" eyebrow="See what you can create" title="One idea can become a whole library of finished visuals." description="From product images and logos to coloring pages and social posts, Airveek gives you a faster way to make the work you already need." />
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {artworks.map((artwork, index) => (
-            <div className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-[#0b120b] ${index % 5 === 0 ? "sm:row-span-2" : ""}`} key={artwork.src}>
-              <Image className="h-full min-h-44 w-full object-cover transition duration-500 group-hover:scale-105" src={artwork.src} alt={artwork.alt} width={artwork.width} height={artwork.height} sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 17vw" />
+        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {galleryArtworks.map((artwork) => (
+            <div className="group relative flex aspect-[4/5] items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#0b120b]" key={artwork.src}>
+              <Image className="h-full w-full object-contain p-1 transition duration-500 sm:p-2" src={artwork.src} alt={artwork.alt} width={artwork.width} height={artwork.height} sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 17vw" />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#040404] to-transparent px-3 pb-3 pt-10 text-xs font-bold text-[#fdfdfd] opacity-0 transition duration-200 group-hover:opacity-100">Airveek creation</div>
             </div>
           ))}
@@ -196,11 +205,10 @@ export function TextProofSection() {
         <div className="relative mx-auto w-full max-w-xl rounded-[2rem] border border-[#83ff00]/30 bg-[#0b120b] p-3 shadow-[0_0_70px_rgba(131,255,0,0.12)] sm:p-5">
           <div className="rounded-2xl border border-white/10 bg-[#040404] p-4 sm:p-5">
             <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-[#81927c]">Prompt</p>
-            <p className="m-0 rounded-xl border border-white/10 bg-white/[0.04] p-4 text-sm leading-6 text-[#fdfdfd]">Create a coffee poster saying “SUMMER COFFEE SALE” in bold cream lettering.</p>
+            <p className="m-0 rounded-xl border border-white/10 bg-white/[0.04] p-4 text-sm leading-6 text-[#fdfdfd]">Create a futuristic sneaker launch poster saying “RUN THE FUTURE” in bold white lettering with a small “NIGHT SHIFT / 01” subline.</p>
             <div className="my-5 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.16em] text-[#83ff00]"><span className="h-px flex-1 bg-[#83ff00]/30" />Generated result<span className="h-px flex-1 bg-[#83ff00]/30" /></div>
             <div className="relative overflow-hidden rounded-xl">
-              <Image className="aspect-[4/3] w-full object-cover" src={artworks[5].src} alt="AI-generated poster example" width={artworks[5].width} height={artworks[5].height} sizes="(max-width: 1023px) 100vw, 50vw" />
-              <div className="absolute inset-x-4 bottom-4 rounded-lg border border-[#83ff00]/30 bg-[#040404]/75 px-3 py-2 text-center font-display text-sm font-bold tracking-[0.14em] text-[#b8ff6b] backdrop-blur sm:text-base">SUMMER COFFEE SALE</div>
+              <Image className="aspect-[4/3] w-full object-cover" src="/images/artistly/features/perfect-text-in-ai-images-v3.png" alt="Futuristic sneaker launch poster reading RUN THE FUTURE with NIGHT SHIFT / 01" width={1536} height={1024} sizes="(max-width: 1023px) 100vw, 50vw" />
             </div>
           </div>
         </div>
@@ -217,10 +225,10 @@ export function AudienceSection() {
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {audiences.map((audience) => {
             const Icon = audience.icon;
-            const artwork = artworks[audience.imageIndex];
-            return <article className="group relative min-h-56 overflow-hidden rounded-3xl border border-white/10 bg-[#0b120b] p-5" key={audience.title}>
-              <Image className="absolute inset-0 h-full w-full object-cover opacity-35 transition duration-500 group-hover:scale-105 group-hover:opacity-50" src={artwork.src} alt={artwork.alt} width={artwork.width} height={artwork.height} sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#040404] via-[#040404]/70 to-transparent" />
+            const artwork = audience.artwork ?? artworks[audience.imageIndex];
+            return <article className="group relative aspect-square overflow-hidden rounded-3xl border border-white/10 bg-[#0b120b] p-5" key={audience.title}>
+              <Image className="absolute inset-0 object-cover opacity-70 transition duration-500 group-hover:scale-105 group-hover:opacity-100" src={artwork.src} alt={artwork.alt} fill sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#040404]/85 via-[#040404]/25 to-transparent" />
               <div className="relative flex h-full min-h-48 flex-col justify-end"><span className="mb-auto grid h-11 w-11 place-items-center rounded-2xl border border-[#83ff00]/30 bg-[#83ff00]/10 text-[#83ff00] backdrop-blur"><Icon className="h-5 w-5" aria-hidden="true" /></span><h3 className="font-display text-2xl font-bold text-[#fdfdfd]">{audience.title}</h3><p className="mt-1 text-sm text-[#a4b19e]">{audience.description}</p></div>
             </article>;
           })}
