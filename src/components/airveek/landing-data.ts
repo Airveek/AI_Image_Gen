@@ -79,7 +79,7 @@ export const galleryArtworks: Artwork[] = [
 
 export const featureArtworks = {
   unlimitedAiImageCreator: { src: "/images/artistly/features/unlimited-ai-image-creator-v3.png", width: 1536, height: 1024, alt: "Luminous AI creativity studio with floating portrait, landscape, astronaut, perfume, and abstract artwork panels" },
-  perfectTextInAiImages: { src: "/images/artistly/features/perfect-text-in-ai-images-v3.png", width: 1536, height: 1024, alt: "Futuristic sneaker launch poster with perfectly readable RUN THE FUTURE and NIGHT SHIFT / 01 typography" },
+  perfectTextInAiImages: { src: "/images/artistly/features/perfect-text-in-ai-images-v4.png", width: 1536, height: 1024, alt: "Futuristic sneaker launch poster with perfectly readable RUN THE FUTURE and NIGHT SHIFT / 01 typography" },
   aiProductMockupCreator: { src: "/images/artistly/features/ai-product-mockup-creator-v2.png", width: 960, height: 1696, alt: "Airveek branded glowing water bottle product mockup suspended between crystalline rocks" },
   aiProductPhotographer: { src: "/images/artistly/features/ai-product-photographer-v3.png", width: 1254, height: 1254, alt: "Airveek branded chocolate spread jar photographed in a miniature snowy mountain scene with tiny skiers" },
   instantSceneBackgroundEditor: { src: "/images/artistly/features/instant-scene-background-editor-v3.png", width: 1536, height: 1024, alt: "Surreal tropical scene with a scooter rider, tigers, palm trees, and a motion-blurred road" },
