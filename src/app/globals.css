@@ -22,9 +22,12 @@
   --color-brand-neon: var(--brand-neon);
   --color-brand-green: var(--brand-green);
   --color-brand-white: var(--brand-white);
+  --color-brand-soft: var(--brand-soft);
   --color-brand-gray: var(--brand-gray);
   --color-brand-dark-gray: var(--brand-dark-gray);
   --color-brand-black: var(--brand-black);
+  --color-brand-panel: var(--brand-panel);
+  --color-brand-panel-raised: var(--brand-panel-raised);
   --font-sans: var(--font-inter);
   --font-display: var(--font-k2d);
 }
