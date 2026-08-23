@@ -76,6 +76,7 @@ export type CreatorErrorCode =
   | "provider_not_configured"
   | "provider_incompatible"
   | "provider_blocked"
+  | "provider_unavailable"
   | "provider_rate_limited"
   | "provider_timeout"
   | "storage_not_configured"

@@ -29,6 +29,12 @@ function statusForCode(code: string): number {
   if (code === "daily_limit" || code === "generation_in_progress") return 429;
   if (code === "provider_rate_limited") return 429;
   if (code === "invalid_request" || code === "invalid_file") return 400;
-  if (code === "provider_not_configured" || code === "storage_not_configured") return 503;
+  if (
+    code === "provider_not_configured" ||
+    code === "provider_unavailable" ||
+    code === "storage_not_configured"
+  ) {
+    return 503;
+  }
   return 502;
 }

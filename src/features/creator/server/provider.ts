@@ -158,7 +158,13 @@ export async function testProviderConfiguration(
 
 export class ProviderRequestError extends Error {
   constructor(
-    public readonly code: "provider_incompatible" | "provider_blocked" | "provider_rate_limited" | "provider_timeout" | "unknown",
+    public readonly code:
+      | "provider_incompatible"
+      | "provider_blocked"
+      | "provider_unavailable"
+      | "provider_rate_limited"
+      | "provider_timeout"
+      | "unknown",
     message: string,
   ) {
     super(message);
@@ -196,12 +202,16 @@ async function providerFetch(
       throw new ProviderRequestError(
         response.status === 429
           ? "provider_rate_limited"
-          : response.status === 408 || response.status === 504
-            ? "provider_timeout"
-            : "unknown",
+          : response.status === 503
+            ? "provider_unavailable"
+            : response.status === 408 || response.status === 504
+              ? "provider_timeout"
+              : "unknown",
         response.status === 429
           ? `Gemini quota or rate limit reached: ${message} Wait and try again, or check the project quota and billing.`
-          : `${message} Check the active provider and try again.`,
+          : response.status === 503
+            ? `The image provider is unavailable: ${message} Check the provider session or try again shortly.`
+            : `${message} Check the active provider and try again.`,
       );
     }
 
@@ -225,6 +235,16 @@ async function readProviderErrorMessage(response: Response): Promise<string | nu
     const error = readRecord(body, "error");
     const message = readString(error, "message");
     const status = readString(error, "status");
+    const topLevelMessage = readString(body, "message");
+    const topLevelStatus = readString(body, "status");
+
+    if (!message && topLevelMessage && topLevelStatus && topLevelStatus !== "error") {
+      return topLevelMessage;
+    }
+
+    if (!message && topLevelMessage) {
+      return topLevelMessage;
+    }
 
     if (message && status && !message.toLowerCase().includes(status.toLowerCase())) {
       return `${status}: ${message}`;
