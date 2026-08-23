@@ -158,7 +158,7 @@ export async function testProviderConfiguration(
 
 export class ProviderRequestError extends Error {
   constructor(
-    public readonly code: "provider_incompatible" | "provider_blocked" | "provider_timeout" | "unknown",
+    public readonly code: "provider_incompatible" | "provider_blocked" | "provider_rate_limited" | "provider_timeout" | "unknown",
     message: string,
   ) {
     super(message);
@@ -190,9 +190,18 @@ async function providerFetch(
     });
 
     if (!response.ok) {
+      const providerMessage = await readProviderErrorMessage(response);
+      const message = providerMessage ?? `Provider request failed (${response.status}).`;
+
       throw new ProviderRequestError(
-        response.status === 408 || response.status === 504 ? "provider_timeout" : "unknown",
-        `Provider request failed (${response.status}). Check the active provider and try again.`,
+        response.status === 429
+          ? "provider_rate_limited"
+          : response.status === 408 || response.status === 504
+            ? "provider_timeout"
+            : "unknown",
+        response.status === 429
+          ? `Gemini quota or rate limit reached: ${message} Wait and try again, or check the project quota and billing.`
+          : `${message} Check the active provider and try again.`,
       );
     }
 
@@ -207,6 +216,23 @@ async function providerFetch(
     }
 
     throw new ProviderRequestError("unknown", error instanceof Error ? error.message : "The provider request failed.");
+  }
+}
+
+async function readProviderErrorMessage(response: Response): Promise<string | null> {
+  try {
+    const body: unknown = JSON.parse(await response.text());
+    const error = readRecord(body, "error");
+    const message = readString(error, "message");
+    const status = readString(error, "status");
+
+    if (message && status && !message.toLowerCase().includes(status.toLowerCase())) {
+      return `${status}: ${message}`;
+    }
+
+    return message ?? status;
+  } catch {
+    return null;
   }
 }
 
