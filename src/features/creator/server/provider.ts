@@ -4,6 +4,7 @@ import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 
 import { detectImageMimeType } from "@/features/creator/server/files";
+import { removeGeminiVisibleWatermark } from "@/features/creator/server/watermark";
 
 import type {
   AllowedImageMimeType,
@@ -102,10 +103,29 @@ export async function generateProviderImage(
   const downloaded = imagePart.data
     ? decodeInlineImage(imagePart.data, imagePart.mimeType)
     : await downloadRemoteImage(imagePart.url ?? "", imagePart.mimeType);
+  let processed: ProviderReference;
+
+  try {
+    processed = await removeGeminiVisibleWatermark(downloaded);
+  } catch {
+    throw new ProviderRequestError(
+      "provider_incompatible",
+      "The provider image could not be safely processed before saving.",
+    );
+  }
+
+  if (processed.bytes.length === 0 || processed.bytes.length > MAX_PROVIDER_IMAGE_BYTES) {
+    throw new ProviderRequestError("provider_incompatible", "The processed image has an invalid size.");
+  }
+
+  const processedMimeType = detectImageMimeType(processed.bytes);
+  if (!processedMimeType || processedMimeType !== processed.mimeType) {
+    throw new ProviderRequestError("provider_incompatible", "The processed image is not a supported image file.");
+  }
 
   return {
-    bytes: downloaded.bytes,
-    mimeType: downloaded.mimeType,
+    bytes: processed.bytes,
+    mimeType: processed.mimeType,
     provider: configuration.kind,
     model: configuration.model,
   };
