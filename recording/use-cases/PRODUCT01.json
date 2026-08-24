@@ -1,0 +1,12 @@
+{
+  "id": "PRODUCT01",
+  "route": "/create/product-fashion",
+  "input": "public/images/artistly/features/ai-product-photographer.png",
+  "variations": 1,
+  "fields": [
+    { "label": "Photoshoot mode", "action": "select", "value": "product-scene" },
+    { "label": "Scene", "action": "select", "value": "studio" },
+    { "label": "Background and mood", "action": "fill", "value": "Quiet luxury studio, warm stone surface, soft directional light, premium advertisement." },
+    { "label": "Final instruction", "action": "fill", "value": "Keep the exact product design and create a clean premium campaign image." }
+  ]
+}

@@ -31,6 +31,11 @@ yarn-error.log*
 
 # local browser QA
 /.playwright-mcp/
+/.recording-auth/
+/content-kits/
+/playwright-report/
+/test-results/
+/progress.md
 /.next-dev.*.log
 /*-local-*.png
 

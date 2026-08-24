@@ -1,0 +1,12 @@
+{
+  "id": "POD01",
+  "route": "/create/general-image",
+  "input": "public/images/airveek/mark-square.png",
+  "variations": 1,
+  "fields": [
+    { "label": "What are you making?", "action": "select", "value": "image" },
+    { "label": "What should the image show?", "action": "fill", "value": "A coordinated print-on-demand collection showing one original graphic applied to a T-shirt, ceramic mug, and hoodie in a clean commercial layout." },
+    { "label": "Visual style", "action": "select", "value": "clean commercial photography" },
+    { "label": "Final instruction", "action": "fill", "value": "Keep the same design consistent across all three products and make every product easy to see." }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "GUIDED01",
+  "route": "/create/general-image",
+  "input": "public/images/artistly/features/unlimited-ai-image-creator-v3.png",
+  "variations": 1,
+  "fields": [
+    { "label": "What are you making?", "action": "select", "value": "social" },
+    { "label": "What should the image show?", "action": "fill", "value": "A friendly social media image announcing a weekend creative workshop, with warm natural light and simple art materials on a table." },
+    { "label": "Exact text", "action": "fill", "value": "CREATE THIS WEEKEND" },
+    { "label": "Visual style", "action": "select", "value": "premium editorial photography" },
+    { "label": "Final instruction", "action": "fill", "value": "Keep the layout calm, welcoming, and easy for a first-time user to understand." }
+  ]
+}
