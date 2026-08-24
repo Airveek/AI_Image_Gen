@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
     "recording:auth": "node scripts/save-recording-auth.mjs",
-    "record:usecase": "node scripts/record-usecase.mjs"
+    "record:usecase": "node scripts/record-usecase.mjs",
+    "render:recording": "node scripts/render-synced-recording.mjs"
   },
   "engines": {
     "node": ">=24 <25"

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 import sharp from "sharp";
@@ -74,6 +75,7 @@ export async function generateProviderImage(
   prompt: string,
   aspectRatio: ImageAspectRatio,
   references: ProviderReference[],
+  traceId = randomUUID(),
 ): Promise<GeneratedImage> {
   const parts: Array<Record<string, unknown>> = [{ text: prompt }];
 
@@ -94,7 +96,10 @@ export async function generateProviderImage(
     configuration,
     {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "x-airveek-trace-id": traceId,
+      },
       body: JSON.stringify({
         contents: [{ role: "user", parts }],
         generationConfig: {
@@ -227,6 +232,8 @@ async function providerFetch(
   init: RequestInit,
 ): Promise<Response> {
   const headers = new Headers(init.headers);
+  const traceId = headers.get("x-airveek-trace-id");
+  const startedAt = traceId ? performance.now() : null;
 
   if (configuration.apiKey) {
     headers.set("x-goog-api-key", configuration.apiKey);
@@ -243,6 +250,12 @@ async function providerFetch(
       headers,
       signal: init.signal ?? AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     });
+
+    if (traceId && startedAt !== null) {
+      console.info(
+        `[creator-provider] trace=${traceId} status=${response.status} duration_ms=${Math.round(performance.now() - startedAt)}`,
+      );
+    }
 
     if (!response.ok) {
       const providerMessage = await readProviderErrorMessage(response);

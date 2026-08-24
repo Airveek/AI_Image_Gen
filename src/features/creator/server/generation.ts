@@ -1,5 +1,7 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
+
 import { buildGenerationPrompt } from "@/features/creator/prompts";
 import { requireCreatorUser } from "@/features/creator/server/authorization";
 import {
@@ -10,6 +12,7 @@ import {
   getOwnedAssetBytes,
 } from "@/features/creator/server/assets";
 import { getActiveProviderConfiguration } from "@/features/creator/server/integrations";
+import { recordUserEvent, type UserEventProperties } from "@/lib/analytics/user-events";
 import {
   generateProviderImage,
   ProviderRequestError,
@@ -29,6 +32,8 @@ export async function generateCreatorImage(
   request: GenerationRequest,
 ): Promise<CreatorResult<CreatorAsset>> {
   let asset: { id: string; userId: string } | null = null;
+  const traceId = randomUUID();
+  const startedAt = performance.now();
 
   try {
     await requireCreatorUser();
@@ -40,10 +45,19 @@ export async function generateCreatorImage(
       providerKind: configuration.kind,
       providerModel: configuration.model,
     });
+    void recordUserEvent({
+      userId: asset.userId,
+      eventName: "generation_requested",
+      properties: generationEventProperties(request),
+    });
+    console.info(`[creator-generation] trace=${traceId} phase=asset_created`);
     const loadedReferences = await Promise.all(request.references.map(async (reference) => ({
       ...await getOwnedAssetBytes(reference.assetId),
       role: reference.role,
     })));
+    console.info(
+      `[creator-generation] trace=${traceId} phase=references_loaded count=${loadedReferences.length}`,
+    );
     const providerPrompt = appendReferenceInstructions(prompt, loadedReferences, request.arenaId);
     const references = loadedReferences.map((reference, index) => ({
       bytes: reference.bytes,
@@ -55,21 +69,51 @@ export async function generateCreatorImage(
       providerPrompt,
       request.aspectRatio,
       references,
+      traceId,
     );
+    console.info(`[creator-generation] trace=${traceId} phase=provider_image_ready`);
     const savedAsset = await completeGenerationAsset({
       assetId: asset.id,
       userId: asset.userId,
       image,
     });
 
+    void recordUserEvent({
+      userId: asset.userId,
+      eventName: "generation_succeeded",
+      properties: generationEventProperties(request),
+    });
+    console.info(
+      `[creator-generation] trace=${traceId} phase=complete duration_ms=${Math.round(performance.now() - startedAt)}`,
+    );
+
     return { ok: true, data: savedAsset };
   } catch (error) {
     const result = resultFromError(error);
     if (asset) {
       await failGenerationAsset(asset.id, asset.userId, result.code).catch(() => undefined);
+      void recordUserEvent({
+        userId: asset.userId,
+        eventName: "generation_failed",
+        properties: {
+          ...generationEventProperties(request),
+          errorCode: result.code,
+        },
+      });
     }
+    console.info(
+      `[creator-generation] trace=${traceId} phase=failed code=${result.code} duration_ms=${Math.round(performance.now() - startedAt)}`,
+    );
     return result;
   }
+}
+
+function generationEventProperties(request: GenerationRequest): UserEventProperties {
+  return {
+    arenaId: request.arenaId,
+    referenceCount: request.references.length as 0 | 1 | 2,
+    ...(request.arenaId === "product-fashion" ? { campaignGoal: request.campaignGoal } : {}),
+  };
 }
 
 function appendReferenceInstructions(

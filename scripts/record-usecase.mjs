@@ -28,6 +28,17 @@ const resultPauseMs = positiveInteger(process.env.RECORDING_RESULT_PAUSE_MS, 2_5
 const runId = new Date().toISOString().replaceAll(":", "-").replace(".", "-");
 const outputDirectory = path.join(projectRoot, "content-kits", config.id, runId);
 await mkdir(outputDirectory, { recursive: true });
+const timelineStartedAt = new Date().toISOString();
+const timelineStart = performance.now();
+const timelineEvents = [];
+
+function markTimelineEvent(name, details = {}) {
+  timelineEvents.push({
+    name,
+    atMs: Math.round(performance.now() - timelineStart),
+    ...details,
+  });
+}
 
 const browser = await chromium.launch({ headless: process.env.RECORDING_HEADED !== "1" });
 const context = await browser.newContext({
@@ -40,23 +51,31 @@ const video = page.video();
 const resultFiles = [];
 
 try {
+  markTimelineEvent("browser_started");
   await page.goto(new URL(config.route, baseUrl).toString(), { waitUntil: "networkidle" });
+  markTimelineEvent("page_loaded", { route: config.route });
   await page.getByTestId("creator-workspace").waitFor({ state: "visible" });
   await page.waitForFunction(() => document.querySelector('[data-testid="creator-workspace"]')?.getAttribute("data-ready") === "true");
+  markTimelineEvent("workspace_ready");
   await page.waitForTimeout(fieldPauseMs);
+  markTimelineEvent("reference_upload_started", { index: 1 });
   await page.getByTestId("asset-upload-input").setInputFiles(inputPath);
   await page.getByText(/saved and selected as/i).waitFor({ timeout: 60_000 });
+  markTimelineEvent("reference_selected", { index: 1 });
   await page.waitForTimeout(fieldPauseMs);
 
-  for (const additionalInputPath of additionalInputPaths) {
+  for (const [index, additionalInputPath] of additionalInputPaths.entries()) {
+    markTimelineEvent("reference_upload_started", { index: index + 2 });
     await page.getByTestId("add-reference-button").click();
     await page.getByRole("menuitem", { name: "Add image", exact: true }).click();
     await page.locator("dialog[open]").locator('input[type="file"]').setInputFiles(additionalInputPath);
     await page.getByText(/saved and selected as/i).waitFor({ timeout: 60_000 });
+    markTimelineEvent("reference_selected", { index: index + 2 });
     await page.waitForTimeout(fieldPauseMs);
   }
 
   for (const field of config.fields) {
+    markTimelineEvent("field_started", { label: field.label, action: field.action });
     const locator = page.getByLabel(field.label, { exact: true });
     if (field.action === "select") {
       const tagName = await locator.evaluate((element) => element.tagName);
@@ -72,6 +91,7 @@ try {
     } else {
       await locator.fill(field.value);
     }
+    markTimelineEvent("field_completed", { label: field.label, action: field.action });
     await page.waitForTimeout(fieldPauseMs);
   }
 
@@ -88,15 +108,39 @@ try {
   }
   await writeFile(
     path.join(outputDirectory, "manifest.json"),
-    JSON.stringify({ ...config, baseUrl, recordedAt: new Date().toISOString(), results: resultFiles }, null, 2),
+    JSON.stringify(
+      {
+        ...config,
+        baseUrl,
+        recordedAt: new Date().toISOString(),
+        timelineFile: "timeline.json",
+        results: resultFiles,
+      },
+      null,
+      2,
+    ),
   );
 } finally {
+  markTimelineEvent("browser_closing");
   await context.close();
   if (video) {
     await video.saveAs(path.join(outputDirectory, "raw-demo.webm"));
     await video.delete();
   }
   await browser.close();
+  await writeFile(
+    path.join(outputDirectory, "timeline.json"),
+    JSON.stringify(
+      {
+        startedAt: timelineStartedAt,
+        finishedAt: new Date().toISOString(),
+        durationMs: Math.round(performance.now() - timelineStart),
+        events: timelineEvents,
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 console.log(`Content kit saved to ${outputDirectory}`);
@@ -108,29 +152,36 @@ function positiveInteger(value, fallback) {
 
 async function recordSingleGenerations(page, context, baseUrl, variations, outputDirectory, resultFiles) {
   for (let index = 1; index <= variations; index += 1) {
+    markTimelineEvent("generation_started", { index });
     await page.getByTestId("generate-button").click();
     await page.getByTestId("generation-loading").waitFor({ state: "visible", timeout: 15_000 });
     const resultImage = page.getByTestId("generation-result-image");
     await resultImage.waitFor({ state: "visible", timeout: 300_000 });
     await waitForImage(resultImage);
+    markTimelineEvent("generation_ready", { index });
     await page.waitForTimeout(resultPauseMs);
     await saveResultImage(resultImage, context, baseUrl, outputDirectory, resultFiles, index);
+    markTimelineEvent("result_saved", { index });
   }
 }
 
 async function recordPhotoshootPack(page, context, baseUrl, outputDirectory, resultFiles) {
+  markTimelineEvent("photoshoot_started");
   await page.getByTestId("photoshoot-pack-button").click();
   await page.getByTestId("photoshoot-results").waitFor({ state: "visible", timeout: 15_000 });
   const shots = ["hero", "lifestyle", "on-model"];
   for (let index = 0; index < shots.length; index += 1) {
+    markTimelineEvent("shot_started", { shot: shots[index], index: index + 1 });
     const card = page.getByTestId(`photoshoot-shot-${shots[index]}`);
     await card.waitFor({ state: "visible", timeout: 15_000 });
     await card.getByText("Saved to your library", { exact: true }).waitFor({ state: "visible", timeout: 300_000 });
     const resultImage = card.locator("img").first();
     await resultImage.waitFor({ state: "visible", timeout: 15_000 });
     await waitForImage(resultImage);
+    markTimelineEvent("shot_ready", { shot: shots[index], index: index + 1 });
     await page.waitForTimeout(resultPauseMs);
     await saveResultImage(resultImage, context, baseUrl, outputDirectory, resultFiles, index + 1);
+    markTimelineEvent("result_saved", { shot: shots[index], index: index + 1 });
   }
 }
 
