@@ -51,9 +51,10 @@ for (const [index, spec] of segmentSpecs.entries()) {
     event,
     file,
     path: audioPath,
-    startMs,
-    shot: typeof spec.shot === "string" ? spec.shot : undefined,
-    index: Number.isInteger(spec.index) ? spec.index : undefined,
+      startMs,
+      shot: typeof spec.shot === "string" ? spec.shot : undefined,
+      label: typeof spec.label === "string" ? spec.label : undefined,
+      index: Number.isInteger(spec.index) ? spec.index : undefined,
   });
 }
 
@@ -73,11 +74,12 @@ await writeFile(
     {
       sourceVideo: path.basename(rawVideoPath),
       timeline: path.basename(timelinePath),
-      segments: segments.map(({ event, file, startMs, shot, index }) => ({
+      segments: segments.map(({ event, file, startMs, shot, label, index }) => ({
         event,
         file,
         startMs,
         ...(shot ? { shot } : {}),
+        ...(label ? { label } : {}),
         ...(index === undefined ? {} : { index }),
       })),
       outputs,
@@ -169,6 +171,7 @@ async function probeDuration(filePath) {
 function matchesEvent(candidate, spec, event) {
   if (!isRecord(candidate) || candidate.name !== event) return false;
   if (typeof spec.shot === "string" && candidate.shot !== spec.shot) return false;
+  if (typeof spec.label === "string" && candidate.label !== spec.label) return false;
   if (Number.isInteger(spec.index) && candidate.index !== spec.index) return false;
   return true;
 }

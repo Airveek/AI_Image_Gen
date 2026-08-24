@@ -11,6 +11,7 @@
     "test:e2e": "playwright test",
     "recording:auth": "node scripts/save-recording-auth.mjs",
     "record:usecase": "node scripts/record-usecase.mjs",
+    "generate:narration": "node scripts/generate-elevenlabs-segments.mjs",
     "render:recording": "node scripts/render-synced-recording.mjs"
   },
   "engines": {
