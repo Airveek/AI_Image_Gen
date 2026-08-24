@@ -206,8 +206,8 @@ export function IntegrationSettings({
               </form>
 
               <form action={accountAction} className="rounded-2xl border border-white/10 bg-white/[0.025] p-5">
-                <h3 className="font-display text-lg font-bold">Add Gemini account</h3>
-                <p className="mt-1 text-xs leading-5 text-muted">Cookies are sent only to your private bridge and are never shown again.</p>
+                <h3 className="font-display text-lg font-bold">Add or refresh Gemini account</h3>
+                <p className="mt-1 text-xs leading-5 text-muted">Paste fresh cookies to add an account or restore the same account after its session expires. Cookies are sent only to your private bridge and are never shown again.</p>
                 <div className="mt-4 space-y-4">
                   <AdminField label="Account name" htmlFor="bridge-label"><input id="bridge-label" name="label" required maxLength={80} className={inputClassName} placeholder="Gemini account 2" /></AdminField>
                   <AdminField label="__Secure-1PSID" htmlFor="bridge-1psid"><input id="bridge-1psid" name="secure1psid" type="password" required autoComplete="new-password" className={inputClassName} /></AdminField>

@@ -62,7 +62,7 @@ export async function addBridgeAccountAction(
       secure1psidts: optionalField(formData, "secure1psidts") ?? "",
     });
     revalidatePath("/admin/integrations");
-    return { status: "success", message: "Gemini account added and checked." };
+    return { status: "success", message: "Gemini account saved and checked." };
   } catch (error) {
     return { status: "error", message: getActionErrorMessage(error) };
   }
