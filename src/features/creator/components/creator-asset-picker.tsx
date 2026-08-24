@@ -34,6 +34,7 @@ export function CreatorAssetPicker({
   onUpload,
   isUploading,
   preferredRole,
+  allowedReferenceRoles,
   defaultUploadRole = "reference",
   compact = false,
   uploadInputTestId,
@@ -44,6 +45,7 @@ export function CreatorAssetPicker({
   onUpload: (file: File, kind: UploadKind, role: ReferenceRole) => Promise<void>;
   isUploading: boolean;
   preferredRole?: ReferenceRole | null;
+  allowedReferenceRoles?: readonly ReferenceRole[];
   defaultUploadRole?: ReferenceRole;
   compact?: boolean;
   uploadInputTestId?: string;
@@ -57,7 +59,10 @@ export function CreatorAssetPicker({
 
   const groups = useMemo(() => {
     return assetGroups
-      .filter((group) => !preferredRole || roleAllowsKind(preferredRole, group.kind))
+      .filter((group) => {
+        const role = preferredRole ?? group.role;
+        return (!allowedReferenceRoles || allowedReferenceRoles.includes(role)) && (!preferredRole || roleAllowsKind(preferredRole, group.kind));
+      })
       .map((group) => ({
         ...group,
         role: preferredRole ?? group.role,
@@ -67,7 +72,7 @@ export function CreatorAssetPicker({
         }),
       }))
       .filter((group) => group.assets.length > 0);
-  }, [assets, normalizedSearch, preferredRole]);
+  }, [assets, allowedReferenceRoles, normalizedSearch, preferredRole]);
 
   const readyCount = assets.filter((asset) => asset.status === "ready").length;
 

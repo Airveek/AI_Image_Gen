@@ -42,11 +42,12 @@ function buildProductFashionPrompt(request: Extract<GenerationRequest, { arenaId
   const lines = [
     modeDirection,
     `Scene direction: ${request.scene.replace("-", " ")}.`,
+    `Campaign goal: ${campaignGoalDirection(request.campaignGoal)}.`,
     `Background and mood: ${request.backgroundMood || "clean, premium, commercially useful"}.`,
     `Lighting: ${lightingDirection(request.lighting)}.`,
     `Composition: ${request.aspectRatio} aspect ratio, realistic perspective, natural shadows, controlled highlights, premium campaign finish.`,
     "Preserve the exact product shape, proportions, colors, logo, label, material, garment construction, and important identifying details from the references.",
-    "Do not invent extra logos, alter packaging text, deform the product, or add duplicate products unless explicitly requested.",
+    "Do not invent extra logos, alter packaging text, deform the product, replace the selected product, add random text, or add duplicate products unless explicitly requested.",
   ];
 
   if (request.extraDirection) {
@@ -55,6 +56,15 @@ function buildProductFashionPrompt(request: Extract<GenerationRequest, { arenaId
 
   lines.push("Return one finished photograph only, without an explanation or contact sheet.");
   return lines.join("\n");
+}
+
+function campaignGoalDirection(goal: Extract<GenerationRequest, { arenaId: "product-fashion" }>["campaignGoal"]): string {
+  return {
+    "store-listing": "show the complete product clearly on a clean commercial background with no generated copy",
+    "social-post": "make the product the main focal point in a believable, mobile-friendly lifestyle composition",
+    "ad-banner": "leave intentional clean space on one side for the user's own advertising copy",
+    lookbook: "create an editorial fashion frame with a natural full or three-quarter composition",
+  }[goal];
 }
 
 function buildStorybookPagePrompt(request: Extract<GenerationRequest, { arenaId: "storybook-page" }>): string {

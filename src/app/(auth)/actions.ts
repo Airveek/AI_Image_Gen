@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import type { AuthActionState } from "@/features/auth/types";
+import { getSafeRedirectPath } from "@/lib/auth/redirect-path";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function signInAction(
@@ -23,7 +24,7 @@ export async function signInAction(
     return { ok: false, message: "The email or password is incorrect." };
   }
 
-  redirect("/dashboard");
+  redirect(getSafeRedirectPath(readField(formData, "next")));
 }
 
 export async function registerAction(
@@ -42,13 +43,15 @@ export async function registerAction(
     return { ok: false, message: "Your password must be at least 6 characters." };
   }
 
+  const nextPath = getSafeRedirectPath(readField(formData, "next"));
+
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: { name: displayName },
-      emailRedirectTo: `${getSiteUrl()}/auth/callback`,
+      emailRedirectTo: `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(nextPath)}`,
     },
   });
 
@@ -57,7 +60,7 @@ export async function registerAction(
   }
 
   if (data.session) {
-    redirect("/dashboard");
+    redirect(nextPath);
   }
 
   return {

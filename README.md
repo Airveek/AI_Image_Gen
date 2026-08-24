@@ -2,7 +2,7 @@
 
 Artistly is an AI-powered creative platform built with Next.js, TypeScript, and Tailwind CSS.
 
-This repository contains the Airveek landing page, Supabase email authentication, protected admin tools, and a task-first AI image creator. The creator currently supports general images, product and fashion photoshoots, and single storybook pages.
+This repository contains the Airveek landing page, Supabase email authentication, Whop checkout and entitlement syncing, protected admin tools, and a task-first AI image creator. The creator currently supports general images, product and fashion photoshoots, and single storybook pages.
 
 ## Requirements
 
@@ -29,8 +29,9 @@ If PowerShell blocks the pnpm script shim on Windows, use `pnpm.cmd` for the sam
 | `pnpm typecheck` | Run TypeScript without emitting files |
 | `pnpm build` | Create a production build |
 | `pnpm start` | Start the production server after building |
+| `pnpm test:e2e` | Run Playwright creator and checkout checks |
 
-The required quality gates are `lint`, `typecheck`, and `build`. Automated tests and test dependencies are intentionally not included at this stage.
+The required quality gates are `lint`, `typecheck`, `build`, and the focused Playwright checks.
 
 ## Project structure
 
@@ -78,8 +79,22 @@ R2_ACCESS_KEY_ID=
 R2_SECRET_ACCESS_KEY=
 R2_BUCKET=
 DAILY_GENERATION_LIMIT=5
+WHOP_API_KEY=
+WHOP_COMPANY_ID=
+WHOP_COMMERCIAL_PLAN_ID=
+WHOP_PREMIUM_PLAN_ID=
+WHOP_WEBHOOK_SECRET=
+WHOP_SANDBOX=false
 ```
 
-Apply `supabase/migrations/202608220001_creator_foundation.sql` before opening the creator or integration settings. Provider API keys and the Google Drive refresh token are stored through the admin panel in Supabase Vault; they do not belong in environment files.
+Apply the Supabase migrations in `supabase/migrations` before opening the creator or integration settings. The Whop webhook endpoint is:
+
+```text
+https://your-domain.example/api/webhooks/whop
+```
+
+Configure that URL in Whop and subscribe to membership activation and deactivation events. For local checkout testing, use an HTTPS tunnel and set `NEXT_PUBLIC_APP_URL` to the tunnel URL. Localhost HTTP is supported only for the local prototype and cannot receive a public Whop webhook.
+
+Provider API keys, Whop keys, and the Google Drive refresh token are server-only values; they do not belong in browser code or committed files.
 
 Never expose `SUPABASE_SECRET_KEY`, R2 credentials, provider keys, or Drive tokens in browser code or commit them to the repository. Configure an R2 lifecycle rule to delete objects under `hot/` after one day.

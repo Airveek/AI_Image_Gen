@@ -165,7 +165,10 @@ export function StepsSection() {
         </div>
         <div className="mx-auto mt-12 max-w-4xl overflow-hidden rounded-3xl border border-[#83ff00]/20 bg-[#040404] p-2 shadow-[0_0_60px_rgba(131,255,0,0.12)] sm:p-4">
           <div className="flex items-center justify-between border-b border-white/10 px-3 pb-3 text-xs text-[#81927c]"><span className="font-bold text-[#fdfdfd]">Airveek walkthrough</span><span>See the full workflow</span></div>
-          <iframe className="mt-3 aspect-video w-full rounded-2xl border-0" src="https://www.loom.com/embed/62e71dd47a7644cea41dbd274be3cef5?sid=7fbf1819-1127-4d0d-88b0-a6891d37768f&hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true" title="Airveek walkthrough video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
+          <video className="mt-3 aspect-video w-full rounded-2xl bg-[#071007] object-cover" autoPlay controls loop muted playsInline preload="auto" poster="/videos/airveek-walkthrough-poster-v3.png" aria-label="Airveek creative workflow walkthrough">
+            <source src="/videos/airveek-walkthrough-v3.mp4" type="video/mp4" />
+            Your browser does not support the Airveek walkthrough video.
+          </video>
         </div>
       </div>
     </section>
@@ -208,7 +211,7 @@ export function TextProofSection() {
             <p className="m-0 rounded-xl border border-white/10 bg-white/[0.04] p-4 text-sm leading-6 text-[#fdfdfd]">Create a futuristic sneaker launch poster saying “RUN THE FUTURE” in bold white lettering with a small “NIGHT SHIFT / 01” subline.</p>
             <div className="my-5 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.16em] text-[#83ff00]"><span className="h-px flex-1 bg-[#83ff00]/30" />Generated result<span className="h-px flex-1 bg-[#83ff00]/30" /></div>
             <div className="relative overflow-hidden rounded-xl">
-              <Image className="aspect-[4/3] w-full object-cover" src="/images/artistly/features/perfect-text-in-ai-images-v3.png" alt="Futuristic sneaker launch poster reading RUN THE FUTURE with NIGHT SHIFT / 01" width={1536} height={1024} sizes="(max-width: 1023px) 100vw, 50vw" />
+              <Image className="aspect-[4/3] w-full object-cover" src="/images/artistly/features/perfect-text-in-ai-images-v4.png" alt="Futuristic sneaker launch poster reading RUN THE FUTURE with NIGHT SHIFT / 01" width={1536} height={1024} sizes="(max-width: 1023px) 100vw, 50vw" />
             </div>
           </div>
         </div>
@@ -295,8 +298,8 @@ export function PricingSection() {
       <div className="mx-auto max-w-7xl">
         <SectionHeading titleId="pricing-title" eyebrow="One-time pricing" title="Get unlimited access without another monthly bill." description="Choose the level of creative freedom you need today. Both plans are paid once and include a 30-day money-back guarantee." />
         <div className="mx-auto mt-12 grid max-w-5xl gap-5 lg:grid-cols-2">
-          <PricingCard title="Commercial" price="$49" description="The simple starting point for creators, sellers, marketers, and freelancers." features={commercial} checkoutHref="https://paykstrt.com/50543/131587?click_id=0" featured />
-          <PricingCard title="Premium" price="$147" description="More powerful workflows for people who want every premium creation tool." features={premium} checkoutHref="https://paykstrt.com/53843/131587?cc=secret10&click_id=0" />
+          <PricingCard title="Commercial" price="$49" description="The simple starting point for creators, sellers, marketers, and freelancers." features={commercial} planKey="commercial" featured />
+          <PricingCard title="Premium" price="$147" description="More powerful workflows for people who want every premium creation tool." features={premium} planKey="premium" />
         </div>
         <p className="mt-8 text-center text-xs font-semibold text-[#81927c]">Use coupon <span className="text-[#83ff00]">SECRET10</span> for 10% off · No upsells · No hidden fees · No monthly charges</p>
       </div>
@@ -304,16 +307,16 @@ export function PricingSection() {
   );
 }
 
-type PricingCardProps = { title: string; price: string; description: string; features: string[]; checkoutHref: string; featured?: boolean };
+type PricingCardProps = { title: string; price: string; description: string; features: string[]; planKey: "commercial" | "premium"; featured?: boolean };
 
-function PricingCard({ title, price, description, features: planFeatures, checkoutHref, featured = false }: PricingCardProps) {
+function PricingCard({ title, price, description, features: planFeatures, planKey, featured = false }: PricingCardProps) {
   return (
     <article className={`relative rounded-[2rem] border p-6 sm:p-8 ${featured ? "border-[#83ff00]/70 bg-gradient-to-b from-[#83ff00]/15 to-[#0b120b] shadow-[0_0_60px_rgba(131,255,0,0.14)]" : "border-white/10 bg-[#0b120b]"}`}>
       {featured ? <span className="absolute right-6 top-6 rounded-full bg-[#83ff00] px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#040404]">Best value</span> : null}
       <p className="text-xs font-black uppercase tracking-[0.2em] text-[#b8ff6b]">{title}</p>
       <div className="mt-5 flex items-end gap-2"><span className="font-display text-6xl font-extrabold leading-none text-[#fdfdfd]">{price}</span><span className="pb-1 text-sm font-semibold text-[#81927c]">one time</span></div>
       <p className="mt-5 min-h-14 text-sm leading-6 text-[#a4b19e]">{description}</p>
-      <CtaButton className="mt-6 w-full" href={checkoutHref}>Get instant access</CtaButton>
+      <CtaButton className="mt-6 w-full" href={`/checkout?plan=${planKey}`}>Get instant access</CtaButton>
       <ul className="mt-7 space-y-3 border-t border-white/10 pt-6">{planFeatures.map((item) => <li className="flex items-start gap-3 text-sm text-[#d9ffb8]" key={item}><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#83ff00]" aria-hidden="true" />{item}</li>)}</ul>
     </article>
   );
@@ -346,7 +349,7 @@ export function Footer() {
   return (
     <footer className="bg-[#040404] px-4 pb-10 pt-16 sm:px-6" id="footer">
       <div className="mx-auto max-w-7xl">
-        <div className="flex flex-col justify-between gap-8 border-b border-white/10 pb-10 md:flex-row md:items-end"><div><Image src="/images/airveek/logo.png" alt="Airveek" width={1881} height={358} className="w-[234px]" /><p className="mt-4 max-w-sm text-sm leading-6 text-[#a4b19e]">Create more, spend less, and turn your ideas into finished visuals with Airveek.</p><p className="mt-3 text-xs text-[#6f6f6f]">980 Fraser Drive, Suite 209, Burlington ON L7L 5P5, Canada</p></div><div className="flex max-w-xl flex-wrap gap-x-5 gap-y-3 text-sm font-semibold text-[#a4b19e]"><Link className="transition hover:text-[#83ff00]" href="#features">Features</Link><Link className="transition hover:text-[#83ff00]" href="#pricing">Pricing</Link><Link className="transition hover:text-[#83ff00]" href="#faq">FAQ</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/affiliates/">Affiliates</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/support/">Support</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/terms/terms.php">Terms</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/terms/privacy.php">Privacy</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/tutorials/">Tutorials</Link><Link className="transition hover:text-[#83ff00]" href="https://artistly.ai/fb/">FB Group</Link></div></div>
+        <div className="flex flex-col justify-between gap-8 border-b border-white/10 pb-10 md:flex-row md:items-end"><div><Image src="/images/airveek/logo.png" alt="Airveek" width={1881} height={358} className="w-[234px]" /><p className="mt-4 max-w-sm text-sm leading-6 text-[#a4b19e]">Create more, spend less, and turn your ideas into finished visuals with Airveek.</p><p className="mt-3 text-xs text-[#6f6f6f]">980 Fraser Drive, Suite 209, Burlington ON L7L 5P5, Canada</p></div><nav className="flex max-w-xl flex-wrap gap-x-5 gap-y-3 text-sm font-semibold text-[#a4b19e]" aria-label="Footer navigation"><Link className="transition hover:text-[#83ff00]" href="/#features">Features</Link><Link className="transition hover:text-[#83ff00]" href="/#pricing">Pricing</Link><Link className="transition hover:text-[#83ff00]" href="/#faq">FAQ</Link><Link className="transition hover:text-[#83ff00]" href="/support">Support</Link><Link className="transition hover:text-[#83ff00]" href="/terms">Terms</Link><Link className="transition hover:text-[#83ff00]" href="/privacy">Privacy</Link><Link className="transition hover:text-[#83ff00]" href="/disclaimer">Disclaimer</Link><Link className="transition hover:text-[#83ff00]" href="/tutorials">Tutorials</Link></nav></div>
         <div className="flex flex-col justify-between gap-4 pt-6 text-xs text-[#6f6f6f] sm:flex-row"><span>© Airveek. All rights reserved.</span><span className="inline-flex items-center gap-1">Made with <Heart className="h-3.5 w-3.5 fill-[#83ff00] text-[#83ff00]" aria-hidden="true" /> in Canada</span></div>
       </div>
     </footer>

@@ -120,6 +120,39 @@ a {
   color: var(--brand-black) !important;
 }
 
+.tutorial-category-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-neon) rgb(255 255 255 / 0.08);
+  scrollbar-gutter: stable;
+}
+
+.tutorial-category-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.tutorial-category-scroll::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.08);
+}
+
+.tutorial-category-scroll::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand-green), var(--brand-neon)) padding-box;
+  background-clip: padding-box;
+}
+
+.tutorial-category-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, var(--brand-neon), #b4ff66) padding-box;
+  background-clip: padding-box;
+}
+
+.tutorial-category-scroll::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

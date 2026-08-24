@@ -28,6 +28,14 @@ export type LightingOption =
   | "studio-softbox"
   | "golden-hour"
   | "dramatic";
+export type ProductCampaignGoal =
+  | "store-listing"
+  | "social-post"
+  | "ad-banner"
+  | "lookbook";
+export type ProductPhotoshootShot = "hero" | "lifestyle" | "on-model";
+export type ProductFashionMode = "product-scene" | "on-model" | "influencer-lifestyle";
+export type ProductFashionScene = "studio" | "lifestyle" | "flat-lay" | "outdoor" | "custom";
 export type ReferenceRole =
   | "product"
   | "model"
@@ -54,13 +62,25 @@ export type GeneralImageRequest = {
 
 export type ProductFashionRequest = {
   arenaId: "product-fashion";
-  mode: "product-scene" | "on-model" | "influencer-lifestyle";
-  scene: "studio" | "lifestyle" | "flat-lay" | "outdoor" | "custom";
+  mode: ProductFashionMode;
+  scene: ProductFashionScene;
+  campaignGoal: ProductCampaignGoal;
   backgroundMood: string;
   lighting: LightingOption;
   aspectRatio: ImageAspectRatio;
   extraDirection: string;
   references: GenerationReference[];
+};
+
+export type ProductPhotoshootRecipe = {
+  shot: ProductPhotoshootShot;
+  label: string;
+  purpose: string;
+  mode: ProductFashionMode;
+  scene: ProductFashionScene;
+  campaignGoal: ProductCampaignGoal;
+  lighting: LightingOption;
+  aspectRatio: ImageAspectRatio;
 };
 
 export type StorybookPageRequest = {
@@ -122,6 +142,15 @@ export type CreatorAsset = {
   imageUrl: string | null;
   providerKind: ImageProviderKind | null;
   providerModel: string | null;
+};
+
+export type CreatorPackStatus = "idle" | "generating" | "completed" | "completed-with-errors";
+export type CreatorPackShotStatus = "pending" | "generating" | "ready" | "failed";
+export type CreatorPackShotState = {
+  recipe: ProductPhotoshootRecipe;
+  status: CreatorPackShotStatus;
+  asset: CreatorAsset | null;
+  error: string | null;
 };
 
 export type CreatorAssetRow = {

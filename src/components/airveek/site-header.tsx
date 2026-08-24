@@ -14,6 +14,7 @@ export function SiteHeader() {
           <Link className="transition hover:text-[#83ff00]" href="#features">Features</Link>
           <Link className="transition hover:text-[#83ff00]" href="#pricing">Pricing</Link>
           <Link className="transition hover:text-[#83ff00]" href="#faq">FAQ</Link>
+          <Link className="transition hover:text-[#83ff00]" href="/tutorials">Tutorials</Link>
         </nav>
         <div className="flex items-center gap-2 text-xs font-bold sm:gap-3 sm:text-sm">
           <Link className="rounded-full px-2 py-2 text-[#a4b19e] transition hover:text-[#83ff00]" href="/login">

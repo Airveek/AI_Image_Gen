@@ -23,7 +23,7 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  await supabase.auth.getUser();
+  await supabase.auth.getClaims();
   return response;
 }
 
@@ -32,6 +32,7 @@ export const config = {
     "/admin/:path*",
     "/api/creator/:path*",
     "/auth/:path*",
+    "/checkout/:path*",
     "/create/:path*",
     "/dashboard",
     "/library/:path*",

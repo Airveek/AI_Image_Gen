@@ -21,6 +21,7 @@
     "@pilio/gemini-watermark-remover": "^1.0.41",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
+    "@whop/sdk": "^0.0.42",
     "@vercel/analytics": "^2.0.1",
     "googleapis": "^176.0.0",
     "lucide-react": "^1.32.0",

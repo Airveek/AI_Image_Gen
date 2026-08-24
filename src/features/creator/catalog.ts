@@ -19,7 +19,12 @@ import {
 } from "lucide-react";
 
 import { featureArtworks, type Artwork } from "@/components/airveek/landing-data";
-import type { CreatorArenaId, CreatorCategoryId } from "@/features/creator/types";
+import type {
+  CreatorArenaId,
+  CreatorCategoryId,
+  ProductPhotoshootRecipe,
+  ReferenceRole,
+} from "@/features/creator/types";
 
 export type CreatorCategory = {
   id: CreatorCategoryId;
@@ -279,6 +284,47 @@ export const creatorCatalog: CreatorCatalogItem[] = [
   },
 ];
 
+export const productPhotoshootRecipes: readonly ProductPhotoshootRecipe[] = [
+  {
+    shot: "hero",
+    label: "Hero",
+    purpose: "Store listing",
+    mode: "product-scene",
+    scene: "studio",
+    campaignGoal: "store-listing",
+    lighting: "studio-softbox",
+    aspectRatio: "1:1",
+  },
+  {
+    shot: "lifestyle",
+    label: "Lifestyle",
+    purpose: "Social post",
+    mode: "influencer-lifestyle",
+    scene: "lifestyle",
+    campaignGoal: "social-post",
+    lighting: "soft-daylight",
+    aspectRatio: "4:5",
+  },
+  {
+    shot: "on-model",
+    label: "On-model",
+    purpose: "Lookbook",
+    mode: "on-model",
+    scene: "lifestyle",
+    campaignGoal: "lookbook",
+    lighting: "soft-daylight",
+    aspectRatio: "4:5",
+  },
+];
+
+const allReferenceRoles: readonly ReferenceRole[] = ["product", "model", "character", "style", "reference"];
+
+export function referenceRolesForArena(arenaId: CreatorArenaId): readonly ReferenceRole[] {
+  if (arenaId === "product-fashion") return ["product", "model", "style", "reference"];
+  if (arenaId === "storybook-page") return ["character", "style", "reference"];
+  return allReferenceRoles;
+}
+
 export function getCreatorArena(arenaId: string): CreatorArena | null {
   return creatorArenas.find((arena) => arena.id === arenaId) ?? null;
 }
@@ -286,4 +332,3 @@ export function getCreatorArena(arenaId: string): CreatorArena | null {
 export function getCategoryLabel(categoryId: CreatorCategoryId): string {
   return creatorCategories.find((category) => category.id === categoryId)?.label ?? "Create";
 }
-

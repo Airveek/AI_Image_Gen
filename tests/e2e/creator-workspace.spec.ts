@@ -91,6 +91,87 @@ test("keeps a Style image distinct in the generation request", async ({ page }) 
   });
 });
 
+test("creates a fixed three-image photoshoot and retries only a failed shot", async ({ page }) => {
+  const generationBodies: unknown[] = [];
+  let generationCount = 0;
+
+  await page.route("**/api/creator/generate", async (route) => {
+    generationCount += 1;
+    generationBodies.push(route.request().postDataJSON() as unknown);
+    if (generationCount === 2) {
+      await route.fulfill({
+        status: 503,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: false, code: "provider_unavailable", message: "Lifestyle is temporarily unavailable." }),
+      });
+      return;
+    }
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        data: assetFixture({
+          id: `bd9f30c8-2066-426d-8d82-9cf38f37fb7${generationCount}`,
+          kind: "generation",
+          name: `Photoshoot ${generationCount}`,
+          arenaId: "product-fashion",
+          providerKind: "gemini-compatible",
+          providerModel: "gemini-3.1-flash-image",
+        }),
+      }),
+    });
+  });
+
+  await page.goto("/create/product-fashion");
+  await page.getByRole("button", { name: /^Use .* as Product$/ }).first().click();
+  await expect(page.getByTestId("creator-composer").getByText("Product", { exact: true })).toBeVisible();
+  await page.getByTestId("photoshoot-pack-button").click();
+
+  await expect(page.getByTestId("photoshoot-shot-hero")).toContainText("Saved to your library");
+  await expect(page.getByTestId("photoshoot-shot-lifestyle")).toContainText("temporarily unavailable");
+  await expect(page.getByTestId("photoshoot-shot-on-model")).toContainText("Saved to your library");
+  expect(generationBodies).toHaveLength(3);
+  expect(generationBodies[0]).toMatchObject({
+    mode: "product-scene",
+    scene: "studio",
+    campaignGoal: "store-listing",
+    lighting: "studio-softbox",
+    aspectRatio: "1:1",
+    references: [{ role: "product" }],
+  });
+  expect(generationBodies[1]).toMatchObject({
+    mode: "influencer-lifestyle",
+    scene: "lifestyle",
+    campaignGoal: "social-post",
+    lighting: "soft-daylight",
+    aspectRatio: "4:5",
+  });
+  const firstReferences = (generationBodies[0] as { references: unknown[] }).references;
+  expect((generationBodies[1] as { references: unknown[] }).references).toEqual(firstReferences);
+  expect((generationBodies[2] as { references: unknown[] }).references).toEqual(firstReferences);
+  expect(generationBodies[2]).toMatchObject({
+    mode: "on-model",
+    scene: "lifestyle",
+    campaignGoal: "lookbook",
+    lighting: "soft-daylight",
+    aspectRatio: "4:5",
+  });
+
+  await page.getByTestId("photoshoot-shot-lifestyle").getByRole("button", { name: "Retry" }).click();
+  await expect(page.getByTestId("photoshoot-shot-lifestyle")).toContainText("Saved to your library");
+  expect(generationBodies).toHaveLength(4);
+  expect(generationBodies[3]).toMatchObject({ mode: "influencer-lifestyle", campaignGoal: "social-post" });
+});
+
+test("does not offer Character for Product & Fashion", async ({ page }) => {
+  await page.goto("/create/product-fashion");
+  await page.getByTestId("add-reference-button").click();
+  await expect(page.getByRole("menuitem", { name: "Character" })).toHaveCount(0);
+  await expect(page.getByRole("menuitem", { name: "Product" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Model" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Style" })).toBeVisible();
+});
+
 test("blocks Product generation until a Product image is selected", async ({ page }) => {
   let generationBody: unknown = null;
   await mockGeneration(page, (body) => { generationBody = body; });

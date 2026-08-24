@@ -1,5 +1,6 @@
 import type {
   CreatorAssetKind,
+  ProductCampaignGoal,
   GenerationReference,
   GenerationRequest,
   ImageAspectRatio,
@@ -39,6 +40,7 @@ export function parseGenerationRequest(value: unknown): GenerationRequest {
       arenaId,
       mode: readEnum(record, "mode", ["product-scene", "on-model", "influencer-lifestyle"]),
       scene: readEnum(record, "scene", ["studio", "lifestyle", "flat-lay", "outdoor", "custom"]),
+      campaignGoal: readCampaignGoal(record),
       backgroundMood: readOptionalText(record, "backgroundMood", 240),
       lighting,
       aspectRatio,
@@ -67,6 +69,13 @@ export function parseGenerationRequest(value: unknown): GenerationRequest {
   }
 
   throw new Error("Choose a supported creation arena.");
+}
+
+function readCampaignGoal(record: UnknownRecord): ProductCampaignGoal {
+  if (record.campaignGoal === undefined || record.campaignGoal === null || record.campaignGoal === "") {
+    return "store-listing";
+  }
+  return readEnum(record, "campaignGoal", ["store-listing", "social-post", "ad-banner", "lookbook"]);
 }
 
 export function parseAssetKind(value: unknown): Exclude<CreatorAssetKind, "generation"> {

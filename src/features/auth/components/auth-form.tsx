@@ -13,10 +13,20 @@ import {
 type AuthFormProps = {
   mode: "login" | "register";
   action: AuthAction;
+  nextPath?: string;
+  initialMessage?: string;
 };
 
-export function AuthForm({ mode, action }: AuthFormProps) {
-  const [state, formAction, pending] = useActionState(action, initialAuthActionState);
+export function AuthForm({
+  mode,
+  action,
+  nextPath = "/dashboard",
+  initialMessage = "",
+}: AuthFormProps) {
+  const [state, formAction, pending] = useActionState(action, {
+    ...initialAuthActionState,
+    message: initialMessage,
+  });
   const isRegister = mode === "register";
 
   return (
@@ -34,6 +44,7 @@ export function AuthForm({ mode, action }: AuthFormProps) {
       </div>
 
       <form action={formAction} className="mt-7 space-y-5">
+        <input type="hidden" name="next" value={nextPath} />
         {isRegister ? (
           <div className="space-y-2">
             <label className="text-sm font-semibold text-brand-white" htmlFor="display-name">

@@ -14,16 +14,27 @@ import {
   referenceRoleLabel,
 } from "@/features/creator/components/creator-asset-picker";
 import { CreatorComposer } from "@/features/creator/components/creator-composer";
-import { creatorCatalog, getCategoryLabel, getCreatorArena } from "@/features/creator/catalog";
+import {
+  creatorCatalog,
+  getCategoryLabel,
+  getCreatorArena,
+  productPhotoshootRecipes,
+  referenceRolesForArena,
+} from "@/features/creator/catalog";
 import type {
   CreatorArenaId,
   CreatorAsset,
   CreatorAssetKind,
+  CreatorPackShotState,
+  CreatorPackStatus,
   CreatorResult,
   GenerationReference,
   GenerationRequest,
   ImageAspectRatio,
   LightingOption,
+  ProductCampaignGoal,
+  ProductPhotoshootRecipe,
+  ProductPhotoshootShot,
   ReferenceRole,
 } from "@/features/creator/types";
 import { cn } from "@/lib/utils";
@@ -49,6 +60,8 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   const [result, setResult] = useState<CreatorAsset | null>(null);
   const [message, setMessage] = useState(storageMessage ?? "");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [packStatus, setPackStatus] = useState<CreatorPackStatus>("idle");
+  const [packShots, setPackShots] = useState<CreatorPackShotState[]>(createInitialPackShots);
   const [isUploading, setIsUploading] = useState(false);
   const [arenaDialogOpen, setArenaDialogOpen] = useState(false);
   const [assetDialogOpen, setAssetDialogOpen] = useState(false);
@@ -61,6 +74,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   const [style, setStyle] = useState("premium editorial photography");
   const [mode, setMode] = useState<"product-scene" | "on-model" | "influencer-lifestyle">("product-scene");
   const [scene, setScene] = useState<"studio" | "lifestyle" | "flat-lay" | "outdoor" | "custom">("studio");
+  const [campaignGoal, setCampaignGoal] = useState<ProductCampaignGoal>("store-listing");
   const [backgroundMood, setBackgroundMood] = useState("");
   const [characterDescription, setCharacterDescription] = useState("");
   const [storyScene, setStoryScene] = useState("");
@@ -82,6 +96,9 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   if (!arena) return null;
 
   const mainText = arenaId === "general-image" ? subject : arenaId === "product-fashion" ? extraDirection : storyScene;
+  const isPackGenerating = packStatus === "generating";
+  const isBusy = isGenerating || isPackGenerating;
+  const hasPackResults = packShots.some((shot) => shot.asset !== null);
 
   function setMainText(value: string) {
     if (arenaId === "general-image") setSubject(value);
@@ -91,31 +108,92 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
 
   async function handleGenerate(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
-    if (isGenerating || !validateForGeneration()) return;
+    if (isBusy || !validateForGeneration()) return;
     setIsGenerating(true);
     setMessage("Airveek is creating one polished 1K image…");
 
     try {
-      const response = await fetch("/api/creator/generate", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(buildRequest()),
-      });
-      const payload: unknown = await response.json();
-      const parsed = readAssetResult(payload);
+      const parsed = await requestGeneration(buildRequest());
       if (!parsed.ok) {
         setMessage(parsed.message);
         return;
       }
-      setResult(parsed.data);
-      setAssets((current) => [parsed.data, ...current.filter((asset) => asset.id !== parsed.data.id)]);
+      addGeneratedAsset(parsed.data);
       setMessage("Your image is ready and saved privately to the library.");
       router.refresh();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "The request failed. Please try again.");
     } finally {
       setIsGenerating(false);
     }
+  }
+
+  async function handleGeneratePack() {
+    if (arenaId !== "product-fashion" || isBusy || !validateForGeneration()) return;
+    setPackStatus("generating");
+    setPackShots(createInitialPackShots());
+    setMessage("Keep this page open while Airveek creates your three images.");
+
+    let hasFailure = false;
+    for (const recipe of productPhotoshootRecipes) {
+      updatePackShot(recipe.shot, { status: "generating", error: null });
+      const parsed = await requestGeneration(buildPackRequest(recipe));
+      if (!parsed.ok) {
+        hasFailure = true;
+        updatePackShot(recipe.shot, { status: "failed", error: parsed.message });
+        continue;
+      }
+      addGeneratedAsset(parsed.data);
+      updatePackShot(recipe.shot, { status: "ready", asset: parsed.data, error: null });
+      setMessage(`${recipe.label} image is ready. Creating the next image…`);
+    }
+
+    setPackStatus(hasFailure ? "completed-with-errors" : "completed");
+    setMessage(hasFailure ? "Some images are ready. Retry any failed shot below." : "Your three-image photoshoot is ready and saved to the library.");
+    router.refresh();
+  }
+
+  async function handleRetryPackShot(shot: ProductPhotoshootShot) {
+    if (arenaId !== "product-fashion" || isBusy) return;
+    const recipe = productPhotoshootRecipes.find((item) => item.shot === shot);
+    if (!recipe) return;
+    const hasOtherFailures = packShots.some((item) => item.recipe.shot !== shot && item.status === "failed");
+    setPackStatus("generating");
+    updatePackShot(shot, { status: "generating", error: null });
+    setMessage(`Retrying the ${recipe.label.toLowerCase()} image…`);
+    const parsed = await requestGeneration(buildPackRequest(recipe));
+    if (!parsed.ok) {
+      updatePackShot(shot, { status: "failed", error: parsed.message });
+      setPackStatus("completed-with-errors");
+      setMessage(`${recipe.label} still needs attention. You can retry it again.`);
+      return;
+    }
+    addGeneratedAsset(parsed.data);
+    updatePackShot(shot, { status: "ready", asset: parsed.data, error: null });
+    setPackStatus(hasOtherFailures ? "completed-with-errors" : "completed");
+    setMessage(hasOtherFailures ? `${recipe.label} is ready. Another shot still needs attention.` : "Your three-image photoshoot is ready and saved to the library.");
+    router.refresh();
+  }
+
+  async function requestGeneration(request: GenerationRequest): Promise<AssetResult> {
+    try {
+      const response = await fetch("/api/creator/generate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(request),
+      });
+      const payload: unknown = await response.json();
+      return readAssetResult(payload);
+    } catch (error) {
+      return { ok: false, message: error instanceof Error ? error.message : "The request failed. Please try again.", code: "unknown" };
+    }
+  }
+
+  function addGeneratedAsset(asset: CreatorAsset) {
+    setResult(asset);
+    setAssets((current) => [asset, ...current.filter((item) => item.id !== asset.id)]);
+  }
+
+  function updatePackShot(shot: ProductPhotoshootShot, update: Partial<CreatorPackShotState>) {
+    setPackShots((current) => current.map((item) => item.recipe.shot === shot ? { ...item, ...update } : item));
   }
 
   function validateForGeneration(): boolean {
@@ -140,12 +218,26 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
 
   function buildRequest(): GenerationRequest {
     if (arenaId === "product-fashion") {
-      return { arenaId, mode, scene, backgroundMood, lighting, aspectRatio, extraDirection, references };
+      return { arenaId, mode, scene, campaignGoal, backgroundMood, lighting, aspectRatio, extraDirection, references };
     }
     if (arenaId === "storybook-page") {
       return { arenaId, characterDescription, scene: storyScene, artStyle, pageText, lighting, aspectRatio, extraDirection: "", references };
     }
     return { arenaId, outputType, subject, exactText, style, lighting, aspectRatio, extraDirection: "", references };
+  }
+
+  function buildPackRequest(recipe: ProductPhotoshootRecipe): GenerationRequest {
+    return {
+      arenaId: "product-fashion",
+      mode: recipe.mode,
+      scene: recipe.scene,
+      campaignGoal: recipe.campaignGoal,
+      backgroundMood,
+      lighting: recipe.lighting,
+      aspectRatio: recipe.aspectRatio,
+      extraDirection,
+      references,
+    };
   }
 
   function toggleReference(asset: CreatorAsset, role: ReferenceRole) {
@@ -224,7 +316,19 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
                 <PanelRightOpen className="h-4 w-4" aria-hidden="true" /> Assets
               </Button>
               <div className="pointer-events-none absolute inset-0 opacity-25 [background-image:radial-gradient(circle_at_center,rgba(131,255,0,0.08),transparent_38%)]" aria-hidden="true" />
-              {isGenerating ? (
+              {hasPackResults || isPackGenerating ? (
+                <div className="relative w-full max-w-5xl" data-testid="photoshoot-results">
+                  <div className="mb-3 flex items-center justify-between gap-3 text-sm">
+                    <span className="font-semibold text-white">{isPackGenerating ? "Creating your photoshoot" : "Your photoshoot"}</span>
+                    <span className="text-muted">{packShots.filter((shot) => shot.status === "ready").length} of {packShots.length} ready</span>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {packShots.map((shot) => (
+                      <PhotoshootResultCard key={shot.recipe.shot} shot={shot} onRetry={() => void handleRetryPackShot(shot.recipe.shot)} disabled={isBusy} />
+                    ))}
+                  </div>
+                </div>
+              ) : isGenerating ? (
                 <div className="relative max-w-sm text-center" data-testid="generation-loading">
                   <LoaderCircle className="mx-auto h-9 w-9 animate-spin text-brand-neon" aria-hidden="true" />
                   <h2 className="mt-5 font-display text-2xl font-bold">Creating your image</h2>
@@ -262,6 +366,8 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
                 onModeChange={setMode}
                 scene={scene}
                 onSceneChange={setScene}
+                campaignGoal={campaignGoal}
+                onCampaignGoalChange={setCampaignGoal}
                 backgroundMood={backgroundMood}
                 onBackgroundMoodChange={setBackgroundMood}
                 characterDescription={characterDescription}
@@ -280,6 +386,8 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
                 onChangeReferenceRole={changeReferenceRole}
                 hasResult={Boolean(result)}
                 isGenerating={isGenerating}
+                packGenerating={isPackGenerating}
+                onGeneratePack={handleGeneratePack}
                 generationDisabled={Boolean(storageMessage)}
               />
               <div className="mx-auto mt-2 min-h-5 max-w-[900px] text-center text-sm text-muted" aria-live="polite" aria-atomic="true">{message}</div>
@@ -287,7 +395,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
           </section>
 
           <aside className="hidden min-h-0 border-l border-white/10 bg-[#151715] lg:block">
-            <CreatorAssetPicker assets={assets} references={references} onToggle={toggleReference} onUpload={handleUpload} isUploading={isUploading} defaultUploadRole={defaultUploadRole(arenaId)} uploadInputTestId="asset-upload-input" />
+            <CreatorAssetPicker assets={assets} references={references} onToggle={toggleReference} onUpload={handleUpload} isUploading={isUploading} allowedReferenceRoles={referenceRolesForArena(arenaId)} defaultUploadRole={defaultUploadRole(arenaId)} uploadInputTestId="asset-upload-input" />
           </aside>
         </div>
       </form>
@@ -337,6 +445,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
             onUpload={handleUpload}
             isUploading={isUploading}
             preferredRole={preferredRole}
+            allowedReferenceRoles={referenceRolesForArena(arenaId)}
             compact
           />
         </div>
@@ -360,6 +469,52 @@ function readAssetResult(value: unknown): AssetResult {
     }
   }
   return { ok: false, message: "The server returned an invalid response.", code: "unknown" };
+}
+
+function createInitialPackShots(): CreatorPackShotState[] {
+  return productPhotoshootRecipes.map((recipe) => ({
+    recipe,
+    status: "pending",
+    asset: null,
+    error: null,
+  }));
+}
+
+function PhotoshootResultCard({ shot, onRetry, disabled }: {
+  shot: CreatorPackShotState;
+  onRetry: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <article className="overflow-hidden rounded-xl border border-white/12 bg-[#1a1c1a]" data-testid={`photoshoot-shot-${shot.recipe.shot}`}>
+      <div className="relative aspect-square bg-black/20">
+        {shot.asset?.imageUrl ? <Image src={shot.asset.imageUrl} alt={shot.recipe.label} fill unoptimized className="object-contain" sizes="(max-width: 640px) 100vw, 30vw" /> : (
+          <div className="flex h-full items-center justify-center text-center text-xs text-muted">
+            {shot.status === "generating" ? <LoaderCircle className="h-6 w-6 animate-spin text-brand-neon" aria-label="Creating" /> : shot.status === "failed" ? "Could not create this shot" : "Waiting to start"}
+          </div>
+        )}
+      </div>
+      <div className="space-y-1 p-3">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold text-white">{shot.recipe.label}</h3>
+          <span className="text-xs text-muted">{shot.recipe.purpose}</span>
+        </div>
+        {shot.status === "ready" && shot.asset?.imageUrl ? (
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-muted">Saved to your library</span>
+            <a href={`${shot.asset.imageUrl}?download=1`} download className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-muted hover:bg-white/[0.06] hover:text-white">
+              <Download className="h-3.5 w-3.5" aria-hidden="true" /> Download
+            </a>
+          </div>
+        ) : shot.status === "failed" ? (
+          <div className="flex items-center justify-between gap-2">
+            <p className="line-clamp-2 text-xs text-red-200">{shot.error}</p>
+            <Button type="button" variant="secondary" className="min-h-9 px-3 text-xs" onClick={onRetry} disabled={disabled}>Retry</Button>
+          </div>
+        ) : <p className="text-xs text-muted">{shot.status === "ready" ? "Saved to your library" : shot.status === "generating" ? "Creating now…" : "Waiting"}</p>}
+      </div>
+    </article>
+  );
 }
 
 function defaultUploadRole(arenaId: CreatorArenaId): ReferenceRole {

@@ -12,14 +12,17 @@ import {
   getCategoryLabel,
 } from "@/features/creator/catalog";
 import type { CreatorAsset, CreatorCategoryId } from "@/features/creator/types";
+import type { CreatorAccessSummary } from "@/lib/whop/types";
 import { cn } from "@/lib/utils";
 
 export function CreatorDashboard({
   recent,
   storageMessage,
+  access,
 }: {
   recent: CreatorAsset[];
   storageMessage: string | null;
+  access: CreatorAccessSummary;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -54,6 +57,21 @@ export function CreatorDashboard({
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-7 text-muted sm:text-lg">
           Choose an outcome. Airveek asks the useful questions and builds the technical prompt for you.
+        </p>
+      </section>
+
+      <section className="mt-8 max-w-3xl rounded-2xl border border-brand-neon/20 bg-brand-neon/[0.06] p-5" aria-labelledby="access-status-heading">
+        <p id="access-status-heading" className="text-xs font-bold uppercase tracking-[0.2em] text-brand-neon">Airveek access</p>
+        <div className="mt-3 flex flex-wrap items-baseline justify-between gap-3">
+          <p className="font-display text-xl font-bold">{access.planName}</p>
+          <p className="text-sm font-semibold text-brand-soft">
+            {access.hasActiveAccess ? "Active access" : "Access pending"}
+          </p>
+        </div>
+        <p className="mt-2 text-sm leading-6 text-muted">
+          {access.hasActiveAccess
+            ? "Your Whop entitlement is active."
+            : "Complete checkout to update your Airveek access status."}
         </p>
       </section>
 

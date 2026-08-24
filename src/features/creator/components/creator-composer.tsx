@@ -29,6 +29,7 @@ import type {
   GenerationReference,
   ImageAspectRatio,
   LightingOption,
+  ProductCampaignGoal,
   ReferenceRole,
 } from "@/features/creator/types";
 import { cn } from "@/lib/utils";
@@ -47,6 +48,7 @@ type MenuId =
   | "ratio"
   | "mode"
   | "scene"
+  | "goal"
   | "details"
   | `reference-${string}`;
 
@@ -80,6 +82,8 @@ export function CreatorComposer({
   onModeChange,
   scene,
   onSceneChange,
+  campaignGoal,
+  onCampaignGoalChange,
   backgroundMood,
   onBackgroundMoodChange,
   characterDescription,
@@ -98,6 +102,8 @@ export function CreatorComposer({
   onChangeReferenceRole,
   hasResult,
   isGenerating,
+  packGenerating,
+  onGeneratePack,
   generationDisabled,
 }: {
   arenaId: CreatorArenaId;
@@ -114,6 +120,8 @@ export function CreatorComposer({
   onModeChange: (value: ProductMode) => void;
   scene: ProductScene;
   onSceneChange: (value: ProductScene) => void;
+  campaignGoal: ProductCampaignGoal;
+  onCampaignGoalChange: (value: ProductCampaignGoal) => void;
   backgroundMood: string;
   onBackgroundMoodChange: (value: string) => void;
   characterDescription: string;
@@ -132,6 +140,8 @@ export function CreatorComposer({
   onChangeReferenceRole: (assetId: string, role: ReferenceRole) => void;
   hasResult: boolean;
   isGenerating: boolean;
+  packGenerating: boolean;
+  onGeneratePack: () => void;
   generationDisabled: boolean;
 }) {
   const composerRef = useRef<HTMLDivElement>(null);
@@ -166,6 +176,8 @@ export function CreatorComposer({
     "product-fashion": "Describe the final product photo. Example: Place the bottle on warm stone with clean space on the left for an ad.",
     "storybook-page": "Describe what happens on this page. Example: Mina finds a tiny glowing door beneath an old oak tree.",
   }[arenaId];
+  const availableAddOptions = arenaId === "product-fashion" ? productAddOptions : addOptions;
+  const availableReferenceRoleOptions = arenaId === "product-fashion" ? productReferenceRoleOptions : referenceRoleOptions;
 
   return (
     <div ref={composerRef} className="relative mx-auto w-full max-w-[900px]" data-testid="creator-composer">
@@ -194,7 +206,7 @@ export function CreatorComposer({
                 </button>
                 {openMenu === menuId ? (
                   <OptionPanel align="left">
-                    {referenceRoleOptions.map((option) => (
+                    {availableReferenceRoleOptions.map((option) => (
                       <MenuItem key={option.value} selected={reference.role === option.value} onSelect={() => {
                         onChangeReferenceRole(reference.assetId, option.value);
                         setOpenMenu(null);
@@ -210,6 +222,7 @@ export function CreatorComposer({
 
       <div className="rounded-2xl border border-white/15 bg-[#1a1c1a] p-2 shadow-[0_18px_60px_rgba(0,0,0,0.48)] transition-colors focus-within:border-brand-neon/45">
         <label className="sr-only" htmlFor="creation-prompt">Describe the image you want</label>
+        {arenaId === "product-fashion" ? <p className="px-3 pt-1 text-xs text-muted">Use a clear photo with the whole product visible. Keep this page open while the three images are created.</p> : null}
         <textarea
           id="creation-prompt"
           value={mainText}
@@ -236,7 +249,7 @@ export function CreatorComposer({
               </Button>
               {openMenu === "add" ? (
                 <OptionPanel align="left">
-                  {addOptions.map((option) => {
+                  {availableAddOptions.map((option) => {
                     const Icon = option.icon;
                     return <MenuItem key={option.role} onSelect={() => { setOpenMenu(null); onOpenAssets(option.role); }}><Icon className="h-4 w-4 text-muted" aria-hidden="true" />{option.label}</MenuItem>;
                   })}
@@ -255,6 +268,7 @@ export function CreatorComposer({
               <>
                 <OptionMenu id="mode" label={labelFor(mode, productModeOptions)} icon={<Package className="h-4 w-4" aria-hidden="true" />} options={productModeOptions} value={mode} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onModeChange} />
                 <OptionMenu id="scene" label={labelFor(scene, productSceneOptions)} icon={<LayoutTemplate className="h-4 w-4" aria-hidden="true" />} options={productSceneOptions} value={scene} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onSceneChange} />
+                <OptionMenu id="goal" label={labelFor(campaignGoal, campaignGoalOptions)} icon={<WandSparkles className="h-4 w-4" aria-hidden="true" />} options={campaignGoalOptions} value={campaignGoal} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onCampaignGoalChange} />
               </>
             ) : (
               <OptionMenu id="style" label={labelFor(artStyle, artStyleOptions)} icon={<Palette className="h-4 w-4" aria-hidden="true" />} options={artStyleOptions} value={artStyle} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onArtStyleChange} />
@@ -291,12 +305,18 @@ export function CreatorComposer({
               ) : null}
             </div>
 
+            {arenaId === "product-fashion" ? (
+              <Button type="button" variant="primary" disabled={isGenerating || packGenerating || generationDisabled} onClick={onGeneratePack} data-testid="photoshoot-pack-button">
+                {packGenerating ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <WandSparkles className="h-4 w-4" aria-hidden="true" />}
+                <span className="hidden sm:inline">{packGenerating ? "Creating 3 images…" : "Create 3 images"}</span>
+              </Button>
+            ) : null}
             {hasResult ? (
               <Button type="submit" variant="secondary" disabled={isGenerating} aria-label="Create a variation">
                 <RefreshCw className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">Variation</span>
               </Button>
             ) : null}
-            <Button type="submit" variant="primary" size="icon" disabled={isGenerating || generationDisabled} aria-label={isGenerating ? "Creating image" : "Generate image"} data-testid="generate-button">
+            <Button type="submit" variant={arenaId === "product-fashion" ? "secondary" : "primary"} size="icon" disabled={isGenerating || packGenerating || generationDisabled} aria-label={isGenerating ? "Creating image" : "Create one image"} data-testid="generate-button">
               {isGenerating ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Send className="h-4 w-4" aria-hidden="true" />}
             </Button>
           </div>
@@ -379,7 +399,10 @@ const addOptions: Array<{ role: ReferenceRole; label: string; icon: typeof Packa
   { role: "reference", label: "Other image", icon: ImagePlus },
 ];
 
+const productAddOptions = addOptions.filter((option) => option.role !== "character");
+
 const referenceRoleOptions = addOptions.map(({ role: value, label }) => ({ value, label }));
+const productReferenceRoleOptions = productAddOptions.map(({ role: value, label }) => ({ value, label }));
 const outputOptions: Array<{ value: OutputType; label: string }> = [
   { value: "image", label: "Image" }, { value: "poster", label: "Poster" }, { value: "illustration", label: "Illustration" }, { value: "social", label: "Social graphic" }, { value: "thumbnail", label: "Thumbnail" },
 ];
@@ -387,10 +410,16 @@ const generalStyleOptions = [
   { value: "premium editorial photography", label: "Premium editorial" }, { value: "clean commercial photography", label: "Clean commercial" }, { value: "bold graphic design", label: "Bold graphic" }, { value: "playful hand-drawn illustration", label: "Playful illustration" }, { value: "cinematic photorealism", label: "Cinematic" },
 ];
 const productModeOptions: Array<{ value: ProductMode; label: string }> = [
-  { value: "product-scene", label: "Product scene" }, { value: "on-model", label: "On-model fashion" }, { value: "influencer-lifestyle", label: "Influencer lifestyle" },
+  { value: "product-scene", label: "Product only" }, { value: "on-model", label: "On a person" }, { value: "influencer-lifestyle", label: "Lifestyle" },
 ];
 const productSceneOptions: Array<{ value: ProductScene; label: string }> = [
   { value: "studio", label: "Studio" }, { value: "lifestyle", label: "Lifestyle" }, { value: "flat-lay", label: "Flat lay" }, { value: "outdoor", label: "Outdoor" }, { value: "custom", label: "Custom" },
+];
+const campaignGoalOptions: Array<{ value: ProductCampaignGoal; label: string }> = [
+  { value: "store-listing", label: "Shop listing" },
+  { value: "social-post", label: "Social post" },
+  { value: "ad-banner", label: "Ad banner" },
+  { value: "lookbook", label: "Lookbook" },
 ];
 const artStyleOptions: Array<{ value: ArtStyle; label: string }> = [
   { value: "cartoon", label: "Cartoon" }, { value: "watercolor", label: "Watercolor" }, { value: "3d-storybook", label: "3D storybook" }, { value: "custom", label: "Custom style" },
