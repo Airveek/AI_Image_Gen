@@ -139,6 +139,38 @@ export type ImageProviderSetting = {
   lastError: string | null;
 };
 
+export type BridgeAccountStatus = {
+  id: string;
+  label: string;
+  enabled: boolean;
+  status: "ready" | "busy" | "limited" | "not_ready" | "disabled";
+  requestsInWindow: number;
+  remainingInWindow: number;
+  requestLimit: number;
+  windowSeconds: number;
+  totalRequests: number;
+  successfulRequests: number;
+  failedRequests: number;
+  lastRequestAt: string | null;
+  lastError: string | null;
+};
+
+export type BridgePoolStatus = {
+  provider: string;
+  model: string;
+  rateLimit: {
+    requests: number;
+    windowSeconds: number;
+  };
+  summary: {
+    total: number;
+    ready: number;
+    busy: number;
+    limited: number;
+  };
+  accounts: BridgeAccountStatus[];
+};
+
 export type ProviderTestResult = {
   models: string[];
   supportsTextToImage: boolean;

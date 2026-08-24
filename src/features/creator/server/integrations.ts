@@ -3,12 +3,15 @@ import "server-only";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminUser } from "@/features/admin/server/authorization";
 import type {
+  BridgeAccountStatus,
+  BridgePoolStatus,
   ImageProviderKind,
   ImageProviderSetting,
   ProviderTestResult,
 } from "@/features/creator/types";
 import {
   testProviderConfiguration,
+  requestProviderManagement,
   validateProviderBaseUrl,
   type ProviderConfiguration,
 } from "@/features/creator/server/provider";
@@ -34,6 +37,12 @@ export type SaveProviderInput = {
   baseUrl: string;
   model: string;
   apiKey: string;
+};
+
+export type AddBridgeAccountInput = {
+  label: string;
+  secure1psid: string;
+  secure1psidts: string;
 };
 
 export async function listImageProviderSettings(): Promise<ImageProviderSetting[]> {
@@ -73,6 +82,70 @@ export async function getActiveProviderConfiguration(): Promise<ProviderConfigur
     model: row.model,
     apiKey,
   };
+}
+
+export async function getBridgePoolStatus(): Promise<BridgePoolStatus | null> {
+  await requireAdminUser();
+  const configuration = await getActiveProviderConfiguration();
+  if (configuration.kind !== "gemini-compatible") {
+    return null;
+  }
+  const body = await requestProviderManagement(configuration, "admin/pool", { method: "GET" });
+  return readBridgePoolStatus(body);
+}
+
+export async function addBridgeAccount(input: AddBridgeAccountInput): Promise<void> {
+  await requireAdminUser();
+  const label = input.label.trim();
+  const secure1psid = input.secure1psid.trim();
+  const secure1psidts = input.secure1psidts.trim();
+  if (!label || !secure1psid) {
+    throw new Error("Account name and __Secure-1PSID cookie are required.");
+  }
+  const configuration = await getBridgeConfiguration();
+  await requestProviderManagement(configuration, "admin/accounts", {
+    method: "POST",
+    body: JSON.stringify({
+      label,
+      secure_1psid: secure1psid,
+      secure_1psidts: secure1psidts || null,
+      enabled: true,
+    }),
+  });
+}
+
+export async function setBridgeAccountEnabled(accountId: string, enabled: boolean): Promise<void> {
+  await requireAdminUser();
+  assertBridgeAccountId(accountId);
+  const configuration = await getBridgeConfiguration();
+  await requestProviderManagement(configuration, `admin/accounts/${encodeURIComponent(accountId)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ enabled }),
+  });
+}
+
+export async function deleteBridgeAccount(accountId: string): Promise<void> {
+  await requireAdminUser();
+  assertBridgeAccountId(accountId);
+  const configuration = await getBridgeConfiguration();
+  await requestProviderManagement(configuration, `admin/accounts/${encodeURIComponent(accountId)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function setBridgeRateLimit(requests: number, windowSeconds: number): Promise<void> {
+  await requireAdminUser();
+  if (!Number.isInteger(requests) || requests < 1 || requests > 100) {
+    throw new Error("Requests per account must be between 1 and 100.");
+  }
+  if (!Number.isInteger(windowSeconds) || windowSeconds < 1 || windowSeconds > 86_400) {
+    throw new Error("The time frame must be between 1 second and 24 hours.");
+  }
+  const configuration = await getBridgeConfiguration();
+  await requestProviderManagement(configuration, "admin/rate-limit", {
+    method: "PUT",
+    body: JSON.stringify({ requests, window_seconds: windowSeconds }),
+  });
 }
 
 export async function testAndSaveProvider(input: SaveProviderInput): Promise<{
@@ -262,4 +335,88 @@ function databaseSetupMessage(message: string): string {
   return message.includes("image_provider_settings")
     ? "Creator database tables are not installed. Apply the creator Supabase migration first."
     : message;
+}
+
+async function getBridgeConfiguration(): Promise<ProviderConfiguration> {
+  const configuration = await getActiveProviderConfiguration();
+  if (configuration.kind !== "gemini-compatible") {
+    throw new Error("Activate the Gemini-compatible bridge before managing its accounts.");
+  }
+  return configuration;
+}
+
+function readBridgePoolStatus(value: unknown): BridgePoolStatus {
+  const topLevel = toRecord(value);
+  const record = toRecord(topLevel?.pool) ?? topLevel;
+  if (!record) throw new Error("The bridge returned an invalid account status.");
+  const rateLimit = toRecord(record.rateLimit);
+  const summary = toRecord(record.summary);
+  const accounts = Array.isArray(record.accounts)
+    ? record.accounts.map(readBridgeAccountStatus)
+    : [];
+  return {
+    provider: readRequiredString(record.provider, "provider"),
+    model: readRequiredString(record.model, "model"),
+    rateLimit: {
+      requests: readRequiredNumber(rateLimit?.requests, "requests per window"),
+      windowSeconds: readRequiredNumber(rateLimit?.windowSeconds, "window seconds"),
+    },
+    summary: {
+      total: readRequiredNumber(summary?.total, "account total"),
+      ready: readRequiredNumber(summary?.ready, "ready accounts"),
+      busy: readRequiredNumber(summary?.busy, "busy accounts"),
+      limited: readRequiredNumber(summary?.limited, "limited accounts"),
+    },
+    accounts,
+  };
+}
+
+function readBridgeAccountStatus(value: unknown): BridgeAccountStatus {
+  const record = toRecord(value);
+  if (!record) throw new Error("The bridge returned an invalid account entry.");
+  const status = record.status;
+  if (status !== "ready" && status !== "busy" && status !== "limited" && status !== "not_ready" && status !== "disabled") {
+    throw new Error("The bridge returned an unknown account status.");
+  }
+  return {
+    id: readRequiredString(record.id, "account id"),
+    label: readRequiredString(record.label, "account label"),
+    enabled: record.enabled === true,
+    status,
+    requestsInWindow: readRequiredNumber(record.requestsInWindow, "requests in window"),
+    remainingInWindow: readRequiredNumber(record.remainingInWindow, "remaining requests"),
+    requestLimit: readRequiredNumber(record.requestLimit, "request limit"),
+    windowSeconds: readRequiredNumber(record.windowSeconds, "window seconds"),
+    totalRequests: readRequiredNumber(record.totalRequests, "total requests"),
+    successfulRequests: readRequiredNumber(record.successfulRequests, "successful requests"),
+    failedRequests: readRequiredNumber(record.failedRequests, "failed requests"),
+    lastRequestAt: readOptionalString(record.lastRequestAt),
+    lastError: readOptionalString(record.lastError),
+  };
+}
+
+function toRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function readRequiredString(value: unknown, label: string): string {
+  if (typeof value !== "string" || !value.trim()) throw new Error(`Bridge ${label} is missing.`);
+  return value;
+}
+
+function readOptionalString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function readRequiredNumber(value: unknown, label: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    throw new Error(`Bridge ${label} is invalid.`);
+  }
+  return value;
+}
+
+function assertBridgeAccountId(value: string): void {
+  if (!/^[a-z0-9_-]{1,80}$/i.test(value)) throw new Error("Invalid bridge account id.");
 }

@@ -5,8 +5,12 @@ import { revalidatePath } from "next/cache";
 import { getActionErrorMessage, requireAdminUser } from "@/features/admin/server/authorization";
 import { disconnectGoogleDrive } from "@/features/creator/server/drive";
 import {
+  addBridgeAccount,
   activateProvider,
+  deleteBridgeAccount,
   deleteProvider,
+  setBridgeAccountEnabled,
+  setBridgeRateLimit,
   testAndSaveProvider,
 } from "@/features/creator/server/integrations";
 import {
@@ -42,6 +46,61 @@ export async function saveProviderAction(
       status: test.test.supportsReferenceImages ? "success" : "error",
       message: test.test.message,
     };
+  } catch (error) {
+    return { status: "error", message: getActionErrorMessage(error) };
+  }
+}
+
+export async function addBridgeAccountAction(
+  _previousState: IntegrationActionState,
+  formData: FormData,
+): Promise<IntegrationActionState> {
+  try {
+    await addBridgeAccount({
+      label: requiredField(formData, "label"),
+      secure1psid: requiredField(formData, "secure1psid"),
+      secure1psidts: optionalField(formData, "secure1psidts") ?? "",
+    });
+    revalidatePath("/admin/integrations");
+    return { status: "success", message: "Gemini account added and checked." };
+  } catch (error) {
+    return { status: "error", message: getActionErrorMessage(error) };
+  }
+}
+
+export async function setBridgeRateLimitAction(
+  _previousState: IntegrationActionState,
+  formData: FormData,
+): Promise<IntegrationActionState> {
+  try {
+    const requests = readPositiveInteger(requiredField(formData, "requests"), "requests");
+    const windowSeconds = readPositiveInteger(requiredField(formData, "windowSeconds"), "time frame");
+    await setBridgeRateLimit(requests, windowSeconds);
+    revalidatePath("/admin/integrations");
+    return { status: "success", message: "Shared account request limit updated." };
+  } catch (error) {
+    return { status: "error", message: getActionErrorMessage(error) };
+  }
+}
+
+export async function setBridgeAccountEnabledAction(
+  accountId: string,
+  enabled: boolean,
+): Promise<IntegrationActionState> {
+  try {
+    await setBridgeAccountEnabled(accountId, enabled);
+    revalidatePath("/admin/integrations");
+    return { status: "success", message: enabled ? "Gemini account enabled." : "Gemini account paused." };
+  } catch (error) {
+    return { status: "error", message: getActionErrorMessage(error) };
+  }
+}
+
+export async function deleteBridgeAccountAction(accountId: string): Promise<IntegrationActionState> {
+  try {
+    await deleteBridgeAccount(accountId);
+    revalidatePath("/admin/integrations");
+    return { status: "success", message: "Gemini account removed." };
   } catch (error) {
     return { status: "error", message: getActionErrorMessage(error) };
   }
@@ -129,4 +188,10 @@ function readStringValue(value: unknown, label: string): string {
 
 function validateId(value: string): void {
   if (!UUID_PATTERN.test(value)) throw new Error("Invalid provider id.");
+}
+
+function readPositiveInteger(value: string, label: string): number {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed) || parsed < 1) throw new Error(`${label} must be a positive whole number.`);
+  return parsed;
 }

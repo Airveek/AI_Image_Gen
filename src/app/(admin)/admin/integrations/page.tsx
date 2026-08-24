@@ -4,9 +4,9 @@ import { redirect } from "next/navigation";
 import { AdminAuthorizationError, requireAdminUser } from "@/features/admin/server/authorization";
 import { IntegrationSettings } from "@/features/creator/components/integration-settings";
 import { getDriveConnectionStatus } from "@/features/creator/server/drive";
-import { listImageProviderSettings } from "@/features/creator/server/integrations";
+import { getBridgePoolStatus, listImageProviderSettings } from "@/features/creator/server/integrations";
 import { getR2Status } from "@/features/creator/server/r2";
-import type { ImageProviderSetting } from "@/features/creator/types";
+import type { BridgePoolStatus, ImageProviderSetting } from "@/features/creator/types";
 
 export const metadata: Metadata = { title: "Integrations" };
 
@@ -24,10 +24,20 @@ export default async function IntegrationsPage({
   }
   let providers: ImageProviderSetting[] = [];
   let setupMessage: string | null = null;
+  let bridgePool: BridgePoolStatus | null = null;
+  let bridgeMessage: string | null = null;
   try {
     providers = await listImageProviderSettings();
   } catch (error) {
     setupMessage = error instanceof Error ? error.message : "Integration settings are unavailable.";
+  }
+
+  if (providers.some((provider) => provider.isActive && provider.kind === "gemini-compatible")) {
+    try {
+      bridgePool = await getBridgePoolStatus();
+    } catch (error) {
+      bridgeMessage = error instanceof Error ? error.message : "Bridge account status is unavailable.";
+    }
   }
 
   const [drive, r2] = await Promise.all([
@@ -38,6 +48,8 @@ export default async function IntegrationsPage({
   return (
     <IntegrationSettings
       providers={providers}
+      bridgePool={bridgePool}
+      bridgeMessage={bridgeMessage}
       drive={drive}
       r2={r2}
       setupMessage={setupMessage}

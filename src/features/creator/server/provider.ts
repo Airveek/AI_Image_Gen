@@ -2,6 +2,7 @@ import "server-only";
 
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
+import sharp from "sharp";
 
 import { detectImageMimeType } from "@/features/creator/server/files";
 import { removeGeminiVisibleWatermark } from "@/features/creator/server/watermark";
@@ -14,7 +15,8 @@ import type {
   ProviderTestResult,
 } from "@/features/creator/types";
 
-const PROVIDER_TIMEOUT_MS = 180_000;
+const PROVIDER_TIMEOUT_MS = 240_000;
+const PROVIDER_MANAGEMENT_TIMEOUT_MS = 45_000;
 const MAX_PROVIDER_IMAGE_BYTES = 20 * 1024 * 1024;
 
 export type ProviderConfiguration = {
@@ -43,6 +45,28 @@ export async function listProviderModels(configuration: ProviderConfiguration): 
     .map((name) => name.replace(/^models\//, ""));
 
   return [...new Set(models)].sort();
+}
+
+export async function requestProviderManagement(
+  configuration: ProviderConfiguration,
+  path: string,
+  init: RequestInit,
+): Promise<unknown> {
+  if (configuration.kind !== "gemini-compatible") {
+    throw new Error("Account rotation is available only for the Gemini-compatible bridge.");
+  }
+  if (!configuration.apiKey) {
+    throw new Error("Save the bridge administrator token as this provider's API key first.");
+  }
+  const normalizedPath = path.replace(/^\/+/, "");
+  const headers = new Headers(init.headers);
+  headers.set("content-type", "application/json");
+  const response = await providerFetch(`${configuration.baseUrl}/${normalizedPath}`, configuration, {
+    ...init,
+    headers,
+    signal: init.signal ?? AbortSignal.timeout(PROVIDER_MANAGEMENT_TIMEOUT_MS),
+  });
+  return response.json() as Promise<unknown>;
 }
 
 export async function generateProviderImage(
@@ -145,31 +169,36 @@ export async function testProviderConfiguration(
     };
   }
 
-  const firstImage = await generateProviderImage(
-    configuration,
-    "Create one simple square product test image: a matte white ceramic cup on a neutral gray background. Return only the image.",
-    "1:1",
-    [],
-  );
-
   try {
+    const referenceBytes = Uint8Array.from(
+      await sharp({
+        create: {
+          width: 128,
+          height: 128,
+          channels: 3,
+          background: { r: 116, g: 204, b: 137 },
+        },
+      })
+        .png()
+        .toBuffer(),
+    );
     await generateProviderImage(
       configuration,
-      "Use the supplied cup as the exact subject. Change only the background to soft green. Return only the image.",
+      "Create one simple square product test image: a matte white ceramic cup on a neutral gray background with one soft green accent matching Image 1. Return only the image.",
       "1:1",
-      [{ bytes: firstImage.bytes, mimeType: firstImage.mimeType }],
+      [{ bytes: referenceBytes, mimeType: "image/png", label: "Image 1 — soft green color reference." }],
     );
 
     return {
       models,
       supportsTextToImage: true,
       supportsReferenceImages: true,
-      message: "Text and reference image generation both passed.",
+      message: "Reference-guided image generation passed.",
     };
   } catch (error) {
     return {
       models,
-      supportsTextToImage: true,
+      supportsTextToImage: false,
       supportsReferenceImages: false,
       message: error instanceof Error ? error.message : "Reference image generation failed.",
     };
@@ -212,7 +241,7 @@ async function providerFetch(
       ...init,
       cache: "no-store",
       headers,
-      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
+      signal: init.signal ?? AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     });
 
     if (!response.ok) {
