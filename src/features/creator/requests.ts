@@ -68,6 +68,22 @@ export function parseGenerationRequest(value: unknown): GenerationRequest {
     };
   }
 
+  if (arenaId === "image-to-sketch") {
+    if (aspectRatio !== "1:1") {
+      throw new Error("Image to Sketch uses a square canvas.");
+    }
+    const references = readReferences(record, "reference");
+    if (references.length === 0) {
+      throw new Error("Upload one sketch or garment image before generating.");
+    }
+    return {
+      arenaId,
+      aspectRatio: "1:1",
+      prompt: readOptionalText(record, "prompt", 600),
+      references,
+    };
+  }
+
   throw new Error("Choose a supported creation arena.");
 }
 

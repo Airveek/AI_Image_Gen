@@ -83,6 +83,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   const [lighting, setLighting] = useState<LightingOption>("auto");
   const [aspectRatio, setAspectRatio] = useState<ImageAspectRatio>(arenaId === "storybook-page" ? "4:5" : "1:1");
   const [extraDirection, setExtraDirection] = useState("");
+  const [sketchPrompt, setSketchPrompt] = useState("");
 
   useEffect(() => {
     workspaceRef.current?.setAttribute("data-ready", "true");
@@ -95,7 +96,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
 
   if (!arena) return null;
 
-  const mainText = arenaId === "general-image" ? subject : arenaId === "product-fashion" ? extraDirection : storyScene;
+  const mainText = arenaId === "general-image" ? subject : arenaId === "product-fashion" ? extraDirection : arenaId === "storybook-page" ? storyScene : sketchPrompt;
   const isPackGenerating = packStatus === "generating";
   const isBusy = isGenerating || isPackGenerating;
   const hasPackResults = packShots.some((shot) => shot.asset !== null);
@@ -103,14 +104,15 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   function setMainText(value: string) {
     if (arenaId === "general-image") setSubject(value);
     else if (arenaId === "product-fashion") setExtraDirection(value);
-    else setStoryScene(value);
+    else if (arenaId === "storybook-page") setStoryScene(value);
+    else if (arenaId === "image-to-sketch") setSketchPrompt(value);
   }
 
   async function handleGenerate(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
     if (isBusy || !validateForGeneration()) return;
     setIsGenerating(true);
-    setMessage("Airveek is creating one polished 1K image…");
+    setMessage(arenaId === "image-to-sketch" ? "Airveek is cleaning your sketch…" : "Airveek is creating one polished 1K image…");
 
     try {
       const parsed = await requestGeneration(buildRequest());
@@ -213,12 +215,19 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
       setMessage("Add a Character image or describe the main character in Optional details.");
       return false;
     }
+    if (arenaId === "image-to-sketch" && references.length === 0) {
+      setMessage("Upload one sketch or garment image before generating.");
+      return false;
+    }
     return true;
   }
 
   function buildRequest(): GenerationRequest {
     if (arenaId === "product-fashion") {
       return { arenaId, mode, scene, campaignGoal, backgroundMood, lighting, aspectRatio, extraDirection, references };
+    }
+    if (arenaId === "image-to-sketch") {
+      return { arenaId, aspectRatio: "1:1", prompt: sketchPrompt, references };
     }
     if (arenaId === "storybook-page") {
       return { arenaId, characterDescription, scene: storyScene, artStyle, pageText, lighting, aspectRatio, extraDirection: "", references };
@@ -344,8 +353,8 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
               ) : (
                 <div className="relative max-w-md text-center">
                   <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl text-brand-neon"><ImagePlus className="h-8 w-8" aria-hidden="true" /></span>
-                  <h2 className="mt-4 font-display text-2xl font-bold">Make your first generation</h2>
-                  <p className="mt-2 text-base leading-6 text-muted">Describe your idea, choose simple options, and Airveek handles the detailed prompt.</p>
+                  <h2 className="mt-4 font-display text-2xl font-bold">{arenaId === "image-to-sketch" ? "Your clean sketch appears here" : "Make your first generation"}</h2>
+                  <p className="mt-2 text-base leading-6 text-muted">{arenaId === "image-to-sketch" ? "Upload a sketch or garment image. Airveek will clean the lines and keep the design details." : "Describe your idea, choose simple options, and Airveek handles the detailed prompt."}</p>
                 </div>
               )}
             </div>
@@ -395,7 +404,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
           </section>
 
           <aside className="hidden min-h-0 border-l border-white/10 bg-[#151715] lg:block">
-            <CreatorAssetPicker assets={assets} references={references} onToggle={toggleReference} onUpload={handleUpload} isUploading={isUploading} allowedReferenceRoles={referenceRolesForArena(arenaId)} defaultUploadRole={defaultUploadRole(arenaId)} uploadInputTestId="asset-upload-input" />
+            <CreatorAssetPicker assets={assets} references={references} onToggle={toggleReference} onUpload={handleUpload} isUploading={isUploading} allowedReferenceRoles={referenceRolesForArena(arenaId)} defaultUploadRole={defaultUploadRole(arenaId)} helperText={arenaId === "image-to-sketch" ? "One image is enough. Add a second zoomed detail when useful." : undefined} uploadInputTestId="asset-upload-input" />
           </aside>
         </div>
       </form>
@@ -431,8 +440,8 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
           setAssetDialogOpen(open);
           if (!open) setPreferredRole(null);
         }}
-        title={preferredRole ? `Choose a ${referenceRoleLabel(preferredRole)}` : "Your assets"}
-        description={preferredRole ? `Select a saved image or upload a new ${referenceRoleLabel(preferredRole).toLowerCase()} image.` : "Choose up to two reference images."}
+        title={arenaId === "image-to-sketch" ? "Add sketch image" : preferredRole ? `Choose a ${referenceRoleLabel(preferredRole)}` : "Your assets"}
+        description={arenaId === "image-to-sketch" ? "One image is enough. Add a second zoomed detail when useful." : preferredRole ? `Select a saved image or upload a new ${referenceRoleLabel(preferredRole).toLowerCase()} image.` : "Choose up to two reference images."}
       >
         <div className="max-h-[65vh] overflow-y-auto">
           <CreatorAssetPicker
@@ -446,6 +455,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
             isUploading={isUploading}
             preferredRole={preferredRole}
             allowedReferenceRoles={referenceRolesForArena(arenaId)}
+            helperText={arenaId === "image-to-sketch" ? "One image is enough. Add a second zoomed detail when useful." : undefined}
             compact
           />
         </div>

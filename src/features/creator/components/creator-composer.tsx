@@ -175,9 +175,11 @@ export function CreatorComposer({
     "general-image": "Describe the image you want. Example: A premium skincare bottle on wet stone after rain, soft morning light.",
     "product-fashion": "Describe the final product photo. Example: Place the bottle on warm stone with clean space on the left for an ad.",
     "storybook-page": "Describe what happens on this page. Example: Mina finds a tiny glowing door beneath an old oak tree.",
+    "image-to-sketch": "Optional: say what to preserve, such as “keep the neckline and seam details exact.”",
   }[arenaId];
-  const availableAddOptions = arenaId === "product-fashion" ? productAddOptions : addOptions;
-  const availableReferenceRoleOptions = arenaId === "product-fashion" ? productReferenceRoleOptions : referenceRoleOptions;
+  const isImageToSketch = arenaId === "image-to-sketch";
+  const availableAddOptions = arenaId === "product-fashion" ? productAddOptions : isImageToSketch ? sketchAddOptions : addOptions;
+  const availableReferenceRoleOptions = arenaId === "product-fashion" ? productReferenceRoleOptions : isImageToSketch ? sketchReferenceRoleOptions : referenceRoleOptions;
 
   return (
     <div ref={composerRef} className="relative mx-auto w-full max-w-[900px]" data-testid="creator-composer">
@@ -191,16 +193,23 @@ export function CreatorComposer({
                   {reference.asset.imageUrl ? <Image src={reference.asset.imageUrl} alt="" fill unoptimized className="object-cover" sizes="44px" /> : null}
                   <span className="absolute left-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-neon text-[10px] font-bold text-black">{index + 1}</span>
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setOpenMenu(openMenu === menuId ? null : menuId)}
-                  className="min-w-0 flex-1 rounded-md text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon"
-                  aria-haspopup="menu"
-                  aria-expanded={openMenu === menuId}
-                >
-                  <span className="block truncate text-sm font-semibold text-white">{reference.asset.name}</span>
-                  <span className="flex items-center gap-1 text-xs text-muted">{referenceRoleLabel(reference.role)} <ChevronDown className="h-3 w-3" aria-hidden="true" /></span>
-                </button>
+                {isImageToSketch ? (
+                  <div className="min-w-0 flex-1 text-left">
+                    <span className="block truncate text-sm font-semibold text-white">{reference.asset.name}</span>
+                    <span className="block text-xs text-muted">Sketch image {index + 1}</span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setOpenMenu(openMenu === menuId ? null : menuId)}
+                    className="min-w-0 flex-1 rounded-md text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon"
+                    aria-haspopup="menu"
+                    aria-expanded={openMenu === menuId}
+                  >
+                    <span className="block truncate text-sm font-semibold text-white">{reference.asset.name}</span>
+                    <span className="flex items-center gap-1 text-xs text-muted">{referenceRoleLabel(reference.role)} <ChevronDown className="h-3 w-3" aria-hidden="true" /></span>
+                  </button>
+                )}
                 <button type="button" onClick={() => onRemoveReference(reference.assetId)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-white/[0.07] hover:text-white" aria-label={`Remove ${reference.asset.name}`}>
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>
@@ -221,19 +230,38 @@ export function CreatorComposer({
       ) : null}
 
       <div className="rounded-2xl border border-white/15 bg-[#1a1c1a] p-2 shadow-[0_18px_60px_rgba(0,0,0,0.48)] transition-colors focus-within:border-brand-neon/45">
-        <label className="sr-only" htmlFor="creation-prompt">Describe the image you want</label>
-        {arenaId === "product-fashion" ? <p className="px-3 pt-1 text-xs text-muted">Use a clear photo with the whole product visible. Keep this page open while the three images are created.</p> : null}
-        <textarea
-          id="creation-prompt"
-          value={mainText}
-          onChange={(event) => onMainTextChange(event.target.value)}
-          rows={3}
-          maxLength={arenaId === "storybook-page" ? 800 : 600}
-          required={arenaId !== "product-fashion"}
-          className="max-h-40 min-h-20 w-full resize-none bg-transparent px-3 py-2 text-base leading-6 text-white outline-none placeholder:text-[#8a8f8a]"
-          placeholder={placeholder}
-          data-testid="creation-prompt"
-        />
+        {isImageToSketch ? (
+          <>
+            <label className="sr-only" htmlFor="creation-prompt">Optional sketch direction</label>
+            <p className="px-3 pt-1 text-xs text-muted">Upload a clear sketch or garment image. Add a second zoomed detail when useful.</p>
+            <textarea
+              id="creation-prompt"
+              value={mainText}
+              onChange={(event) => onMainTextChange(event.target.value)}
+              rows={2}
+              maxLength={600}
+              className="max-h-32 min-h-16 w-full resize-none bg-transparent px-3 py-2 text-base leading-6 text-white outline-none placeholder:text-[#8a8f8a]"
+              placeholder={placeholder}
+              data-testid="creation-prompt"
+            />
+          </>
+        ) : (
+          <>
+            <label className="sr-only" htmlFor="creation-prompt">Describe the image you want</label>
+            {arenaId === "product-fashion" ? <p className="px-3 pt-1 text-xs text-muted">Use a clear photo with the whole product visible. Keep this page open while the three images are created.</p> : null}
+            <textarea
+              id="creation-prompt"
+              value={mainText}
+              onChange={(event) => onMainTextChange(event.target.value)}
+              rows={3}
+              maxLength={arenaId === "storybook-page" ? 800 : 600}
+              required={arenaId !== "product-fashion"}
+              className="max-h-40 min-h-20 w-full resize-none bg-transparent px-3 py-2 text-base leading-6 text-white outline-none placeholder:text-[#8a8f8a]"
+              placeholder={placeholder}
+              data-testid="creation-prompt"
+            />
+          </>
+        )}
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 px-1 pt-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -244,7 +272,7 @@ export function CreatorComposer({
             </Button>
 
             <div className="relative">
-              <Button type="button" size="icon" variant="secondary" onClick={() => setOpenMenu(openMenu === "add" ? null : "add")} aria-label="Add a reference image" aria-haspopup="menu" aria-expanded={openMenu === "add"} data-testid="add-reference-button">
+              <Button type="button" size="icon" variant="secondary" onClick={() => setOpenMenu(openMenu === "add" ? null : "add")} aria-label={isImageToSketch ? "Add image" : "Add a reference image"} aria-haspopup="menu" aria-expanded={openMenu === "add"} data-testid="add-reference-button">
                 <Plus className="h-4 w-4" aria-hidden="true" />
               </Button>
               {openMenu === "add" ? (
@@ -259,25 +287,27 @@ export function CreatorComposer({
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-2">
-            {arenaId === "general-image" ? (
+            {!isImageToSketch && arenaId === "general-image" ? (
               <>
                 <OptionMenu id="output" label={labelFor(outputType, outputOptions)} icon={<LayoutTemplate className="h-4 w-4" aria-hidden="true" />} options={outputOptions} value={outputType} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onOutputTypeChange} />
                 <OptionMenu id="style" label={labelFor(style, generalStyleOptions)} icon={<Palette className="h-4 w-4" aria-hidden="true" />} options={generalStyleOptions} value={style} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onStyleChange} />
               </>
-            ) : arenaId === "product-fashion" ? (
+            ) : !isImageToSketch && arenaId === "product-fashion" ? (
               <>
                 <OptionMenu id="mode" label={labelFor(mode, productModeOptions)} icon={<Package className="h-4 w-4" aria-hidden="true" />} options={productModeOptions} value={mode} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onModeChange} />
                 <OptionMenu id="scene" label={labelFor(scene, productSceneOptions)} icon={<LayoutTemplate className="h-4 w-4" aria-hidden="true" />} options={productSceneOptions} value={scene} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onSceneChange} />
                 <OptionMenu id="goal" label={labelFor(campaignGoal, campaignGoalOptions)} icon={<WandSparkles className="h-4 w-4" aria-hidden="true" />} options={campaignGoalOptions} value={campaignGoal} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onCampaignGoalChange} />
               </>
-            ) : (
+            ) : !isImageToSketch ? (
               <OptionMenu id="style" label={labelFor(artStyle, artStyleOptions)} icon={<Palette className="h-4 w-4" aria-hidden="true" />} options={artStyleOptions} value={artStyle} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onArtStyleChange} />
-            )}
+            ) : null}
 
-            <OptionMenu id="lighting" label={labelFor(lighting, lightingOptions)} icon={<LampDesk className="h-4 w-4" aria-hidden="true" />} options={lightingOptions} value={lighting} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onLightingChange} />
-            <OptionMenu id="ratio" label={aspectRatio} icon={<ImageIcon className="h-4 w-4" aria-hidden="true" />} options={ratioOptions} value={aspectRatio} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onAspectRatioChange} />
+            {!isImageToSketch ? <>
+              <OptionMenu id="lighting" label={labelFor(lighting, lightingOptions)} icon={<LampDesk className="h-4 w-4" aria-hidden="true" />} options={lightingOptions} value={lighting} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onLightingChange} />
+              <OptionMenu id="ratio" label={aspectRatio} icon={<ImageIcon className="h-4 w-4" aria-hidden="true" />} options={ratioOptions} value={aspectRatio} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onAspectRatioChange} />
+            </> : null}
 
-            <div className="relative">
+            {!isImageToSketch ? <div className="relative">
               <Button type="button" size="icon" variant="secondary" onClick={() => setOpenMenu(openMenu === "details" ? null : "details")} aria-label="Open optional image details" aria-haspopup="dialog" aria-expanded={openMenu === "details"}>
                 <Settings2 className="h-4 w-4" aria-hidden="true" />
               </Button>
@@ -303,7 +333,7 @@ export function CreatorComposer({
                   )}
                 </DetailsPanel>
               ) : null}
-            </div>
+            </div> : null}
 
             {arenaId === "product-fashion" ? (
               <Button type="button" variant="primary" disabled={isGenerating || packGenerating || generationDisabled} onClick={onGeneratePack} data-testid="photoshoot-pack-button">
@@ -316,8 +346,9 @@ export function CreatorComposer({
                 <RefreshCw className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">Variation</span>
               </Button>
             ) : null}
-            <Button type="submit" variant={arenaId === "product-fashion" ? "secondary" : "primary"} size="icon" disabled={isGenerating || packGenerating || generationDisabled} aria-label={isGenerating ? "Creating image" : "Create one image"} data-testid="generate-button">
+            <Button type="submit" variant={isImageToSketch || arenaId !== "product-fashion" ? "primary" : "secondary"} size={isImageToSketch ? "default" : "icon"} disabled={isGenerating || packGenerating || generationDisabled} aria-label={isGenerating ? "Creating image" : isImageToSketch ? "Create high-quality sketch" : "Create one image"} data-testid="generate-button">
               {isGenerating ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Send className="h-4 w-4" aria-hidden="true" />}
+              {isImageToSketch ? <span>{isGenerating ? "Creating sketch…" : "Create high-quality sketch"}</span> : null}
             </Button>
           </div>
         </div>
@@ -400,9 +431,13 @@ const addOptions: Array<{ role: ReferenceRole; label: string; icon: typeof Packa
 ];
 
 const productAddOptions = addOptions.filter((option) => option.role !== "character");
+const sketchAddOptions: Array<{ role: ReferenceRole; label: string; icon: typeof Package }> = [
+  { role: "reference", label: "Add image", icon: ImagePlus },
+];
 
 const referenceRoleOptions = addOptions.map(({ role: value, label }) => ({ value, label }));
 const productReferenceRoleOptions = productAddOptions.map(({ role: value, label }) => ({ value, label }));
+const sketchReferenceRoleOptions = [{ value: "reference" as const, label: "Sketch image" }];
 const outputOptions: Array<{ value: OutputType; label: string }> = [
   { value: "image", label: "Image" }, { value: "poster", label: "Poster" }, { value: "illustration", label: "Illustration" }, { value: "social", label: "Social graphic" }, { value: "thumbnail", label: "Thumbnail" },
 ];

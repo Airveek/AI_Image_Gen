@@ -475,7 +475,13 @@ function readStatus(value: string): CreatorAsset["status"] {
 }
 
 function readArena(value: string | null): CreatorArenaId | null {
-  if (value === null || value === "general-image" || value === "product-fashion" || value === "storybook-page") {
+  if (
+    value === null ||
+    value === "general-image" ||
+    value === "product-fashion" ||
+    value === "storybook-page" ||
+    value === "image-to-sketch"
+  ) {
     return value;
   }
   throw new CreatorServiceError("Unknown creator arena.", "storage_failed");
@@ -503,6 +509,7 @@ function readDailyLimit(): number {
 function generationName(arenaId: CreatorArenaId): string {
   if (arenaId === "product-fashion") return "Product & fashion creation";
   if (arenaId === "storybook-page") return "Storybook page";
+  if (arenaId === "image-to-sketch") return "Image to sketch";
   return "General image";
 }
 
@@ -529,7 +536,18 @@ function getErrorMessage(error: unknown, fallback: string): string {
 }
 
 function databaseSetupMessage(message: string): string {
-  return message.includes("creator_assets")
+  const normalized = message.toLowerCase();
+  if (normalized.includes("creator_assets_arena_id_check")) {
+    return "Image to Sketch is not enabled in creator storage. Apply the latest Supabase migration first.";
+  }
+
+  const creatorTableIsMissing =
+    normalized.includes("creator_assets") &&
+    (normalized.includes("does not exist") ||
+      normalized.includes("schema cache") ||
+      normalized.includes("could not find the table"));
+
+  return creatorTableIsMissing
     ? "Creator storage is not ready. Apply the creator Supabase migration first."
     : message;
 }

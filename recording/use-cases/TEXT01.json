@@ -4,10 +4,8 @@
   "input": "public/images/artistly/features/perfect-text-in-ai-images.png",
   "variations": 1,
   "fields": [
-    { "label": "What are you making?", "action": "select", "value": "poster" },
-    { "label": "What should the image show?", "action": "fill", "value": "A premium launch poster for a modern creative tool, with a simple dark background and one clear headline." },
-    { "label": "Exact text", "action": "fill", "value": "CREATE WITHOUT LIMITS" },
-    { "label": "Visual style", "action": "select", "value": "bold graphic design" },
-    { "label": "Final instruction", "action": "fill", "value": "Render the exact headline once, correctly spelled, large, centered, and easy to read on a phone." }
+    { "label": "Poster", "action": "select", "value": "Poster" },
+    { "label": "Describe the image you want", "action": "fill", "value": "A premium launch poster for a modern creative tool, with a simple dark background and one clear headline. Render the exact headline CREATE WITHOUT LIMITS once, correctly spelled, large, centered, and easy to read on a phone." },
+    { "label": "Bold graphic", "action": "select", "value": "Bold graphic" }
   ]
 }

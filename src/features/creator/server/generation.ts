@@ -16,6 +16,7 @@ import {
 } from "@/features/creator/server/provider";
 import type {
   CreatorAsset,
+  CreatorArenaId,
   CreatorErrorCode,
   CreatorResult,
   GenerationRequest,
@@ -43,11 +44,11 @@ export async function generateCreatorImage(
       ...await getOwnedAssetBytes(reference.assetId),
       role: reference.role,
     })));
-    const providerPrompt = appendReferenceInstructions(prompt, loadedReferences);
+    const providerPrompt = appendReferenceInstructions(prompt, loadedReferences, request.arenaId);
     const references = loadedReferences.map((reference, index) => ({
       bytes: reference.bytes,
       mimeType: reference.mimeType,
-      label: `Image ${index + 1} — ${referenceRole(reference.role)} named “${reference.name}”. This image follows the Image ${index + 1} instruction in the prompt.`,
+      label: `Image ${index + 1} — ${referenceRole(reference.role, request.arenaId)} named “${reference.name}”. This image follows the Image ${index + 1} instruction in the prompt.`,
     }));
     const image = await generateProviderImage(
       configuration,
@@ -74,11 +75,12 @@ export async function generateCreatorImage(
 function appendReferenceInstructions(
   prompt: string,
   references: Array<{ name: string; role: ReferenceRole }>,
+  arenaId: CreatorArenaId,
 ): string {
   if (references.length === 0) return prompt;
   const instructions = references.map((reference, index) => {
     const imageNumber = index + 1;
-    return `- Image ${imageNumber} is the ${referenceRole(reference.role)} named “${reference.name}”. ${referenceHandling(reference.role)}`;
+    return `- Image ${imageNumber} is the ${referenceRole(reference.role, arenaId)} named “${reference.name}”. ${referenceHandling(reference.role, arenaId, imageNumber)}`;
   });
   return [
     prompt,
@@ -89,7 +91,8 @@ function appendReferenceInstructions(
   ].join("\n");
 }
 
-function referenceRole(role: ReferenceRole): string {
+function referenceRole(role: ReferenceRole, arenaId?: CreatorArenaId): string {
+  if (arenaId === "image-to-sketch") return "sketch source image";
   if (role === "product") return "product or garment reference";
   if (role === "model") return "person or model identity reference";
   if (role === "character") return "character identity reference";
@@ -97,7 +100,12 @@ function referenceRole(role: ReferenceRole): string {
   return "supporting composition reference";
 }
 
-function referenceHandling(role: ReferenceRole): string {
+function referenceHandling(role: ReferenceRole, arenaId: CreatorArenaId, imageNumber: number): string {
+  if (arenaId === "image-to-sketch") {
+    return imageNumber === 1
+      ? "Treat this as the primary sketch source and preserve its visible construction exactly."
+      : "Treat this as a zoomed detail view of the same design and use it only to clarify visible construction details.";
+  }
   if (role === "product") return "Preserve its exact shape, proportions, material, colors, branding, labels, and visible details.";
   if (role === "model") return "Preserve the person's recognizable identity and natural facial features.";
   if (role === "character") return "Preserve the character's recognizable appearance, clothing, colors, and defining features.";

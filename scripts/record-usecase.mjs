@@ -13,11 +13,18 @@ const projectRoot = process.cwd();
 const configPath = path.join(projectRoot, "recording", "use-cases", `${useCaseId}.json`);
 const config = readConfig(JSON.parse(await readFile(configPath, "utf8")));
 const inputPath = path.resolve(projectRoot, config.input);
+const additionalInputPaths = config.additionalInputs.map((input) => path.resolve(projectRoot, input));
 const authPath = path.resolve(process.env.RECORDING_STORAGE_STATE ?? ".recording-auth/user.json");
 if (!existsSync(inputPath)) throw new Error(`Input image not found: ${inputPath}`);
+for (const additionalInputPath of additionalInputPaths) {
+  if (!existsSync(additionalInputPath)) throw new Error(`Additional input image not found: ${additionalInputPath}`);
+}
 if (!existsSync(authPath)) throw new Error("Recording login state is missing. Run pnpm recording:auth first.");
 
 const baseUrl = process.env.RECORDING_BASE_URL ?? "http://127.0.0.1:3001";
+const fieldPauseMs = positiveInteger(process.env.RECORDING_FIELD_PAUSE_MS, 1_800);
+const menuPauseMs = positiveInteger(process.env.RECORDING_MENU_PAUSE_MS, 700);
+const resultPauseMs = positiveInteger(process.env.RECORDING_RESULT_PAUSE_MS, 2_500);
 const runId = new Date().toISOString().replaceAll(":", "-").replace(".", "-");
 const outputDirectory = path.join(projectRoot, "content-kits", config.id, runId);
 await mkdir(outputDirectory, { recursive: true });
@@ -36,45 +43,49 @@ try {
   await page.goto(new URL(config.route, baseUrl).toString(), { waitUntil: "networkidle" });
   await page.getByTestId("creator-workspace").waitFor({ state: "visible" });
   await page.waitForFunction(() => document.querySelector('[data-testid="creator-workspace"]')?.getAttribute("data-ready") === "true");
+  await page.waitForTimeout(fieldPauseMs);
   await page.getByTestId("asset-upload-input").setInputFiles(inputPath);
-  await page.getByText("Reference saved and selected.").waitFor({ timeout: 60_000 });
+  await page.getByText(/saved and selected as/i).waitFor({ timeout: 60_000 });
+  await page.waitForTimeout(fieldPauseMs);
+
+  for (const additionalInputPath of additionalInputPaths) {
+    await page.getByTestId("add-reference-button").click();
+    await page.getByRole("menuitem", { name: "Add image", exact: true }).click();
+    await page.locator("dialog[open]").locator('input[type="file"]').setInputFiles(additionalInputPath);
+    await page.getByText(/saved and selected as/i).waitFor({ timeout: 60_000 });
+    await page.waitForTimeout(fieldPauseMs);
+  }
 
   for (const field of config.fields) {
     const locator = page.getByLabel(field.label, { exact: true });
-    if (field.action === "select") await locator.selectOption(field.value);
-    else await locator.fill(field.value);
-    await page.waitForTimeout(350);
+    if (field.action === "select") {
+      const tagName = await locator.evaluate((element) => element.tagName);
+      if (tagName === "SELECT") {
+        await locator.selectOption(field.value);
+      } else {
+        await locator.click();
+        await page.waitForTimeout(menuPauseMs);
+        const radioOption = page.getByRole("menuitemradio", { name: field.value, exact: true });
+        if (await radioOption.count() > 0) await radioOption.click();
+        else await page.getByRole("menuitem", { name: field.value, exact: true }).click();
+      }
+    } else {
+      await locator.fill(field.value);
+    }
+    await page.waitForTimeout(fieldPauseMs);
   }
 
-  for (let index = 1; index <= config.variations; index += 1) {
-    await page.getByTestId("generate-button").click();
-    await page.getByTestId("generation-loading").waitFor({ state: "visible", timeout: 15_000 });
-    const resultImage = page.getByTestId("generation-result-image");
-    await resultImage.waitFor({ state: "visible", timeout: 300_000 });
-    await resultImage.evaluate((image) => new Promise((resolve, reject) => {
-      if (!(image instanceof HTMLImageElement)) {
-        reject(new Error("Generated result is not an image."));
-        return;
-      }
-      if (image.complete && image.naturalWidth > 0) {
-        resolve(true);
-        return;
-      }
-      image.addEventListener("load", () => resolve(true), { once: true });
-      image.addEventListener("error", () => reject(new Error("Generated image did not load.")), { once: true });
-    }));
-    await page.waitForTimeout(1_200);
-    const source = await resultImage.getAttribute("src");
-    if (!source) throw new Error("Generated image URL is missing.");
-    const response = await context.request.get(new URL(source, baseUrl).toString());
-    if (!response.ok()) throw new Error(`Could not save result image (${response.status()}).`);
-    const extension = extensionForMime(response.headers()["content-type"] ?? "");
-    const resultName = `result-${index}.${extension}`;
-    await writeFile(path.join(outputDirectory, resultName), await response.body());
-    resultFiles.push(resultName);
+  await page.waitForTimeout(fieldPauseMs);
+  if (config.generation === "pack") {
+    await recordPhotoshootPack(page, context, baseUrl, outputDirectory, resultFiles);
+  } else {
+    await recordSingleGenerations(page, context, baseUrl, config.variations, outputDirectory, resultFiles);
   }
 
   await copyFile(inputPath, path.join(outputDirectory, `input${path.extname(inputPath).toLowerCase()}`));
+  for (const [index, additionalInputPath] of additionalInputPaths.entries()) {
+    await copyFile(additionalInputPath, path.join(outputDirectory, `input-${index + 2}${path.extname(additionalInputPath).toLowerCase()}`));
+  }
   await writeFile(
     path.join(outputDirectory, "manifest.json"),
     JSON.stringify({ ...config, baseUrl, recordedAt: new Date().toISOString(), results: resultFiles }, null, 2),
@@ -90,11 +101,76 @@ try {
 
 console.log(`Content kit saved to ${outputDirectory}`);
 
+function positiveInteger(value, fallback) {
+  const parsed = Number.parseInt(value ?? "", 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+async function recordSingleGenerations(page, context, baseUrl, variations, outputDirectory, resultFiles) {
+  for (let index = 1; index <= variations; index += 1) {
+    await page.getByTestId("generate-button").click();
+    await page.getByTestId("generation-loading").waitFor({ state: "visible", timeout: 15_000 });
+    const resultImage = page.getByTestId("generation-result-image");
+    await resultImage.waitFor({ state: "visible", timeout: 300_000 });
+    await waitForImage(resultImage);
+    await page.waitForTimeout(resultPauseMs);
+    await saveResultImage(resultImage, context, baseUrl, outputDirectory, resultFiles, index);
+  }
+}
+
+async function recordPhotoshootPack(page, context, baseUrl, outputDirectory, resultFiles) {
+  await page.getByTestId("photoshoot-pack-button").click();
+  await page.getByTestId("photoshoot-results").waitFor({ state: "visible", timeout: 15_000 });
+  const shots = ["hero", "lifestyle", "on-model"];
+  for (let index = 0; index < shots.length; index += 1) {
+    const card = page.getByTestId(`photoshoot-shot-${shots[index]}`);
+    await card.waitFor({ state: "visible", timeout: 15_000 });
+    await card.getByText("Saved to your library", { exact: true }).waitFor({ state: "visible", timeout: 300_000 });
+    const resultImage = card.locator("img").first();
+    await resultImage.waitFor({ state: "visible", timeout: 15_000 });
+    await waitForImage(resultImage);
+    await page.waitForTimeout(resultPauseMs);
+    await saveResultImage(resultImage, context, baseUrl, outputDirectory, resultFiles, index + 1);
+  }
+}
+
+async function waitForImage(locator) {
+  await locator.evaluate((image) => new Promise((resolve, reject) => {
+    if (!(image instanceof HTMLImageElement)) {
+      reject(new Error("Generated result is not an image."));
+      return;
+    }
+    if (image.complete && image.naturalWidth > 0) {
+      resolve(true);
+      return;
+    }
+    image.addEventListener("load", () => resolve(true), { once: true });
+    image.addEventListener("error", () => reject(new Error("Generated image did not load.")), { once: true });
+  }));
+}
+
+async function saveResultImage(resultImage, context, baseUrl, outputDirectory, resultFiles, index) {
+  const source = await resultImage.getAttribute("src");
+  if (!source) throw new Error("Generated image URL is missing.");
+  const response = await context.request.get(new URL(source, baseUrl).toString());
+  if (!response.ok()) throw new Error(`Could not save result image (${response.status()}).`);
+  const extension = extensionForMime(response.headers()["content-type"] ?? "");
+  const resultName = `result-${index}.${extension}`;
+  await writeFile(path.join(outputDirectory, resultName), await response.body());
+  resultFiles.push(resultName);
+}
+
 function readConfig(value) {
   if (!isRecord(value)) throw new Error("Use-case config must be an object.");
   const id = requiredString(value.id, "id");
   const route = requiredString(value.route, "route");
   const input = requiredString(value.input, "input");
+  const generation = value.generation === undefined ? "single" : value.generation;
+  if (generation !== "single" && generation !== "pack") throw new Error("Use-case generation must be single or pack.");
+  const additionalInputs = value.additionalInputs === undefined ? [] : value.additionalInputs;
+  if (!Array.isArray(additionalInputs) || additionalInputs.some((item) => typeof item !== "string" || !item.trim())) {
+    throw new Error("Use-case additionalInputs must contain image paths.");
+  }
   const variations = Number.isInteger(value.variations) && value.variations >= 1 && value.variations <= 3 ? value.variations : 1;
   if (!Array.isArray(value.fields)) throw new Error("Use-case fields must be an array.");
   const fields = value.fields.map((item) => {
@@ -103,7 +179,7 @@ function readConfig(value) {
     if (!action) throw new Error("Field action must be fill or select.");
     return { label: requiredString(item.label, "field label"), value: requiredString(item.value, "field value"), action };
   });
-  return { id, route, input, variations, fields };
+  return { id, route, input, additionalInputs: additionalInputs.map((item) => item.trim()), generation, variations, fields };
 }
 
 function isRecord(value) {

@@ -36,6 +36,7 @@ export function CreatorAssetPicker({
   preferredRole,
   allowedReferenceRoles,
   defaultUploadRole = "reference",
+  helperText,
   compact = false,
   uploadInputTestId,
 }: {
@@ -47,6 +48,7 @@ export function CreatorAssetPicker({
   preferredRole?: ReferenceRole | null;
   allowedReferenceRoles?: readonly ReferenceRole[];
   defaultUploadRole?: ReferenceRole;
+  helperText?: string;
   compact?: boolean;
   uploadInputTestId?: string;
 }) {
@@ -82,7 +84,7 @@ export function CreatorAssetPicker({
         <div>
           <h2 className="font-display text-lg font-bold">Assets</h2>
           <p className="text-xs text-muted">
-            {preferredRole ? `Choose a ${referenceRoleLabel(preferredRole).toLowerCase()}` : "Choose up to two"}
+            {helperText ?? (preferredRole ? `Choose a ${referenceRoleLabel(preferredRole).toLowerCase()}` : "Choose up to two")}
           </p>
         </div>
         <Button

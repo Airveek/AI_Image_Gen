@@ -198,6 +198,59 @@ test("shows contextual controls and keeps the mobile composer inside the viewpor
   await expect(page.getByText("Add a Character image or describe the main character in Optional details.")).toBeVisible();
 });
 
+test("creates Image to Sketch from one primary image and one optional detail image", async ({ page }) => {
+  const generationBodies: unknown[] = [];
+  let uploadCount = 0;
+
+  await page.route("**/api/creator/assets", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    uploadCount += 1;
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        data: assetFixture({
+          id: uploadCount === 1 ? "9a2c745c-08f3-4ca7-b01a-3cb6f024bde8" : "aa3c745c-08f3-4ca7-b01a-3cb6f024bde8",
+          kind: "reference",
+          name: uploadCount === 1 ? "Sketch source" : "Neck detail",
+        }),
+      }),
+    });
+  });
+  await mockGeneration(page, (body) => { generationBodies.push(body); });
+
+  await page.goto("/create/image-to-sketch");
+  await expect(page.getByTestId("creator-workspace")).toHaveAttribute("data-ready", "true");
+  await expect(page.getByTestId("creation-prompt")).toBeVisible();
+  await page.getByTestId("creation-prompt").fill("Keep the neckline and seam details exact.");
+  await expect(page.getByRole("button", { name: "Auto light" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Create high-quality sketch/ })).toBeVisible();
+
+  await page.getByTestId("asset-upload-input").setInputFiles(imagePath);
+  await expect(page.getByText("Sketch image 1", { exact: true })).toBeVisible();
+
+  await page.getByTestId("add-reference-button").click();
+  await page.getByRole("menuitem", { name: "Add image" }).click();
+  await page.locator("dialog[open]").locator('input[type="file"]').setInputFiles(imagePath);
+  await expect(page.getByText("Sketch image 2", { exact: true })).toBeVisible();
+
+  await page.getByTestId("generate-button").click();
+  await expect(page.getByTestId("generation-result-image")).toBeVisible();
+
+  expect(generationBodies).toHaveLength(1);
+  expect(generationBodies[0]).toMatchObject({
+    arenaId: "image-to-sketch",
+    aspectRatio: "1:1",
+    prompt: "Keep the neckline and seam details exact.",
+    references: [
+      { assetId: "9a2c745c-08f3-4ca7-b01a-3cb6f024bde8", role: "reference" },
+      { assetId: "aa3c745c-08f3-4ca7-b01a-3cb6f024bde8", role: "reference" },
+    ],
+  });
+  expect(generationBodies[0]).not.toHaveProperty("lighting");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
 async function mockGeneration(page: Page, onBody: (body: unknown) => void) {
   await page.route("**/api/creator/generate", async (route) => {
     onBody(route.request().postDataJSON() as unknown);
@@ -229,7 +282,7 @@ function assetFixture({
   id: string;
   kind: "product" | "person" | "character" | "reference" | "generation";
   name: string;
-  arenaId?: "general-image" | "product-fashion" | "storybook-page" | null;
+  arenaId?: "general-image" | "product-fashion" | "storybook-page" | "image-to-sketch" | null;
   providerKind?: "gemini-official" | "gemini-compatible" | null;
   providerModel?: string | null;
 }) {

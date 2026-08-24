@@ -8,6 +8,8 @@ export function buildGenerationPrompt(request: GenerationRequest): string {
       return buildProductFashionPrompt(request);
     case "storybook-page":
       return buildStorybookPagePrompt(request);
+    case "image-to-sketch":
+      return buildImageToSketchPrompt(request);
   }
 }
 
@@ -87,6 +89,26 @@ function buildStorybookPagePrompt(request: Extract<GenerationRequest, { arenaId:
   }
 
   lines.push("Return one complete illustrated page only, without an explanation or book mockup.");
+  return lines.join("\n");
+}
+
+function buildImageToSketchPrompt(request: Extract<GenerationRequest, { arenaId: "image-to-sketch" }>): string {
+  const lines = [
+    "Create one high-fidelity technical fashion sketch from the supplied image references.",
+    "Use the uploaded images as the only design source. Image 1 is the primary source; if Image 2 is present, use it only as a zoomed detail view of the same design.",
+    "Preserve the exact silhouette, proportions, neckline, seams, stitching, construction lines, motifs, and every visible design detail.",
+    "If the source is a garment photograph, extract the garment construction into a clean technical flat sketch. If the source is already a rough sketch, clean and reconnect unclear lines only when the design is clearly visible.",
+    `Canvas: ${request.aspectRatio} square composition, complete design centered with generous clean white margins.`,
+    "Use solid black linework on a pure white canvas. Keep line weights clean, crisp, and suitable for a designer to inspect or print.",
+    "Do not add color, gray shading, shadows, fabric texture, a model, mannequin, background, props, text, labels, watermarks, duplicate designs, invented details, cropping, or distortion.",
+  ];
+
+  if (request.prompt) {
+    lines.push(`Optional user direction: ${request.prompt}. Follow it only when it does not conflict with preserving the supplied design.`);
+  }
+
+  lines.push("Return one finished sketch image only, without an explanation or mockup frame.");
+
   return lines.join("\n");
 }
 

@@ -89,6 +89,15 @@ export const creatorArenas: CreatorArena[] = [
     artwork: featureArtworks.personalizedStorybookMaker,
     icon: BookOpen,
   },
+  {
+    id: "image-to-sketch",
+    title: "Image to Sketch",
+    shortTitle: "Image to Sketch",
+    description: "Turn a rough photo or low-quality sketch into a clean black-line sketch.",
+    categoryId: "edit-improve",
+    artwork: featureArtworks.aiFashionDesigner,
+    icon: PenTool,
+  },
 ];
 
 export const creatorCatalog: CreatorCatalogItem[] = [
@@ -322,6 +331,7 @@ const allReferenceRoles: readonly ReferenceRole[] = ["product", "model", "charac
 export function referenceRolesForArena(arenaId: CreatorArenaId): readonly ReferenceRole[] {
   if (arenaId === "product-fashion") return ["product", "model", "style", "reference"];
   if (arenaId === "storybook-page") return ["character", "style", "reference"];
+  if (arenaId === "image-to-sketch") return ["reference"];
   return allReferenceRoles;
 }
 

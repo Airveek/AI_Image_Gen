@@ -1,7 +1,8 @@
 export type CreatorArenaId =
   | "general-image"
   | "product-fashion"
-  | "storybook-page";
+  | "storybook-page"
+  | "image-to-sketch";
 
 export type CreatorCategoryId =
   | "product-ecommerce"
@@ -95,10 +96,18 @@ export type StorybookPageRequest = {
   references: GenerationReference[];
 };
 
+export type ImageToSketchRequest = {
+  arenaId: "image-to-sketch";
+  aspectRatio: "1:1";
+  prompt: string;
+  references: GenerationReference[];
+};
+
 export type GenerationRequest =
   | GeneralImageRequest
   | ProductFashionRequest
-  | StorybookPageRequest;
+  | StorybookPageRequest
+  | ImageToSketchRequest;
 
 export type GeneratedImage = {
   bytes: Uint8Array;
