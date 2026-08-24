@@ -44,6 +44,8 @@ export function UserTable({ users }: { users: AdminUser[] }) {
               <TableHeader>User</TableHeader>
               <TableHeader>Status</TableHeader>
               <TableHeader>Provider</TableHeader>
+              <TableHeader>Today</TableHeader>
+              <TableHeader>Requests</TableHeader>
               <TableHeader>Joined</TableHeader>
               <TableHeader>Last sign in</TableHeader>
               <TableHeader className="text-right">Actions</TableHeader>
@@ -52,7 +54,7 @@ export function UserTable({ users }: { users: AdminUser[] }) {
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
-                <TableCell className="py-12 text-center text-muted" colSpan={6}>No users match these filters.</TableCell>
+                <TableCell className="py-12 text-center text-muted" colSpan={8}>No users match these filters.</TableCell>
               </TableRow>
             ) : (
               users.map((user) => (
@@ -117,6 +119,8 @@ function UserRow({ user, pending, onDetails, onStatusChange, onDelete }: { user:
       </TableCell>
       <TableCell><Badge variant={statusVariant}>{capitalize(user.status)}</Badge></TableCell>
       <TableCell className="text-muted">{user.provider}</TableCell>
+      <TableCell><span className="font-semibold">{user.generationsToday}</span><span className="ml-1 text-xs text-muted">today</span></TableCell>
+      <TableCell><span className="font-semibold">{user.generationRequests}</span>{user.failedGenerations ? <span className="ml-1 text-xs text-red-200">· {user.failedGenerations} failed</span> : null}</TableCell>
       <TableCell className="text-muted">{formatDate(user.createdAt)}</TableCell>
       <TableCell className="text-muted">{user.lastSignInAt ? formatDate(user.lastSignInAt) : "Never"}</TableCell>
       <TableCell>
@@ -141,6 +145,10 @@ function UserDetails({ user }: { user: AdminUser }) {
       <Detail label="Email verified" value={user.emailConfirmedAt ? formatDate(user.emailConfirmedAt) : "Not verified"} />
       <Detail label="Joined" value={formatDate(user.createdAt)} />
       <Detail label="Last sign in" value={user.lastSignInAt ? formatDate(user.lastSignInAt) : "Never"} />
+      <Detail label="Generations today" value={String(user.generationsToday)} />
+      <Detail label="All generation requests" value={String(user.generationRequests)} />
+      <Detail label="Failed generations" value={String(user.failedGenerations)} />
+      <Detail label="Last generation" value={user.lastGenerationAt ? formatDateTime(user.lastGenerationAt) : "Never"} />
       <Detail className="sm:col-span-2" label="User ID" value={user.id} />
     </dl>
   );
@@ -160,4 +168,8 @@ function capitalize(value: string): string {
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(value));
+}
+
+function formatDateTime(value: string): string {
+  return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(value));
 }

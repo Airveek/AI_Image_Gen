@@ -38,6 +38,8 @@
 
 html {
   scroll-behavior: smooth;
+  scrollbar-color: rgb(111 155 73 / 0.62) transparent;
+  scrollbar-width: thin;
 }
 
 body {
@@ -46,6 +48,35 @@ body {
   background: var(--page-background);
   color: var(--page-foreground);
   font-family: var(--font-inter), Arial, sans-serif;
+}
+
+/* Quiet, brand-aware scrollbars for the page, panels, trays, and dialogs. */
+* {
+  scrollbar-color: rgb(111 155 73 / 0.62) transparent;
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgb(131 255 0 / 0.62), rgb(42 196 20 / 0.42)) padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgb(131 255 0 / 0.86), rgb(42 196 20 / 0.62)) padding-box;
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: var(--brand-neon) padding-box;
 }
 
 button,
@@ -68,8 +99,13 @@ a {
 }
 
 :focus-visible {
-  outline: 3px solid var(--brand-neon);
-  outline-offset: 4px;
+  outline: 2px solid var(--brand-neon);
+  outline-offset: 1px;
+}
+
+/* Form controls already expose focus through their single highlighted border. */
+:where(input, select, textarea):focus-visible {
+  outline: none;
 }
 
 /* Airveek brand surface helpers: black-first, green-led, and deliberately restrained. */

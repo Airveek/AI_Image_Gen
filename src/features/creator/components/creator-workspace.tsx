@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   ArrowRight,
   Check,
@@ -44,6 +44,7 @@ export function CreatorWorkspace({
   initialAssets: CreatorAsset[];
   storageMessage: string | null;
 }) {
+  const workspaceRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const arena = getCreatorArena(arenaId);
@@ -61,7 +62,9 @@ export function CreatorWorkspace({
   const [arenaDialogOpen, setArenaDialogOpen] = useState(false);
   const [assetDialogOpen, setAssetDialogOpen] = useState(false);
   const [arenaSearch, setArenaSearch] = useState("");
-  const [fineTuneOpen, setFineTuneOpen] = useState(false);
+  useEffect(() => {
+    workspaceRef.current?.setAttribute("data-ready", "true");
+  }, []);
 
   const [outputType, setOutputType] = useState<"image" | "poster" | "illustration" | "social" | "thumbnail">("image");
   const [subject, setSubject] = useState("");
@@ -76,6 +79,10 @@ export function CreatorWorkspace({
   const [pageText, setPageText] = useState("");
   const [aspectRatio, setAspectRatio] = useState<ImageAspectRatio>(arenaId === "storybook-page" ? "4:5" : "1:1");
   const [extraDirection, setExtraDirection] = useState("");
+  const selectedAssets = useMemo(
+    () => selectedAssetIds.map((id) => assets.find((asset) => asset.id === id)).filter((asset): asset is CreatorAsset => Boolean(asset)),
+    [assets, selectedAssetIds],
+  );
 
   if (!arena) return null;
 
@@ -182,8 +189,8 @@ export function CreatorWorkspace({
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-[#090b09]">
-      <div className="border-b border-white/10 px-4 py-4 sm:px-6">
+    <div ref={workspaceRef} className="min-h-[calc(100vh-4rem)] bg-[#090b09] lg:h-[calc(100svh-4rem)] lg:overflow-hidden" data-testid="creator-workspace" data-ready="false">
+      <div className="border-b border-white/10 px-4 py-3 sm:px-6 lg:h-20">
         <div className="mx-auto flex max-w-[1800px] flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-neon">Create / {arena.title}</p>
@@ -193,16 +200,16 @@ export function CreatorWorkspace({
             <Button variant="secondary" onClick={() => setArenaDialogOpen(true)}>
               Switch use case <ChevronDown className="h-4 w-4" aria-hidden="true" />
             </Button>
-            <Button className="lg:hidden" variant="secondary" onClick={() => setAssetDialogOpen(true)}>
+            <Button className="lg:hidden" variant="secondary" onClick={() => setAssetDialogOpen(true)} data-testid="open-assets-button">
               <PanelRightOpen className="h-4 w-4" aria-hidden="true" /> Assets
             </Button>
           </div>
         </div>
       </div>
 
-      <form onSubmit={handleGenerate}>
-        <div className="mx-auto grid max-w-[1800px] lg:grid-cols-[330px_minmax(0,1fr)_310px]">
-          <aside className="border-b border-white/10 bg-[#0d100d] p-5 lg:min-h-[calc(100vh-12rem)] lg:border-b-0 lg:border-r">
+      <form onSubmit={handleGenerate} className="lg:h-[calc(100%-5rem)] lg:overflow-hidden">
+        <div className="mx-auto grid max-w-[1800px] lg:h-full lg:min-h-0 lg:grid-cols-[330px_minmax(0,1fr)_310px]">
+          <aside className="border-b border-white/10 bg-[#0d100d] p-5 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:border-b-0 lg:border-r">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted">Guided setup</p>
             <p className="mt-2 text-sm leading-6 text-muted">Answer simple questions. Airveek handles the prompt structure.</p>
             <div className="mt-6 space-y-5">
@@ -252,38 +259,21 @@ export function CreatorWorkspace({
                 </select>
               </Field>
 
-              <div className="rounded-xl border border-white/10 bg-black/20">
-                <button
-                  type="button"
-                  className="flex min-h-11 w-full items-center justify-between px-4 text-left text-sm font-semibold"
-                  aria-expanded={fineTuneOpen}
-                  onClick={() => setFineTuneOpen((open) => !open)}
-                >
-                  Fine tune <ChevronDown className={cn("h-4 w-4 transition-transform", fineTuneOpen && "rotate-180")} aria-hidden="true" />
-                </button>
-                {fineTuneOpen ? (
-                  <div className="border-t border-white/10 p-4">
-                    <Field label="Extra direction" htmlFor="extra-direction" hint="Optional. Keep this short and practical.">
-                      <textarea id="extra-direction" value={extraDirection} onChange={(event) => setExtraDirection(event.target.value)} rows={4} maxLength={500} className={textareaClassName} placeholder="Example: Leave clean space on the left for a headline." />
-                    </Field>
-                  </div>
-                ) : null}
-              </div>
             </div>
           </aside>
 
-          <section className="flex min-h-[520px] min-w-0 flex-col bg-[#080a08] p-4 sm:p-6 lg:min-h-[calc(100vh-12rem)]" aria-label="Generation result">
-            <div className="relative flex flex-1 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#111411] p-4 sm:p-8">
+          <section className="flex min-h-[520px] min-w-0 flex-col bg-[#080a08] p-4 sm:p-5 lg:min-h-0" aria-label="Generation result">
+            <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#111411] p-4 sm:p-8" data-testid="generation-result">
               <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:radial-gradient(circle_at_center,rgba(131,255,0,0.08),transparent_40%)]" aria-hidden="true" />
               {isGenerating ? (
-                <div className="relative max-w-sm text-center">
+                <div className="relative max-w-sm text-center" data-testid="generation-loading">
                   <LoaderCircle className="mx-auto h-9 w-9 animate-spin text-brand-neon" aria-hidden="true" />
                   <h2 className="mt-5 font-display text-2xl font-bold">Creating your image</h2>
                   <p className="mt-2 text-sm leading-6 text-muted">This can take a minute. Keep this page open.</p>
                 </div>
               ) : result?.imageUrl ? (
                 <div className="relative flex h-full w-full items-center justify-center">
-                  <Image src={result.imageUrl} alt={result.name} fill unoptimized className="object-contain" sizes="(max-width: 1024px) 100vw, 60vw" priority />
+                  <Image src={result.imageUrl} alt={result.name} fill unoptimized className="object-contain" sizes="(max-width: 1024px) 100vw, 60vw" priority data-testid="generation-result-image" />
                   <a href={`${result.imageUrl}?download=1`} className="absolute right-3 top-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/15 bg-black/70 px-4 text-sm font-bold text-white backdrop-blur hover:bg-black" download>
                     <Download className="h-4 w-4" aria-hidden="true" /> Download
                   </a>
@@ -298,45 +288,60 @@ export function CreatorWorkspace({
                 </div>
               )}
             </div>
-            <div className="mt-3 min-h-7 text-center text-sm text-muted" aria-live="polite">{message}</div>
+            <div className="shrink-0 pt-3">
+              {selectedAssets.length ? (
+                <div className="mb-2 flex flex-wrap justify-center gap-2" aria-label="Selected reference images">
+                  {selectedAssets.map((asset, index) => (
+                    <button key={asset.id} type="button" onClick={() => toggleAsset(asset.id)} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-brand-neon/25 bg-brand-neon/[0.06] px-3 text-left text-xs" aria-label={`Remove Image ${index + 1}, ${asset.name}`}>
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-neon font-bold text-black">{index + 1}</span>
+                      <span><strong className="block text-white">Image {index + 1}</strong><span className="block max-w-36 truncate text-muted">{asset.name}</span></span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              <div className="mx-auto max-w-4xl rounded-2xl border border-white/15 bg-[#121512] p-2 shadow-[0_16px_50px_rgba(0,0,0,0.35)] focus-within:border-brand-neon/45">
+                <label className="sr-only" htmlFor="extra-direction">Final instruction</label>
+                <textarea id="extra-direction" value={extraDirection} onChange={(event) => setExtraDirection(event.target.value)} rows={2} maxLength={500} className="max-h-28 min-h-14 w-full resize-none bg-transparent px-3 py-2 text-base leading-6 text-white outline-none placeholder:text-brand-gray" placeholder="Add a final instruction, for example: leave clean space on the left (optional)" data-testid="final-instruction-input" />
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 px-1 pt-2">
+                  <div className="flex min-h-11 items-center gap-2 px-2 text-xs text-muted">
+                    <span className="font-bold uppercase tracking-[0.12em] text-brand-neon">{arena.shortTitle}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{selectedAssetIds.length} of 2 references</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button className="lg:hidden" type="button" variant="secondary" onClick={() => setAssetDialogOpen(true)}><Images className="h-4 w-4" aria-hidden="true" /> Add image</Button>
+                    {result ? <Button type="submit" variant="secondary" disabled={isGenerating}><RefreshCw className="h-4 w-4" aria-hidden="true" /> Variation</Button> : null}
+                    <Button type="submit" variant="primary" disabled={isGenerating || Boolean(storageMessage)} data-testid="generate-button">
+                      {isGenerating ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Sparkles className="h-4 w-4" aria-hidden="true" />}
+                      {isGenerating ? "Creating…" : "Generate"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-2 min-h-5 text-center text-sm text-muted" aria-live="polite">{message}</div>
+            </div>
           </section>
 
-          <aside className="hidden border-l border-white/10 bg-[#0d100d] lg:block">
+          <aside className="hidden min-h-0 border-l border-white/10 bg-[#0d100d] lg:block">
             <AssetTray
               assets={assets}
               selectedAssetIds={selectedAssetIds}
               onToggle={toggleAsset}
-              onUpload={handleUpload}
-              isUploading={isUploading}
-              suggestedKind={suggestedKind(arenaId)}
-            />
+            onUpload={handleUpload}
+            isUploading={isUploading}
+            suggestedKind={suggestedKind(arenaId)}
+            uploadInputTestId="asset-upload-input"
+          />
           </aside>
         </div>
 
-        <div className="sticky bottom-0 z-30 border-t border-white/10 bg-[#0b0e0b]/95 px-4 py-3 backdrop-blur-xl">
-          <div className="mx-auto flex max-w-4xl items-center gap-3">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold uppercase tracking-[0.14em] text-brand-neon">Active: {arena.shortTitle}</p>
-              <p className="mt-1 hidden truncate text-sm text-muted sm:block">{selectedAssetIds.length} of 2 reference images selected</p>
-            </div>
-            {result ? (
-              <Button type="submit" variant="secondary" disabled={isGenerating}>
-                <RefreshCw className="h-4 w-4" aria-hidden="true" /> Another variation
-              </Button>
-            ) : null}
-            <Button type="submit" variant="primary" disabled={isGenerating || Boolean(storageMessage)}>
-              {isGenerating ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Sparkles className="h-4 w-4" aria-hidden="true" />}
-              {isGenerating ? "Creating…" : "Generate"}
-            </Button>
-          </div>
-        </div>
       </form>
 
       <Dialog open={arenaDialogOpen} onOpenChange={setArenaDialogOpen} title="Switch creation use case" description="Your saved assets stay available in every arena.">
         <label className="sr-only" htmlFor="arena-search">Search creation use cases</label>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
-          <input id="arena-search" type="search" value={arenaSearch} onChange={(event) => setArenaSearch(event.target.value)} placeholder="Search all 21 tools" className="min-h-12 w-full rounded-xl border border-white/10 bg-black/25 pl-10 pr-3 text-sm text-white placeholder:text-brand-gray focus:border-brand-neon/50 focus:outline-none" />
+          <input id="arena-search" type="search" value={arenaSearch} onChange={(event) => setArenaSearch(event.target.value)} placeholder="Search all 21 tools" className="min-h-12 w-full rounded-xl border border-white/10 bg-black/25 pl-10 pr-3 text-sm text-white placeholder:text-brand-gray focus:border-brand-neon/50 focus:outline-none focus-visible:outline-none" />
         </div>
         <div className="mt-4 max-h-[55vh] space-y-2 overflow-y-auto pr-1">
           {creatorCatalog.filter((item) => `${item.title} ${item.description} ${getCategoryLabel(item.categoryId)}`.toLowerCase().includes(arenaSearch.trim().toLowerCase())).map((item) => {
@@ -483,7 +488,7 @@ function ReferenceCallout({ count, label, onOpen, required = false }: { count: n
   );
 }
 
-function AssetTray({ assets, selectedAssetIds, onToggle, onUpload, isUploading, suggestedKind, compact = false }: {
+function AssetTray({ assets, selectedAssetIds, onToggle, onUpload, isUploading, suggestedKind, compact = false, uploadInputTestId }: {
   assets: CreatorAsset[];
   selectedAssetIds: string[];
   onToggle: (assetId: string) => void;
@@ -491,6 +496,7 @@ function AssetTray({ assets, selectedAssetIds, onToggle, onUpload, isUploading, 
   isUploading: boolean;
   suggestedKind: Exclude<CreatorAssetKind, "generation">;
   compact?: boolean;
+  uploadInputTestId?: string;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadKind, setUploadKind] = useState<Exclude<CreatorAssetKind, "generation">>(suggestedKind);
@@ -503,13 +509,13 @@ function AssetTray({ assets, selectedAssetIds, onToggle, onUpload, isUploading, 
   ], []);
 
   return (
-    <div className={cn("p-4", !compact && "sticky top-16 max-h-[calc(100vh-4rem)] overflow-y-auto")}> 
+    <div className={cn("p-4", !compact && "h-full overflow-y-auto overscroll-contain")}>
       <div className="flex items-center justify-between gap-3">
         <div><h2 className="font-display text-lg font-bold">Assets</h2><p className="text-xs text-muted">Choose up to two</p></div>
         <Button type="button" size="icon" variant="secondary" onClick={() => fileInputRef.current?.click()} disabled={isUploading} aria-label={`Upload ${uploadKind} image`}>
           {isUploading ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
         </Button>
-        <input ref={fileInputRef} className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => {
+        <input ref={fileInputRef} className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" data-testid={uploadInputTestId} onChange={(event) => {
           const file = event.target.files?.[0];
           if (file) void onUpload(file, uploadKind);
           event.target.value = "";
@@ -518,7 +524,7 @@ function AssetTray({ assets, selectedAssetIds, onToggle, onUpload, isUploading, 
       <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 text-sm font-semibold text-muted transition-colors hover:border-brand-neon/40 hover:text-white disabled:opacity-50">
         <Upload className="h-4 w-4" aria-hidden="true" /> Upload {uploadKind}
       </button>
-      <select aria-label="Type for the next uploaded image" value={uploadKind} onChange={(event) => setUploadKind(event.target.value as Exclude<CreatorAssetKind, "generation">)} className="mt-2 min-h-11 w-full rounded-xl border border-white/10 bg-black/25 px-3 text-xs text-white focus:border-brand-neon/50 focus:outline-none">
+      <select aria-label="Type for the next uploaded image" value={uploadKind} onChange={(event) => setUploadKind(event.target.value as Exclude<CreatorAssetKind, "generation">)} className="mt-2 min-h-11 w-full rounded-xl border border-white/10 bg-black/25 px-3 text-xs text-white focus:border-brand-neon/50 focus:outline-none focus-visible:outline-none">
         <option value="product">Product or garment</option><option value="person">Person or model</option><option value="character">Character</option><option value="reference">Other reference</option>
       </select>
       <div className="mt-5 space-y-5">
@@ -584,6 +590,6 @@ function readAssetResult(value: unknown): AssetResult {
   return { ok: false, message: "The server returned an invalid response.", code: "unknown" };
 }
 
-const inputClassName = "min-h-12 w-full rounded-xl border border-white/10 bg-black/25 px-3 text-sm text-white placeholder:text-brand-gray focus:border-brand-neon/60 focus:outline-none";
+const inputClassName = "min-h-12 w-full rounded-xl border border-white/10 bg-black/25 px-3 text-sm text-white placeholder:text-brand-gray focus:border-brand-neon/60 focus:outline-none focus-visible:outline-none";
 const selectClassName = `${inputClassName} appearance-none pr-8`;
 const textareaClassName = `${inputClassName} resize-y py-3 leading-6`;

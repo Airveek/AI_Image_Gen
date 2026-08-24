@@ -126,7 +126,7 @@ export function CreatorLibrary({
         <div className="relative w-full lg:max-w-xs">
           <label className="sr-only" htmlFor="library-search">Search library</label>
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
-          <input id="library-search" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by name" className="min-h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] pl-10 pr-10 text-sm text-white placeholder:text-brand-gray focus:border-brand-neon/50 focus:outline-none" />
+          <input id="library-search" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by name" className="min-h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] pl-10 pr-10 text-sm text-white placeholder:text-brand-gray focus:border-brand-neon/50 focus:outline-none focus-visible:outline-none" />
           {search ? <button type="button" onClick={() => setSearch("")} className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted hover:text-white" aria-label="Clear search"><X className="h-4 w-4" aria-hidden="true" /></button> : null}
         </div>
       </div>
@@ -178,7 +178,7 @@ export function CreatorLibrary({
 
       <Dialog open={Boolean(renameTarget)} onOpenChange={(open) => { if (!open) setRenameTarget(null); }} title="Rename image" description="Use a short name that will be easy to find later.">
         <label htmlFor="rename-value" className="text-sm font-semibold">Name</label>
-        <input id="rename-value" value={renameValue} onChange={(event) => setRenameValue(event.target.value)} maxLength={100} className="mt-2 min-h-12 w-full rounded-xl border border-white/10 bg-black/25 px-3 text-sm focus:border-brand-neon/50 focus:outline-none" />
+        <input id="rename-value" value={renameValue} onChange={(event) => setRenameValue(event.target.value)} maxLength={100} className="mt-2 min-h-12 w-full rounded-xl border border-white/10 bg-black/25 px-3 text-sm focus:border-brand-neon/50 focus:outline-none focus-visible:outline-none" />
         <div className="mt-5 flex justify-end gap-2"><Button type="button" variant="ghost" onClick={() => setRenameTarget(null)}>Cancel</Button><Button type="button" variant="primary" onClick={() => void renameAsset()} disabled={!renameValue.trim() || pendingId === renameTarget?.id}>{pendingId === renameTarget?.id ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : null} Save</Button></div>
       </Dialog>
 

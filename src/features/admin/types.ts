@@ -9,6 +9,10 @@ export type AdminUser = {
   emailConfirmedAt: string | null;
   status: AdminUserStatus;
   provider: string;
+  generationsToday: number;
+  generationRequests: number;
+  failedGenerations: number;
+  lastGenerationAt: string | null;
 };
 
 export type AdminUserFilters = {

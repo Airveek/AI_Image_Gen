@@ -67,7 +67,7 @@ export function CreatorDashboard({
             value={search}
             onChange={(event) => updateParams({ search: event.target.value })}
             placeholder="Search product photos, storybooks, thumbnails…"
-            className="min-h-14 w-full rounded-2xl border border-white/12 bg-white/[0.05] pl-12 pr-12 text-base text-white placeholder:text-brand-gray focus:border-brand-neon/60 focus:outline-none"
+            className="min-h-14 w-full rounded-2xl border border-white/12 bg-white/[0.05] pl-12 pr-12 text-base text-white placeholder:text-brand-gray focus:border-brand-neon/60 focus:outline-none focus-visible:outline-none"
           />
           {search ? (
             <button

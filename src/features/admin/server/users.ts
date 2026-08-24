@@ -16,14 +16,27 @@ import type {
 const SUPABASE_PAGE_SIZE = 100;
 const DISPLAY_PAGE_SIZE = 10;
 const MAX_SUPABASE_PAGES = 100;
+const USAGE_PAGE_SIZE = 1_000;
 
 type Metadata = Record<string, unknown>;
+
+type GenerationUsage = {
+  today: number;
+  total: number;
+  failed: number;
+  lastGenerationAt: string | null;
+};
+
+type GenerationUsageRow = {
+  user_id: string;
+  status: string;
+  created_at: string;
+};
 
 export async function listAdminUsers(filters: AdminUserFilters): Promise<AdminUserList> {
   await requireAdminUser();
 
-  const users = await listAllUsers();
-  const normalizedUsers = users.map(mapSupabaseUser);
+  const normalizedUsers = await listUsersWithGenerationUsage();
   const search = filters.search.trim().toLowerCase();
 
   const filteredUsers = normalizedUsers.filter((user) => {
@@ -50,16 +63,14 @@ export async function listAdminUsers(filters: AdminUserFilters): Promise<AdminUs
 
 export async function getAdminUser(userId: string): Promise<AdminUser | null> {
   await requireAdminUser();
-  const users = await listAllUsers();
-  const user = users.find((candidate) => candidate.id === userId);
-
-  return user ? mapSupabaseUser(user) : null;
+  const users = await listUsersWithGenerationUsage();
+  return users.find((candidate) => candidate.id === userId) ?? null;
 }
 
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   await requireAdminUser();
 
-  const users = (await listAllUsers()).map(mapSupabaseUser);
+  const users = await listUsersWithGenerationUsage();
   const recentUsers = [...users]
     .sort((first, second) => second.createdAt.localeCompare(first.createdAt))
     .slice(0, 5);
@@ -155,7 +166,65 @@ function mapSupabaseUser(user: User): AdminUser {
     emailConfirmedAt: user.email_confirmed_at ?? null,
     status: getStatus(user.banned_until),
     provider,
+    generationsToday: 0,
+    generationRequests: 0,
+    failedGenerations: 0,
+    lastGenerationAt: null,
   };
+}
+
+async function listUsersWithGenerationUsage(): Promise<AdminUser[]> {
+  const [users, usage] = await Promise.all([listAllUsers(), listGenerationUsage()]);
+  return users.map((user) => {
+    const mapped = mapSupabaseUser(user);
+    const userUsage = usage.get(user.id);
+    return userUsage
+      ? {
+          ...mapped,
+          generationsToday: userUsage.today,
+          generationRequests: userUsage.total,
+          failedGenerations: userUsage.failed,
+          lastGenerationAt: userUsage.lastGenerationAt,
+        }
+      : mapped;
+  });
+}
+
+async function listGenerationUsage(): Promise<Map<string, GenerationUsage>> {
+  const rows = await listAllGenerationUsageRows();
+  const startOfDay = new Date();
+  startOfDay.setUTCHours(0, 0, 0, 0);
+  const usage = new Map<string, GenerationUsage>();
+  for (const row of rows) {
+    const current = usage.get(row.user_id) ?? { today: 0, total: 0, failed: 0, lastGenerationAt: null };
+    current.total += 1;
+    if (row.status === "failed") current.failed += 1;
+    if (row.status !== "failed" && new Date(row.created_at) >= startOfDay) current.today += 1;
+    if (!current.lastGenerationAt) current.lastGenerationAt = row.created_at;
+    usage.set(row.user_id, current);
+  }
+  return usage;
+}
+
+async function listAllGenerationUsageRows(): Promise<GenerationUsageRow[]> {
+  const rows: GenerationUsageRow[] = [];
+  const adminClient = createSupabaseAdminClient();
+  for (let page = 0; page < MAX_SUPABASE_PAGES; page += 1) {
+    const start = page * USAGE_PAGE_SIZE;
+    const { data, error } = await adminClient
+      .from("creator_assets")
+      .select("user_id,status,created_at")
+      .eq("kind", "generation")
+      .order("created_at", { ascending: false })
+      .range(start, start + USAGE_PAGE_SIZE - 1);
+    if (error) {
+      if (error.message.includes("creator_assets")) return [];
+      throw new Error(error.message);
+    }
+    rows.push(...(data ?? []).map((value) => value as GenerationUsageRow));
+    if ((data?.length ?? 0) < USAGE_PAGE_SIZE) return rows;
+  }
+  throw new Error("Generation usage is larger than the prototype monitoring limit.");
 }
 
 function getStatus(bannedUntil: string | undefined): AdminUserStatus {
