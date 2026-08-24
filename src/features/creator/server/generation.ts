@@ -16,10 +16,10 @@ import {
 } from "@/features/creator/server/provider";
 import type {
   CreatorAsset,
-  CreatorAssetKind,
   CreatorErrorCode,
   CreatorResult,
   GenerationRequest,
+  ReferenceRole,
 } from "@/features/creator/types";
 
 type CreatorFailure = Extract<CreatorResult<never>, { ok: false }>;
@@ -39,14 +39,15 @@ export async function generateCreatorImage(
       providerKind: configuration.kind,
       providerModel: configuration.model,
     });
-    const loadedReferences = await Promise.all(
-      request.sourceAssetIds.map((assetId) => getOwnedAssetBytes(assetId)),
-    );
+    const loadedReferences = await Promise.all(request.references.map(async (reference) => ({
+      ...await getOwnedAssetBytes(reference.assetId),
+      role: reference.role,
+    })));
     const providerPrompt = appendReferenceInstructions(prompt, loadedReferences);
     const references = loadedReferences.map((reference, index) => ({
       bytes: reference.bytes,
       mimeType: reference.mimeType,
-      label: `Image ${index + 1} — ${referenceRole(reference.kind)} named “${reference.name}”. This image follows the Image ${index + 1} instruction in the prompt.`,
+      label: `Image ${index + 1} — ${referenceRole(reference.role)} named “${reference.name}”. This image follows the Image ${index + 1} instruction in the prompt.`,
     }));
     const image = await generateProviderImage(
       configuration,
@@ -72,12 +73,12 @@ export async function generateCreatorImage(
 
 function appendReferenceInstructions(
   prompt: string,
-  references: Array<{ name: string; kind: CreatorAssetKind }>,
+  references: Array<{ name: string; role: ReferenceRole }>,
 ): string {
   if (references.length === 0) return prompt;
   const instructions = references.map((reference, index) => {
     const imageNumber = index + 1;
-    return `- Image ${imageNumber} is the ${referenceRole(reference.kind)} named “${reference.name}”. ${referenceHandling(reference.kind)}`;
+    return `- Image ${imageNumber} is the ${referenceRole(reference.role)} named “${reference.name}”. ${referenceHandling(reference.role)}`;
   });
   return [
     prompt,
@@ -88,20 +89,20 @@ function appendReferenceInstructions(
   ].join("\n");
 }
 
-function referenceRole(kind: CreatorAssetKind): string {
-  if (kind === "product") return "product or garment reference";
-  if (kind === "person") return "person or model identity reference";
-  if (kind === "character") return "character identity reference";
-  if (kind === "generation") return "previous generated visual reference";
-  return "supporting visual reference";
+function referenceRole(role: ReferenceRole): string {
+  if (role === "product") return "product or garment reference";
+  if (role === "model") return "person or model identity reference";
+  if (role === "character") return "character identity reference";
+  if (role === "style") return "visual style reference";
+  return "supporting composition reference";
 }
 
-function referenceHandling(kind: CreatorAssetKind): string {
-  if (kind === "product") return "Preserve its shape, proportions, material, colors, branding, and visible details.";
-  if (kind === "person") return "Preserve the person's recognizable identity and natural facial features.";
-  if (kind === "character") return "Preserve the character's recognizable appearance, clothing, colors, and defining features.";
-  if (kind === "generation") return "Use it for visual continuity while following the new requested change.";
-  return "Use it only for the visual qualities that support the requested result.";
+function referenceHandling(role: ReferenceRole): string {
+  if (role === "product") return "Preserve its exact shape, proportions, material, colors, branding, labels, and visible details.";
+  if (role === "model") return "Preserve the person's recognizable identity and natural facial features.";
+  if (role === "character") return "Preserve the character's recognizable appearance, clothing, colors, and defining features.";
+  if (role === "style") return "Use only its lighting, palette, texture, and visual treatment. Do not copy its objects, people, logos, or text.";
+  return "Use its composition and supporting visual qualities without replacing or changing the requested main subject.";
 }
 
 function resultFromError(error: unknown): CreatorFailure {

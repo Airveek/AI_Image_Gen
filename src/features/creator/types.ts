@@ -22,6 +22,23 @@ export type CreatorAssetStatus = "processing" | "ready" | "failed";
 export type ImageProviderKind = "gemini-official" | "gemini-compatible";
 export type ImageAspectRatio = "1:1" | "4:5" | "9:16" | "16:9";
 export type AllowedImageMimeType = "image/png" | "image/jpeg" | "image/webp";
+export type LightingOption =
+  | "auto"
+  | "soft-daylight"
+  | "studio-softbox"
+  | "golden-hour"
+  | "dramatic";
+export type ReferenceRole =
+  | "product"
+  | "model"
+  | "character"
+  | "style"
+  | "reference";
+
+export type GenerationReference = {
+  assetId: string;
+  role: ReferenceRole;
+};
 
 export type GeneralImageRequest = {
   arenaId: "general-image";
@@ -29,9 +46,10 @@ export type GeneralImageRequest = {
   subject: string;
   exactText: string;
   style: string;
+  lighting: LightingOption;
   aspectRatio: ImageAspectRatio;
   extraDirection: string;
-  sourceAssetIds: string[];
+  references: GenerationReference[];
 };
 
 export type ProductFashionRequest = {
@@ -39,9 +57,10 @@ export type ProductFashionRequest = {
   mode: "product-scene" | "on-model" | "influencer-lifestyle";
   scene: "studio" | "lifestyle" | "flat-lay" | "outdoor" | "custom";
   backgroundMood: string;
+  lighting: LightingOption;
   aspectRatio: ImageAspectRatio;
   extraDirection: string;
-  sourceAssetIds: string[];
+  references: GenerationReference[];
 };
 
 export type StorybookPageRequest = {
@@ -50,9 +69,10 @@ export type StorybookPageRequest = {
   scene: string;
   artStyle: "cartoon" | "watercolor" | "3d-storybook" | "custom";
   pageText: string;
+  lighting: LightingOption;
   aspectRatio: ImageAspectRatio;
   extraDirection: string;
-  sourceAssetIds: string[];
+  references: GenerationReference[];
 };
 
 export type GenerationRequest =

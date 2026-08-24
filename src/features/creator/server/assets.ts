@@ -129,7 +129,7 @@ export async function createGenerationAsset(input: {
       arenaId: input.request.arenaId,
       prompt: input.prompt,
       settings: input.request,
-      sourceAssetIds: input.request.sourceAssetIds,
+      sourceAssetIds: input.request.references.map((reference) => reference.assetId),
       mimeType: null,
       providerKind: input.providerKind,
       providerModel: input.providerModel,

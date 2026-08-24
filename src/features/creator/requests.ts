@@ -1,7 +1,10 @@
 import type {
   CreatorAssetKind,
+  GenerationReference,
   GenerationRequest,
   ImageAspectRatio,
+  LightingOption,
+  ReferenceRole,
 } from "@/features/creator/types";
 
 type UnknownRecord = Record<string, unknown>;
@@ -9,24 +12,27 @@ type UnknownRecord = Record<string, unknown>;
 export function parseGenerationRequest(value: unknown): GenerationRequest {
   const record = requireRecord(value, "Generation details are missing.");
   const arenaId = readString(record, "arenaId");
-  const sourceAssetIds = readSourceAssetIds(record);
   const aspectRatio = readAspectRatio(record);
+  const lighting = readLighting(record);
 
   if (arenaId === "general-image") {
+    const references = readReferences(record, "reference");
     return {
       arenaId,
       outputType: readEnum(record, "outputType", ["image", "poster", "illustration", "social", "thumbnail"]),
       subject: readRequiredText(record, "subject", 600),
       exactText: readOptionalText(record, "exactText", 240),
       style: readRequiredText(record, "style", 120),
+      lighting,
       aspectRatio,
       extraDirection: readOptionalText(record, "extraDirection", 500),
-      sourceAssetIds,
+      references,
     };
   }
 
   if (arenaId === "product-fashion") {
-    if (sourceAssetIds.length === 0) {
+    const references = readReferences(record, "product");
+    if (!references.some((reference) => reference.role === "product")) {
       throw new Error("Add a saved product or garment image before generating.");
     }
     return {
@@ -34,15 +40,17 @@ export function parseGenerationRequest(value: unknown): GenerationRequest {
       mode: readEnum(record, "mode", ["product-scene", "on-model", "influencer-lifestyle"]),
       scene: readEnum(record, "scene", ["studio", "lifestyle", "flat-lay", "outdoor", "custom"]),
       backgroundMood: readOptionalText(record, "backgroundMood", 240),
+      lighting,
       aspectRatio,
       extraDirection: readOptionalText(record, "extraDirection", 500),
-      sourceAssetIds,
+      references,
     };
   }
 
   if (arenaId === "storybook-page") {
+    const references = readReferences(record, "character");
     const characterDescription = readOptionalText(record, "characterDescription", 600);
-    if (!characterDescription && sourceAssetIds.length === 0) {
+    if (!characterDescription && !references.some((reference) => reference.role === "character")) {
       throw new Error("Describe the main character or choose a saved character reference.");
     }
     return {
@@ -51,9 +59,10 @@ export function parseGenerationRequest(value: unknown): GenerationRequest {
       scene: readRequiredText(record, "scene", 800),
       artStyle: readEnum(record, "artStyle", ["cartoon", "watercolor", "3d-storybook", "custom"]),
       pageText: readOptionalText(record, "pageText", 500),
+      lighting,
       aspectRatio,
       extraDirection: readOptionalText(record, "extraDirection", 500),
-      sourceAssetIds,
+      references,
     };
   }
 
@@ -78,17 +87,42 @@ function readAspectRatio(record: UnknownRecord): ImageAspectRatio {
   return readEnum(record, "aspectRatio", ["1:1", "4:5", "9:16", "16:9"]);
 }
 
-function readSourceAssetIds(record: UnknownRecord): string[] {
-  const value = record.sourceAssetIds;
-  if (!Array.isArray(value)) {
-    return [];
+function readLighting(record: UnknownRecord): LightingOption {
+  if (record.lighting === undefined || record.lighting === null || record.lighting === "") {
+    return "auto";
+  }
+  return readEnum(record, "lighting", ["auto", "soft-daylight", "studio-softbox", "golden-hour", "dramatic"]);
+}
+
+function readReferences(record: UnknownRecord, legacyRole: ReferenceRole): GenerationReference[] {
+  if (Array.isArray(record.references)) {
+    const references = record.references.map((item) => {
+      const reference = requireRecord(item, "Choose valid reference images.");
+      const assetId = readString(reference, "assetId");
+      const role = readEnum(reference, "role", ["product", "model", "character", "style", "reference"]);
+      if (!isUuid(assetId)) {
+        throw new Error("Choose valid reference images.");
+      }
+      return { assetId, role };
+    });
+    validateReferences(references);
+    return references;
   }
 
-  const ids = [...new Set(value.filter((item): item is string => typeof item === "string"))];
-  if (ids.length > 2 || ids.some((id) => !isUuid(id))) {
+  const value = record.sourceAssetIds;
+  if (!Array.isArray(value)) return [];
+  const references = value
+    .filter((item): item is string => typeof item === "string")
+    .map((assetId) => ({ assetId, role: legacyRole }));
+  validateReferences(references);
+  return references;
+}
+
+function validateReferences(references: GenerationReference[]): void {
+  const ids = references.map((reference) => reference.assetId);
+  if (ids.length > 2 || new Set(ids).size !== ids.length || ids.some((id) => !isUuid(id))) {
     throw new Error("Choose no more than two valid reference images.");
   }
-  return ids;
 }
 
 function readRequiredText(record: UnknownRecord, key: string, maxLength: number): string {
