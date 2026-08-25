@@ -1,5 +1,15 @@
 export type StoreImageMode = "replace-primary" | "keep-both" | "replace-all";
 export type StoreSelectionMode = "selected" | "all";
+export type StoreRunExecutionMode = "direct" | "queued";
+
+export type StoreRunStartResult = {
+  runId: string;
+  executionMode: StoreRunExecutionMode;
+};
+
+export type StoreItemRetryResult = {
+  executionMode: StoreRunExecutionMode | "publishing";
+};
 export type StoreBulkRunStatus =
   | "queued"
   | "running"

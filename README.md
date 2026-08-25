@@ -1,6 +1,6 @@
-# Artistly
+# Airveek
 
-Artistly is an AI-powered creative platform built with Next.js, TypeScript, and Tailwind CSS.
+Airveek is an AI-powered creative platform built with Next.js, TypeScript, and Tailwind CSS.
 
 This repository contains the Airveek landing page, Supabase email authentication, Whop checkout and entitlement syncing, protected admin tools, and a task-first AI image creator. The creator currently supports general images, product and fashion photoshoots, and single storybook pages.
 

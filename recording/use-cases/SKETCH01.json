@@ -1,7 +1,7 @@
 {
   "id": "SKETCH01",
   "route": "/create/image-to-sketch",
-  "input": "public/images/artistly/features/ai-fashion-designer-v2.png",
+  "input": "public/images/airveek/features/ai-fashion-designer-v2.png",
   "variations": 1,
   "fields": []
 }

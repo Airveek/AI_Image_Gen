@@ -119,7 +119,7 @@ export function HeroSection() {
 
           <a
             className="mx-auto my-5 block w-full bg-[url('/images/airveek/button-background.png')] bg-contain bg-center bg-no-repeat px-2.5 py-[17px] font-[family-name:var(--font-k2d)] text-[35px] font-extrabold leading-[1.5] text-white no-underline max-[991px]:py-2.5 max-[991px]:text-[22px] max-[425px]:w-[calc(100%-30px)] max-[425px]:py-3 max-[425px]:text-[19px]"
-            href="https://artistly.ai/#table"
+            href="https://airveek.com/#table"
           >
             Get Instant Access to Airveek&nbsp; &rarr;
           </a>

@@ -2,13 +2,14 @@
 
 import {
   cancelActiveStoreRuns,
+  executeSmallStoreRun,
   getLatestStoreBulkRun,
   requestStoreItemPublish,
   requestStoreItemRetry,
   requestStoreRunPublish,
   startStoreBulkRun,
 } from "@/features/store-images/server/runs";
-import type { StoreImageMode, StoreSelectionMode } from "@/features/store-images/types";
+import type { StoreImageMode, StoreItemRetryResult, StoreRunStartResult, StoreSelectionMode } from "@/features/store-images/types";
 
 export async function startStoreImagesAction(input: {
   prompt: string;
@@ -18,8 +19,12 @@ export async function startStoreImagesAction(input: {
   productIds: string[];
   search: string;
   status?: "active" | "draft" | "archived";
-}): Promise<string> {
+}): Promise<StoreRunStartResult> {
   return startStoreBulkRun(input);
+}
+
+export async function executeSmallStoreRunAction(runId: string): Promise<void> {
+  return executeSmallStoreRun(runId);
 }
 
 export async function publishStoreItemAction(itemId: string): Promise<void> {
@@ -30,7 +35,7 @@ export async function publishStoreRunAction(runId: string): Promise<void> {
   return requestStoreRunPublish(runId);
 }
 
-export async function retryStoreItemAction(itemId: string): Promise<void> {
+export async function retryStoreItemAction(itemId: string): Promise<StoreItemRetryResult> {
   return requestStoreItemRetry(itemId);
 }
 

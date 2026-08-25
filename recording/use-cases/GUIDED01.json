@@ -1,7 +1,7 @@
 {
   "id": "GUIDED01",
   "route": "/create/general-image",
-  "input": "public/images/artistly/features/unlimited-ai-image-creator-v3.png",
+  "input": "public/images/airveek/features/unlimited-ai-image-creator-v3.png",
   "variations": 1,
   "fields": [
     { "label": "Social graphic", "action": "select", "value": "Social graphic" },

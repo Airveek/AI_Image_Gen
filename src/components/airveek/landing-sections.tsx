@@ -75,7 +75,7 @@ export function HeroSection() {
               <div className="relative aspect-square overflow-hidden rounded-2xl border border-[#83ff00]/30 bg-gradient-to-br from-[#2ac414]/20 to-[#83ff00]/10">
                 <Image
                   className="object-contain"
-                  src="/images/artistly/hero-coffee-campaign-v3.png"
+                  src="/images/airveek/hero-coffee-campaign-v3.png"
                   alt="AI-generated Summer Coffee Sale campaign with a giant iced coffee racing along a coastal road"
                   fill
                   preload
@@ -211,7 +211,7 @@ export function TextProofSection() {
             <p className="m-0 rounded-xl border border-white/10 bg-white/[0.04] p-4 text-sm leading-6 text-[#fdfdfd]">Create a futuristic sneaker launch poster saying “RUN THE FUTURE” in bold white lettering with a small “NIGHT SHIFT / 01” subline.</p>
             <div className="my-5 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.16em] text-[#83ff00]"><span className="h-px flex-1 bg-[#83ff00]/30" />Generated result<span className="h-px flex-1 bg-[#83ff00]/30" /></div>
             <div className="relative overflow-hidden rounded-xl">
-              <Image className="aspect-[4/3] w-full object-cover" src="/images/artistly/features/perfect-text-in-ai-images-v4.png" alt="Futuristic sneaker launch poster reading RUN THE FUTURE with NIGHT SHIFT / 01" width={1536} height={1024} sizes="(max-width: 1023px) 100vw, 50vw" />
+              <Image className="aspect-[4/3] w-full object-cover" src="/images/airveek/features/perfect-text-in-ai-images-v4.png" alt="Futuristic sneaker launch poster reading RUN THE FUTURE with NIGHT SHIFT / 01" width={1536} height={1024} sizes="(max-width: 1023px) 100vw, 50vw" />
             </div>
           </div>
         </div>

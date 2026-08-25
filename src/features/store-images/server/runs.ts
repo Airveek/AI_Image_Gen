@@ -12,6 +12,8 @@ import type {
   StoreBulkItemStatus,
   StoreBulkRunStatus,
   StoreImageMode,
+  StoreItemRetryResult,
+  StoreRunStartResult,
   StoreSelectionMode,
 } from "@/features/store-images/types";
 
@@ -68,10 +70,10 @@ export async function startStoreBulkRun(input: {
   productIds: string[];
   search: string;
   status?: "active" | "draft" | "archived";
-}): Promise<string> {
+}): Promise<StoreRunStartResult> {
   const user = await requireCreatorUser();
   const prompt = input.prompt.trim().slice(0, 600);
-  if (!prompt) throw new Error("Tell Artistly what the new product images should look like.");
+  if (!prompt) throw new Error("Tell Airveek what the new product images should look like.");
 
   const referenceAssetId = input.referenceAssetId?.trim() || null;
   if (referenceAssetId) {
@@ -122,12 +124,12 @@ export async function startStoreBulkRun(input: {
     }
 
     if (products && products.length < SMALL_RUN_LIMIT) {
-      await runSmallStoreGeneration({
+      await prepareSmallStoreGeneration({
         runId,
         userId: user.id,
         products,
       });
-      return runId;
+      return { runId, executionMode: "direct" };
     }
 
     await inngest.send({
@@ -139,7 +141,24 @@ export async function startStoreBulkRun(input: {
     throw error;
   }
 
-  return runId;
+  return { runId, executionMode: "queued" };
+}
+
+export async function executeSmallStoreRun(runId: string): Promise<void> {
+  const user = await requireCreatorUser();
+  const run = await getRunForWorker(runId, user.id);
+  if (!run) throw new Error("The bulk run no longer exists.");
+  if (run.total_count >= SMALL_RUN_LIMIT) throw new Error("This run must be processed by the bulk queue.");
+  if (run.status === "cancelled") return;
+
+  const items = await listItemsForRun(runId, user.id);
+  if (items.length === 0) return;
+  await Promise.allSettled(
+    items
+      .filter((item) => item.status === "queued")
+      .map((item) => generateStoreItemDirect(item.id, user.id)),
+  );
+  await refreshRunProgress(runId, user.id);
 }
 
 export async function getStoreBulkRun(runId: string): Promise<StoreBulkRun | null> {
@@ -165,19 +184,53 @@ export async function requestStoreItemPublish(itemId: string): Promise<void> {
   const item = await getItemForUser(itemId, user.id);
   if (!item || item.status !== "ready") throw new Error("This generated image is not ready to publish.");
 
-  await inngest.send({
-    name: "store/item.publish.requested",
-    data: { itemId, runId: item.run_id, userId: user.id },
+  const claimedItems = await markItemsForPublishing({
+    itemIds: [item.id],
+    runId: item.run_id,
+    userId: user.id,
+    expectedStatus: "ready",
   });
+  if (claimedItems.length === 0) throw new Error("This generated image is no longer ready to publish.");
+
+  try {
+    await inngest.send({
+      name: "store/item.publish.requested",
+      data: { itemId, runId: item.run_id, userId: user.id },
+    });
+  } catch (error) {
+    await restorePublishingItems({ itemIds: [item.id], runId: item.run_id, userId: user.id, status: "ready" });
+    throw error;
+  }
 }
 
-export async function requestStoreItemRetry(itemId: string): Promise<void> {
+export async function requestStoreItemRetry(itemId: string): Promise<StoreItemRetryResult> {
   const user = await requireCreatorUser();
   const item = await getItemForUser(itemId, user.id);
   if (!item || item.status !== "failed") throw new Error("Only failed items can be retried.");
 
   const run = await getRunForWorker(item.run_id, user.id);
-  if (run?.status === "cancelled") throw new Error("This run was cancelled. Start a new run instead.");
+  if (!run) throw new Error("The bulk run no longer exists.");
+  if (run.status === "cancelled") throw new Error("This run was cancelled. Start a new run instead.");
+
+  if (item.generated_asset_id && item.source_image_version) {
+    const claimedItems = await markItemsForPublishing({
+      itemIds: [item.id],
+      runId: item.run_id,
+      userId: user.id,
+      expectedStatus: "failed",
+    });
+    if (claimedItems.length === 0) throw new Error("This image is no longer ready to retry.");
+    try {
+      await inngest.send({
+        name: "store/item.publish.requested",
+        data: { itemId, runId: item.run_id, userId: user.id },
+      });
+    } catch (error) {
+      await restorePublishingItems({ itemIds: [item.id], runId: item.run_id, userId: user.id, status: "failed" });
+      throw error;
+    }
+    return { executionMode: "publishing" };
+  }
 
   const { error: sourceImageError } = await createSupabaseAdminClient()
     .from("store_bulk_items")
@@ -188,8 +241,7 @@ export async function requestStoreItemRetry(itemId: string): Promise<void> {
 
   if ((run?.total_count ?? 0) < SMALL_RUN_LIMIT) {
     await setItemStatus({ itemId, userId: user.id, status: "queued", errorMessage: null });
-    await generateStoreItemDirect(itemId, user.id);
-    return;
+    return { executionMode: "direct" };
   }
 
   await setItemStatus({ itemId, userId: user.id, status: "queued", errorMessage: null });
@@ -197,19 +249,38 @@ export async function requestStoreItemRetry(itemId: string): Promise<void> {
     name: "store/item.requested",
     data: { itemId, runId: item.run_id, userId: user.id },
   });
+  return { executionMode: "queued" };
 }
 
 export async function requestStoreRunPublish(runId: string): Promise<void> {
   const user = await requireCreatorUser();
   const items = await listItemsForRun(runId, user.id);
-  const events = items
-    .filter((item) => item.status === "ready")
+  const readyItemIds = items.filter((item) => item.status === "ready").map((item) => item.id);
+  if (readyItemIds.length === 0) return;
+
+  const claimedItems = await markItemsForPublishing({
+    itemIds: readyItemIds,
+    runId,
+    userId: user.id,
+    expectedStatus: "ready",
+  });
+  const events = claimedItems
     .map((item) => ({
       name: "store/item.publish.requested" as const,
       data: { itemId: item.id, runId, userId: user.id },
     }));
 
-  if (events.length > 0) await inngest.send(events);
+  try {
+    if (events.length > 0) await inngest.send(events);
+  } catch (error) {
+    await restorePublishingItems({
+      itemIds: claimedItems.map((item) => item.id),
+      runId,
+      userId: user.id,
+      status: "ready",
+    });
+    throw error;
+  }
 }
 
 export async function cancelStoreRun(runId: string): Promise<void> {
@@ -398,7 +469,7 @@ async function cancelStoreRunForUser(runId: string, userId: string): Promise<voi
   if (error) throw new Error(error.message);
 }
 
-async function runSmallStoreGeneration(input: {
+async function prepareSmallStoreGeneration(input: {
   runId: string;
   userId: string;
   products: RunProduct[];
@@ -415,12 +486,11 @@ async function runSmallStoreGeneration(input: {
     return;
   }
 
-  await Promise.allSettled(itemIds.map((itemId) => generateStoreItemDirect(itemId, input.userId)));
 }
 
 async function generateStoreItemDirect(itemId: string, userId: string): Promise<void> {
-  const item = await getItemForWorker(itemId, userId);
-  if (!item || item.status === "ready" || item.status === "published" || item.status === "cancelled") return;
+  const item = await claimQueuedItemForGeneration(itemId, userId);
+  if (!item) return;
 
   const run = await getRunForWorker(item.run_id, userId);
   if (!run || run.status === "cancelled") {
@@ -432,7 +502,6 @@ async function generateStoreItemDirect(itemId: string, userId: string): Promise<
     return;
   }
 
-  await setItemStatus({ itemId, userId, status: "generating", errorMessage: null });
   try {
     const asset = await generateStoreProductImage({
       userId,
@@ -530,8 +599,8 @@ async function refreshRunProgress(runId: string, userId: string): Promise<void> 
   const failedCount = rows.filter((item) => item.status === "failed").length;
   const publishedCount = rows.filter((item) => item.status === "published").length;
   const cancelledCount = rows.filter((item) => item.status === "cancelled").length;
-  const allTerminal = rows.length > 0 && rows.every((item) => ["ready", "published", "failed", "cancelled"].includes(item.status));
-  const status = allTerminal ? (failedCount > 0 || cancelledCount > 0 ? "completed-with-errors" : "completed") : "running";
+  const generationFinished = rows.length > 0 && rows.every((item) => !["queued", "generating"].includes(item.status));
+  const status = generationFinished ? (failedCount > 0 || cancelledCount > 0 ? "completed-with-errors" : "completed") : "running";
 
   const { error: runError } = await createSupabaseAdminClient()
     .from("store_bulk_runs")
@@ -539,6 +608,60 @@ async function refreshRunProgress(runId: string, userId: string): Promise<void> 
     .eq("id", runId)
     .eq("user_id", userId);
   if (runError) throw new Error(runError.message);
+}
+
+async function claimQueuedItemForGeneration(itemId: string, userId: string): Promise<ItemRow | null> {
+  const { data, error } = await createSupabaseAdminClient()
+    .from("store_bulk_items")
+    .update({ status: "generating", error_message: null, updated_at: new Date().toISOString() })
+    .eq("id", itemId)
+    .eq("user_id", userId)
+    .eq("status", "queued")
+    .select("*")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  const item = data as ItemRow;
+  await refreshRunProgress(item.run_id, userId);
+  return item;
+}
+
+async function markItemsForPublishing(input: {
+  itemIds: string[];
+  runId: string;
+  userId: string;
+  expectedStatus: "ready" | "failed";
+}): Promise<ItemRow[]> {
+  if (input.itemIds.length === 0) return [];
+  const { data, error } = await createSupabaseAdminClient()
+    .from("store_bulk_items")
+    .update({ status: "publishing", error_message: null, updated_at: new Date().toISOString() })
+    .in("id", input.itemIds)
+    .eq("run_id", input.runId)
+    .eq("user_id", input.userId)
+    .eq("status", input.expectedStatus)
+    .select("*");
+  if (error) throw new Error(error.message);
+  await refreshRunProgress(input.runId, input.userId);
+  return (data ?? []) as ItemRow[];
+}
+
+async function restorePublishingItems(input: {
+  itemIds: string[];
+  runId: string;
+  userId: string;
+  status: "ready" | "failed";
+}): Promise<void> {
+  if (input.itemIds.length === 0) return;
+  const { error } = await createSupabaseAdminClient()
+    .from("store_bulk_items")
+    .update({ status: input.status, updated_at: new Date().toISOString() })
+    .in("id", input.itemIds)
+    .eq("run_id", input.runId)
+    .eq("user_id", input.userId)
+    .eq("status", "publishing");
+  if (error) throw new Error(error.message);
+  await refreshRunProgress(input.runId, input.userId);
 }
 
 function mapItem(item: ItemRow): StoreBulkItem {

@@ -32,7 +32,7 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
       <div>
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-neon">User management</p>
         <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-brand-white sm:text-4xl">All users</h1>
-        <p className="mt-2 text-sm leading-6 text-muted">Search, review, and manage registered Artistly accounts.</p>
+        <p className="mt-2 text-sm leading-6 text-muted">Search, review, and manage registered Airveek accounts.</p>
       </div>
       <Card>
         <CardHeader><CardTitle>Registered users</CardTitle><CardDescription>{result.total} matching {result.total === 1 ? "user" : "users"}</CardDescription></CardHeader>

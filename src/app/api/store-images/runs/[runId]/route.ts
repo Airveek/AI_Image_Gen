@@ -9,7 +9,7 @@ export async function GET(_request: Request, context: RouteContext) {
     const { runId } = await context.params;
     const run = await getStoreBulkRun(runId);
     if (!run) return NextResponse.json({ error: "Run not found." }, { status: 404 });
-    return NextResponse.json(run);
+    return NextResponse.json(run, { headers: { "Cache-Control": "private, no-store, max-age=0" } });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Run could not be loaded." }, { status: 500 });
   }

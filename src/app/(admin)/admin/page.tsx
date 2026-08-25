@@ -31,7 +31,7 @@ export default async function AdminOverviewPage() {
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-neon">Overview</p>
           <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-brand-white sm:text-4xl">Your user dashboard</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">A simple view of the people using Artistly.</p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">A simple view of the people using Airveek.</p>
         </div>
         <Link className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-neon px-4 text-sm font-bold text-brand-black transition hover:bg-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-neon" href="/admin/users">
           Manage users <ArrowRight aria-hidden="true" className="h-4 w-4" />

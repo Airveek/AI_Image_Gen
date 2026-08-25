@@ -5,8 +5,9 @@ import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 const kitArgument = process.argv[2]?.trim();
+const formatArgument = process.argv[4]?.trim();
 if (!kitArgument) {
-  throw new Error("Run: pnpm render:recording <content-kit-directory> [segments.json]");
+  throw new Error("Run: pnpm render:recording <content-kit-directory> [segments.json] [16x9|9x16]");
 }
 const kitDirectory = path.resolve(kitArgument);
 const segmentsPath = path.resolve(
@@ -20,10 +21,12 @@ if (!kitDirectory || !segmentsPath) {
 const rawVideoPath = path.join(kitDirectory, "raw-demo.webm");
 const timelinePath = path.join(kitDirectory, "timeline.json");
 const musicPath = path.join(kitDirectory, "music-loop.mp3");
+const framingPlanPath = path.join(kitDirectory, "framing-plan.json");
 const [timeline, segmentSpecs] = await Promise.all([
   readJson(timelinePath),
   readJson(segmentsPath),
 ]);
+const framingPlan = await readOptionalJson(framingPlanPath);
 
 await assertFile(rawVideoPath);
 if (!Array.isArray(timeline.events)) throw new Error("timeline.json must contain an events array.");
@@ -32,6 +35,10 @@ if (!Array.isArray(segmentSpecs) || segmentSpecs.length === 0) {
 }
 
 const durationSeconds = await probeDuration(rawVideoPath);
+const mainStartSeconds = normalizeMainStart(framingPlan, durationSeconds);
+const mainStartMs = Math.round(mainStartSeconds * 1000);
+const coldOpen = normalizeColdOpen(framingPlan, durationSeconds);
+const coldOpenDurationMs = Math.round((coldOpen?.durationSeconds ?? 0) * 1000);
 const segments = [];
 
 for (const [index, spec] of segmentSpecs.entries()) {
@@ -46,25 +53,66 @@ for (const [index, spec] of segmentSpecs.entries()) {
   const audioPath = path.resolve(kitDirectory, file);
   await assertFile(audioPath);
   const offsetMs = integerOrDefault(spec.offsetMs, 0);
-  const startMs = Math.max(0, Math.round(Number(eventMatch.atMs) + offsetMs));
+  const timelineStartMs = Math.max(0, Math.round(Number(eventMatch.atMs) + offsetMs));
+  const sourceStartMs = Number.isInteger(spec.sourceStartMs)
+    ? Math.max(0, spec.sourceStartMs)
+    : undefined;
+  const renderStartMs = Number.isInteger(spec.renderStartMs)
+    ? Math.max(0, spec.renderStartMs)
+    : sourceStartMs === undefined
+      ? undefined
+      : coldOpenDurationMs + Math.max(0, sourceStartMs - mainStartMs);
+  const startMs = renderStartMs === undefined ? timelineStartMs : renderStartMs;
   segments.push({
     event,
     file,
     path: audioPath,
-      startMs,
-      shot: typeof spec.shot === "string" ? spec.shot : undefined,
-      label: typeof spec.label === "string" ? spec.label : undefined,
-      index: Number.isInteger(spec.index) ? spec.index : undefined,
+    startMs,
+    timelineStartMs,
+    renderStartMs,
+    sourceStartMs,
+    shot: typeof spec.shot === "string" ? spec.shot : undefined,
+    label: typeof spec.label === "string" ? spec.label : undefined,
+    index: Number.isInteger(spec.index) ? spec.index : undefined,
   });
 }
 
+for (const segment of segments) {
+  segment.durationSeconds = await probeDuration(segment.path);
+}
+for (const segment of segments) {
+  if (segment.renderStartMs === undefined) {
+    segment.startMs = Math.max(0, segment.timelineStartMs - mainStartMs);
+  }
+}
+const timelineDurationSeconds = Math.max(0.1, durationSeconds - mainStartSeconds);
+const timelineRenderDurationSeconds = Math.max(
+  timelineDurationSeconds,
+  ...segments.map((segment) => (segment.startMs / 1000) + segment.durationSeconds),
+);
+const coldOpenDurationSeconds = coldOpen?.durationSeconds ?? 0;
+const renderDurationSeconds = coldOpenDurationSeconds + timelineRenderDurationSeconds;
+
 const outputs = [];
-for (const format of [
+const formats = [
   { name: "16x9", width: 1920, height: 1080 },
   { name: "9x16", width: 1080, height: 1920 },
-]) {
+].filter((format) => !formatArgument || format.name === formatArgument);
+if (formats.length === 0) throw new Error(`Unknown format: ${formatArgument}`);
+
+for (const format of formats) {
   const outputPath = path.join(kitDirectory, `tutorial-${format.name}.mp4`);
-  await renderFormat({ durationSeconds, format, outputPath, segments });
+  await renderFormat({
+    durationSeconds,
+    mainStartSeconds,
+    timelineRenderDurationSeconds,
+    renderDurationSeconds,
+    coldOpen,
+    format,
+    outputPath,
+    segments,
+    framingPlan,
+  });
   outputs.push(path.basename(outputPath));
 }
 
@@ -74,14 +122,23 @@ await writeFile(
     {
       sourceVideo: path.basename(rawVideoPath),
       timeline: path.basename(timelinePath),
-      segments: segments.map(({ event, file, startMs, shot, label, index }) => ({
+      segments: segments.map(({ event, file, startMs, timelineStartMs, renderStartMs, sourceStartMs, shot, label, index }) => ({
         event,
         file,
         startMs,
+        ...(timelineStartMs === startMs ? {} : { timelineStartMs }),
+        ...(renderStartMs === undefined ? {} : { renderStartMs }),
+        ...(sourceStartMs === undefined ? {} : { sourceStartMs }),
         ...(shot ? { shot } : {}),
         ...(label ? { label } : {}),
         ...(index === undefined ? {} : { index }),
       })),
+      ...(framingPlan ? { framingPlan: path.basename(framingPlanPath) } : {}),
+      sourceDurationSeconds: durationSeconds,
+      mainStartSeconds,
+      timelineRenderedDurationSeconds: timelineRenderDurationSeconds,
+      coldOpenDurationSeconds,
+      renderedDurationSeconds: renderDurationSeconds,
       outputs,
     },
     null,
@@ -91,7 +148,17 @@ await writeFile(
 
 console.log(`Synchronized recordings written to ${kitDirectory}`);
 
-async function renderFormat({ durationSeconds, format, outputPath, segments }) {
+async function renderFormat({
+  durationSeconds,
+  mainStartSeconds,
+  timelineRenderDurationSeconds,
+  renderDurationSeconds,
+  coldOpen,
+  format,
+  outputPath,
+  segments,
+  framingPlan,
+}) {
   const args = ["-y", "-i", rawVideoPath];
   for (const segment of segments) args.push("-i", segment.path);
   const musicInputIndex = 1 + segments.length;
@@ -99,16 +166,20 @@ async function renderFormat({ durationSeconds, format, outputPath, segments }) {
   if (hasMusic) args.push("-stream_loop", "-1", "-i", musicPath);
 
   const audioLabels = [];
+  const coldOpenOffsetMs = Math.round((coldOpen?.durationSeconds ?? 0) * 1000);
   segments.forEach((segment, index) => {
     const label = `voice${index}`;
+    const audioStartMs = segment.renderStartMs === undefined
+      ? segment.startMs + coldOpenOffsetMs
+      : segment.startMs;
     audioLabels.push(
-      `[${index + 1}:a]adelay=delays=${segment.startMs}:all=1,volume=1.0[${label}]`,
+      `[${index + 1}:a]adelay=delays=${audioStartMs}:all=1,volume=1.0[${label}]`,
     );
   });
 
   if (hasMusic) {
     audioLabels.push(
-      `[${musicInputIndex}:a]volume=0.12,atrim=duration=${durationSeconds}[music]`,
+      `[${musicInputIndex}:a]volume=0.12,atrim=duration=${renderDurationSeconds}[music]`,
     );
   }
 
@@ -122,17 +193,24 @@ async function renderFormat({ durationSeconds, format, outputPath, segments }) {
     `${mixInputs.join("")}amix=inputs=${mixCount}:duration=longest:dropout_transition=0,aresample=async=1:first_pts=0[aout]`,
   );
 
+  const videoLabels = buildVideoGraph({
+    format,
+    framingPlan,
+    durationSeconds,
+    mainStartSeconds,
+    timelineRenderDurationSeconds,
+    coldOpen,
+  });
+
   args.push(
     "-filter_complex",
-    audioLabels.join(";"),
+    [...videoLabels, ...audioLabels].join(";"),
     "-map",
-    "0:v:0",
+    "[vout]",
     "-map",
     "[aout]",
-    "-vf",
-    `scale=${format.width}:${format.height}:force_original_aspect_ratio=increase,crop=${format.width}:${format.height}`,
     "-t",
-    String(durationSeconds),
+    String(renderDurationSeconds),
     "-c:v",
     "libx264",
     "-preset",
@@ -151,6 +229,155 @@ async function renderFormat({ durationSeconds, format, outputPath, segments }) {
   );
 
   await execFileAsync("ffmpeg", args, { maxBuffer: 10 * 1024 * 1024 });
+}
+
+function buildVideoGraph({
+  format,
+  framingPlan,
+  durationSeconds,
+  mainStartSeconds,
+  timelineRenderDurationSeconds,
+  coldOpen,
+}) {
+  const mainVideoDuration = Math.max(0.1, durationSeconds - mainStartSeconds);
+  const mainFreezeDuration = Math.max(0, timelineRenderDurationSeconds - mainVideoDuration);
+  const mainFilter = buildVideoFilter({
+    format,
+    framingPlan,
+    freezeDurationSeconds: mainFreezeDuration,
+  });
+
+  if (!coldOpen) return [`[0:v]${mainFilter}[vout]`];
+
+  const sourceStartSeconds = Math.min(
+    Math.max(0, Number(coldOpen.sourceStartSeconds)),
+    Math.max(0, durationSeconds - 0.1),
+  );
+  const availableColdOpenSeconds = Math.max(0.1, durationSeconds - sourceStartSeconds);
+  const coldOpenFreezeDuration = Math.max(0, coldOpen.durationSeconds - availableColdOpenSeconds);
+  const coldFilter = buildVideoFilter({
+    format,
+    framingPlan: null,
+    freezeDurationSeconds: coldOpenFreezeDuration,
+  });
+
+  return [
+    `[0:v]trim=start=${formatNumber(sourceStartSeconds)}:end=${formatNumber(durationSeconds)},setpts=PTS-STARTPTS,${coldFilter}[cold]`,
+    `[0:v]trim=start=${formatNumber(mainStartSeconds)}:end=${formatNumber(durationSeconds)},setpts=PTS-STARTPTS,${mainFilter}[main]`,
+    `[cold][main]concat=n=2:v=1:a=0[vout]`,
+  ];
+}
+
+function normalizeColdOpen(framingPlan, sourceDurationSeconds) {
+  const coldOpen = framingPlan?.coldOpen;
+  if (!coldOpen) return null;
+  if (!isRecord(coldOpen)) throw new Error("framing-plan.json coldOpen must be an object.");
+  const durationSeconds = Number(coldOpen.durationSeconds);
+  const sourceStartSeconds = Number(coldOpen.sourceStartSeconds);
+  if (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || durationSeconds > 15) {
+    throw new Error("framing-plan.json coldOpen.durationSeconds must be between 0 and 15.");
+  }
+  if (!Number.isFinite(sourceStartSeconds) || sourceStartSeconds < 0 || sourceStartSeconds >= sourceDurationSeconds) {
+    throw new Error("framing-plan.json coldOpen.sourceStartSeconds must be inside the source video.");
+  }
+  return { durationSeconds, sourceStartSeconds };
+}
+
+function normalizeMainStart(framingPlan, sourceDurationSeconds) {
+  const mainStartSeconds = Number(framingPlan?.mainStartSeconds ?? 0);
+  if (!Number.isFinite(mainStartSeconds) || mainStartSeconds < 0 || mainStartSeconds >= sourceDurationSeconds) {
+    throw new Error("framing-plan.json mainStartSeconds must be inside the source video.");
+  }
+  return mainStartSeconds;
+}
+
+function buildVideoFilter({ format, framingPlan, freezeDurationSeconds }) {
+  const formatPlan = framingPlan?.formats?.[format.name];
+  if (formatPlan && format.name === "9x16") {
+    const source = framingPlan.source ?? { width: 1440, height: 900 };
+    const keyframes = normalizeKeyframes(formatPlan.keyframes, source);
+    const scaleBase = format.height / source.height;
+    const zoomExpression = piecewiseExpression(keyframes, "zoom");
+    const focusXExpression = piecewiseExpression(keyframes, "focusX");
+    const focusYExpression = piecewiseExpression(keyframes, "focusY");
+    const scaledZoom = `(${scaleBase}*(${zoomExpression}))`;
+    const cropX = clampExpression(
+      `(${focusXExpression})*${scaledZoom} - ${format.width / 2}`,
+      `iw-${format.width}`,
+    );
+    const cropY = clampExpression(
+      `(${focusYExpression})*${scaledZoom} - ${format.height / 2}`,
+      `ih-${format.height}`,
+    );
+
+    const filters = [
+      `scale=w='ceil(iw*${scaledZoom}/2)*2':h='ceil(ih*${scaledZoom}/2)*2':eval=frame`,
+      `crop=${format.width}:${format.height}:x='${cropX}':y='${cropY}'`,
+    ];
+    if (freezeDurationSeconds > 0.01) {
+      filters.push(`tpad=stop_mode=clone:stop_duration=${formatNumber(freezeDurationSeconds)}`);
+    }
+    return filters.join(",");
+  }
+
+  const filters = [
+    `scale=${format.width}:${format.height}:force_original_aspect_ratio=increase`,
+    `crop=${format.width}:${format.height}`,
+  ];
+  if (freezeDurationSeconds > 0.01) {
+    filters.push(`tpad=stop_mode=clone:stop_duration=${formatNumber(freezeDurationSeconds)}`);
+  }
+  return filters.join(",");
+}
+
+function normalizeKeyframes(keyframes, source) {
+  if (!Array.isArray(keyframes) || keyframes.length === 0) {
+    throw new Error("framing-plan.json must contain at least one keyframe.");
+  }
+
+  return keyframes
+    .map((keyframe, index) => {
+      if (!isRecord(keyframe)) throw new Error(`Framing keyframe ${index + 1} must be an object.`);
+      const atMs = Number(keyframe.atMs);
+      const focus = keyframe.focus;
+      const zoom = Number(keyframe.zoom ?? 1);
+      if (!Number.isFinite(atMs) || atMs < 0) throw new Error(`Framing keyframe ${index + 1} has invalid atMs.`);
+      if (!isRecord(focus)) throw new Error(`Framing keyframe ${index + 1} needs a focus object.`);
+      const focusX = Number(focus.x);
+      const focusY = Number(focus.y);
+      if (!Number.isFinite(focusX) || !Number.isFinite(focusY) || focusX < 0 || focusX > 1 || focusY < 0 || focusY > 1) {
+        throw new Error(`Framing keyframe ${index + 1} focus must use normalized x/y values from 0 to 1.`);
+      }
+      if (!Number.isFinite(zoom) || zoom < 1 || zoom > 1.5) {
+        throw new Error(`Framing keyframe ${index + 1} zoom must be between 1 and 1.5.`);
+      }
+      return { atMs, focusX: focusX * source.width, focusY: focusY * source.height, zoom };
+    })
+    .sort((left, right) => left.atMs - right.atMs);
+}
+
+function piecewiseExpression(keyframes, property) {
+  const values = keyframes.map((keyframe) => Number(keyframe[property]));
+  let expression = formatNumber(values.at(-1));
+
+  for (let index = keyframes.length - 2; index >= 0; index -= 1) {
+    const current = keyframes[index];
+    const next = keyframes[index + 1];
+    const durationSeconds = Math.max(0.001, (next.atMs - current.atMs) / 1000);
+    const progress = `(t-${formatNumber(current.atMs / 1000)})/${formatNumber(durationSeconds)}`;
+    const interpolated = `${formatNumber(values[index])}+(${formatNumber(values[index + 1])}-${formatNumber(values[index])})*${progress}`;
+    expression = `if(lt(t\\,${formatNumber(next.atMs / 1000)})\\,${interpolated}\\,${expression})`;
+  }
+
+  return expression;
+}
+
+function clampExpression(valueExpression, maxExpression) {
+  return `max(0\\,min(${maxExpression}\\,${valueExpression}))`;
+}
+
+function formatNumber(value) {
+  return Number(value.toFixed(6)).toString();
 }
 
 async function probeDuration(filePath) {
@@ -179,6 +406,11 @@ function matchesEvent(candidate, spec, event) {
 async function readJson(filePath) {
   const value = JSON.parse(await readFile(filePath, "utf8"));
   return value;
+}
+
+async function readOptionalJson(filePath) {
+  if (!(await fileExists(filePath))) return null;
+  return readJson(filePath);
 }
 
 async function assertFile(filePath) {
