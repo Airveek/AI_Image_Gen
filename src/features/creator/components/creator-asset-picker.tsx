@@ -79,11 +79,11 @@ export function CreatorAssetPicker({
   const readyCount = assets.filter((asset) => asset.status === "ready").length;
 
   return (
-    <div className={cn("p-4", !compact && "h-full overflow-y-auto overscroll-contain")}>
+    <div className={cn(compact ? "p-3" : "p-4", !compact && "h-full overflow-y-auto overscroll-contain")}>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="font-display text-lg font-bold">Assets</h2>
-          <p className="text-xs text-muted">
+          <h2 className={cn("font-display font-bold", compact ? "text-sm" : "text-lg")}>Assets</h2>
+          <p className="line-clamp-1 text-xs text-muted">
             {helperText ?? (preferredRole ? `Choose a ${referenceRoleLabel(preferredRole).toLowerCase()}` : "Choose up to two")}
           </p>
         </div>
@@ -112,7 +112,7 @@ export function CreatorAssetPicker({
         />
       </div>
 
-      <label className="relative mt-4 block" htmlFor={searchId}>
+      <label className={cn("relative block", compact ? "mt-3" : "mt-4")} htmlFor={searchId}>
         <span className="sr-only">Search assets</span>
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
         <input
@@ -121,14 +121,14 @@ export function CreatorAssetPicker({
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search assets"
-          className="min-h-11 w-full rounded-xl border border-white/12 bg-white/[0.045] pl-10 pr-3 text-sm text-white placeholder:text-brand-gray focus:border-brand-neon/50 focus:outline-none"
+          className={cn("w-full rounded-xl border border-white/12 bg-white/[0.045] pl-10 pr-3 text-sm text-white placeholder:text-brand-gray focus:border-brand-neon/50 focus:outline-none", compact ? "min-h-10" : "min-h-11")}
         />
       </label>
 
-      <div className="mt-5 space-y-5">
+      <div className={cn("space-y-5", compact ? "mt-3 space-y-3" : "mt-5")}>
         {groups.map((group) => (
           <section key={group.kind} aria-label={group.label}>
-            <h3 className="mb-2 text-xs font-semibold text-muted">{group.label}</h3>
+            <h3 className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">{group.label}</h3>
             <div className="grid grid-cols-4 gap-2">
               {group.assets.slice(0, group.kind === "generation" ? 12 : 16).map((asset) => {
                 const selectedIndex = references.findIndex((reference) => reference.assetId === asset.id);
