@@ -121,7 +121,7 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, initialLogoA
       });
       const nextRun = await getLatestStoreRunAction();
       setRun(nextRun ?? { id: runId, prompt, referenceAssetId: logoAsset?.id ?? null, imageMode, selectionMode: allMatches ? "all" : "selected", status: "queued", totalCount: 0, completedCount: 0, failedCount: 0, publishedCount: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), items: [] });
-      setMessage(nextRun?.status === "completed" || nextRun?.status === "completed-with-errors" ? "Images generated. Review them below before publishing." : "Generation queued. You can leave this page open or come back later.");
+      setMessage(nextRun?.status === "completed" ? "Images generated. Review them below before publishing." : nextRun?.status === "completed-with-errors" ? "Some images could not be generated. Review the item errors below." : "Generation queued. You can leave this page open or come back later.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "The bulk run could not be started.");
     } finally {

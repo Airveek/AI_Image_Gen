@@ -25,6 +25,7 @@ export type StoreProduct = {
   status: StoreProductStatus;
   imageUrl: string | null;
   imageUrls: string[];
+  sourceImageUrl: string | null;
   imageVersion: string;
 };
 

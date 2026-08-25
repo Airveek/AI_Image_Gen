@@ -154,6 +154,7 @@ function parseProduct(value: unknown): StoreProduct {
     status,
     imageUrl: record.imageUrl === null ? null : readString(record, "imageUrl"),
     imageUrls: readStringArray(record, "imageUrls"),
+    sourceImageUrl: readString(record, "sourceImageUrl") ?? readString(record, "imageUrl"),
     imageVersion: readRequiredString(record, "imageVersion"),
   };
 }

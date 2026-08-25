@@ -56,6 +56,7 @@ type RunProduct = {
   id: string;
   name: string;
   imageUrl: string | null;
+  sourceImageUrl: string | null;
   imageVersion: string;
 };
 
@@ -241,7 +242,7 @@ export async function getItemForWorker(itemId: string, userId: string): Promise<
 export async function createRunItems(input: {
   runId: string;
   userId: string;
-  products: Array<{ id: string; name: string; imageUrl: string | null; imageVersion: string }>;
+  products: Array<{ id: string; name: string; imageUrl: string | null; sourceImageUrl: string | null; imageVersion: string }>;
 }): Promise<string[]> {
   if (input.products.length === 0) return [];
   const rows = input.products.map((product) => ({
@@ -249,7 +250,7 @@ export async function createRunItems(input: {
     user_id: input.userId,
     product_id: product.id,
     product_name: product.name,
-    source_image_url: product.imageUrl,
+    source_image_url: product.sourceImageUrl,
     source_image_version: product.imageVersion,
   }));
   const { data, error } = await createSupabaseAdminClient()
