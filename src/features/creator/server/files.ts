@@ -19,10 +19,8 @@ export async function validateImageFile(file: File): Promise<{
     throw new Error("Upload a valid PNG, JPEG, or WebP image.");
   }
 
-  if (file.type && file.type !== detected) {
-    throw new Error("The image contents do not match the selected file type.");
-  }
-
+  // Trust the validated file signature rather than the browser's filename MIME.
+  // Some valid images, especially exported logos, are PNG bytes with a .jpg name.
   return { bytes, mimeType: detected };
 }
 
@@ -59,4 +57,3 @@ export function detectImageMimeType(bytes: Uint8Array): AllowedImageMimeType | n
 function ascii(bytes: Uint8Array, start: number, end: number): string {
   return String.fromCharCode(...bytes.slice(start, end));
 }
-
