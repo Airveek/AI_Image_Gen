@@ -193,8 +193,10 @@ test("shows contextual controls and keeps the mobile composer inside the viewpor
   await page.goto("/create/storybook-page");
 
   await expect(page.getByTestId("creator-composer")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Cartoon" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Auto light" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "IMAGE", exact: true })).toHaveCount(0);
+  await page.getByTestId("image-settings-button").click();
+  await expect(page.getByLabel("Art style")).toBeVisible();
+  await expect(page.getByLabel("Lighting")).toBeVisible();
   await expect(page.getByRole("button", { name: "4:5" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
@@ -255,6 +257,41 @@ test("creates Image to Sketch from one primary image and one optional detail ima
   });
   expect(generationBodies[0]).not.toHaveProperty("lighting");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test("matches the fixed-image Kive composer and progressive asset rail", async ({ page }) => {
+  await page.goto("/create/product-fashion");
+
+  await expect(page.getByRole("button", { name: "IMAGE", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Video", exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("generation-count-button")).toHaveText("2x");
+  await expect(page.getByRole("button", { name: "Products", exact: true })).toHaveAttribute("aria-expanded", "true");
+
+  await page.getByRole("button", { name: "Sort Products", exact: true }).click();
+  await expect(page.getByRole("menuitemradio", { name: "Recently added", exact: true })).toBeVisible();
+  await page.getByRole("menuitemradio", { name: "A–Z", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Sort Products", exact: true })).toHaveAttribute("aria-expanded", "false");
+
+  await page.getByRole("button", { name: "Models", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Models", exact: true })).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByRole("button", { name: "Products", exact: true })).toHaveAttribute("aria-expanded", "false");
+
+  await page.getByPlaceholder("Search assets").first().fill("does-not-exist");
+  await expect(page.getByText("No assets", { exact: true }).first()).toBeVisible();
+  await page.getByRole("button", { name: "Clear search", exact: true }).click();
+
+  await page.getByTestId("add-reference-button").click();
+  await expect(page.getByRole("menuitem", { name: "Product", exact: true })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Image", exact: true })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Video", exact: true })).toHaveCount(0);
+  await page.keyboard.press("Escape");
+
+  await page.getByTestId("image-settings-button").click();
+  const imageSettings = page.getByRole("dialog", { name: "Image settings" });
+  await expect(imageSettings).toBeVisible();
+  await expect(imageSettings.getByLabel("Mode")).toBeVisible();
+  await expect(imageSettings.getByLabel("Scene")).toBeVisible();
+  await expect(imageSettings.getByLabel("Lighting")).toBeVisible();
 });
 
 async function mockGeneration(page: Page, onBody: (body: unknown) => void) {

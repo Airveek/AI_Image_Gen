@@ -6,8 +6,6 @@ import {
   ChevronDown,
   ImageIcon,
   ImagePlus,
-  LampDesk,
-  LayoutTemplate,
   LoaderCircle,
   Package,
   Palette,
@@ -34,7 +32,6 @@ import type {
 } from "@/features/creator/types";
 import { cn } from "@/lib/utils";
 
-type OutputType = "image" | "poster" | "illustration" | "social" | "thumbnail";
 type ProductMode = "product-scene" | "on-model" | "influencer-lifestyle";
 type ProductScene = "studio" | "lifestyle" | "flat-lay" | "outdoor" | "custom";
 type ArtStyle = "cartoon" | "watercolor" | "3d-storybook" | "custom";
@@ -42,7 +39,6 @@ type ArtStyle = "cartoon" | "watercolor" | "3d-storybook" | "custom";
 type SelectedReference = GenerationReference & { asset: CreatorAsset };
 type MenuId =
   | "add"
-  | "output"
   | "style"
   | "lighting"
   | "ratio"
@@ -79,8 +75,6 @@ export function CreatorComposer({
   selectedReferences,
   mainText,
   onMainTextChange,
-  outputType,
-  onOutputTypeChange,
   exactText,
   onExactTextChange,
   style,
@@ -116,8 +110,6 @@ export function CreatorComposer({
   selectedReferences: SelectedReference[];
   mainText: string;
   onMainTextChange: (value: string) => void;
-  outputType: OutputType;
-  onOutputTypeChange: (value: OutputType) => void;
   exactText: string;
   onExactTextChange: (value: string) => void;
   style: string;
@@ -197,20 +189,20 @@ export function CreatorComposer({
 
   return (
     <div ref={composerRef} className="relative mx-auto w-full max-w-[900px]" data-testid="creator-composer">
-      {selectedReferences.length > 0 ? (
-        <div className="mb-2 flex flex-wrap justify-center gap-2" aria-label="Selected reference images">
+      <div className="rounded-2xl border border-white/15 bg-[#1a1c1a] p-2 shadow-[0_18px_60px_rgba(0,0,0,0.48)] transition-colors focus-within:border-brand-neon/45">
+        {selectedReferences.length > 0 ? (
+        <div className="flex flex-wrap gap-1.5 px-1 pb-1.5" aria-label="Selected reference images">
           {selectedReferences.map((reference, index) => {
             const menuId: MenuId = `reference-${reference.assetId}`;
             return (
-              <div key={reference.assetId} className="relative flex min-h-14 min-w-0 max-w-56 items-center gap-2 rounded-xl border border-white/15 bg-[#1a1d1a] p-1.5 pr-2 shadow-lg">
-                <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-brand-panel">
-                  {reference.asset.imageUrl ? <Image src={reference.asset.imageUrl} alt="" fill unoptimized className="object-cover" sizes="44px" /> : null}
-                  <span className="absolute left-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-neon text-[10px] font-bold text-black">{index + 1}</span>
+              <div key={reference.assetId} className="relative flex h-9 min-w-0 max-w-52 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.045] px-1.5">
+                <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-md bg-brand-panel">
+                  {reference.asset.imageUrl ? <Image src={reference.asset.imageUrl} alt="" fill unoptimized className="object-cover" sizes="24px" /> : null}
                 </span>
                 {isImageToSketch ? (
                   <div className="min-w-0 flex-1 text-left">
-                    <span className="block truncate text-sm font-semibold text-white">{reference.asset.name}</span>
-                    <span className="block text-xs text-muted">Sketch image {index + 1}</span>
+                    <span className="block truncate text-xs font-semibold text-white">{reference.asset.name}</span>
+                    <span className="block text-[10px] text-muted">Sketch image {index + 1}</span>
                   </div>
                 ) : (
                   <button
@@ -220,12 +212,12 @@ export function CreatorComposer({
                     aria-haspopup="menu"
                     aria-expanded={openMenu === menuId}
                   >
-                    <span className="block truncate text-sm font-semibold text-white">{reference.asset.name}</span>
-                    <span className="flex items-center gap-1 text-xs text-muted">{referenceRoleLabel(reference.role)} <ChevronDown className="h-3 w-3" aria-hidden="true" /></span>
+                    <span className="block truncate text-xs font-semibold text-white">{reference.asset.name}</span>
+                    <span className="flex items-center gap-1 text-[10px] text-muted">{referenceRoleLabel(reference.role)} <ChevronDown className="h-2.5 w-2.5" aria-hidden="true" /></span>
                   </button>
                 )}
-                <button type="button" onClick={() => onRemoveReference(reference.assetId)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-white/[0.07] hover:text-white" aria-label={`Remove ${reference.asset.name}`}>
-                  <X className="h-4 w-4" aria-hidden="true" />
+                <button type="button" onClick={() => onRemoveReference(reference.assetId)} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted hover:bg-white/[0.07] hover:text-white" aria-label={`Remove ${reference.asset.name}`}>
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
                 {openMenu === menuId ? (
                   <OptionPanel align="left">
@@ -241,13 +233,10 @@ export function CreatorComposer({
             );
           })}
         </div>
-      ) : null}
-
-      <div className="rounded-2xl border border-white/15 bg-[#1a1c1a] p-2 shadow-[0_18px_60px_rgba(0,0,0,0.48)] transition-colors focus-within:border-brand-neon/45">
+        ) : null}
         {isImageToSketch ? (
           <>
             <label className="sr-only" htmlFor="creation-prompt">Optional sketch direction</label>
-            <p className="px-3 pt-1 text-xs text-muted">Upload a clear sketch or garment image. Add a second zoomed detail when useful.</p>
             <textarea
               id="creation-prompt"
               value={mainText}
@@ -262,7 +251,6 @@ export function CreatorComposer({
         ) : (
           <>
             <label className="sr-only" htmlFor="creation-prompt">Describe the image you want</label>
-            {arenaId === "product-fashion" ? <p className="px-3 pt-1 text-xs text-muted">Use a clear photo with the whole product visible. Keep this page open while your images are created.</p> : null}
             <textarea
               id="creation-prompt"
               value={mainText}
@@ -279,9 +267,9 @@ export function CreatorComposer({
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 px-1 pt-2">
           <div className="flex flex-wrap items-center gap-2">
-            <Button type="button" variant="secondary" onClick={onOpenArena} aria-label={`Change use case from ${arena.title}`}>
+            <Button type="button" variant="secondary" onClick={onOpenArena} aria-label={`Change use case from ${arena.title}`} className="max-w-52 px-3">
               <ImageIcon className="h-4 w-4" aria-hidden="true" />
-              <span className="max-w-36 truncate">{arena.shortTitle}</span>
+              <span className="truncate">{arena.shortTitle}</span>
               <ChevronDown className="h-4 w-4" aria-hidden="true" />
             </Button>
 
@@ -301,51 +289,37 @@ export function CreatorComposer({
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-2">
-            {!isImageToSketch && arenaId === "general-image" ? (
-              <>
-                <OptionMenu id="output" label={labelFor(outputType, outputOptions)} icon={<LayoutTemplate className="h-4 w-4" aria-hidden="true" />} options={outputOptions} value={outputType} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onOutputTypeChange} />
-                <OptionMenu id="style" label={labelFor(style, generalStyleOptions)} icon={<Palette className="h-4 w-4" aria-hidden="true" />} options={generalStyleOptions} value={style} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onStyleChange} />
-              </>
-            ) : !isImageToSketch && arenaId === "product-fashion" ? (
-              <>
-                <OptionMenu id="mode" label={labelFor(mode, productModeOptions)} icon={<Package className="h-4 w-4" aria-hidden="true" />} options={productModeOptions} value={mode} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onModeChange} />
-                <OptionMenu id="scene" label={labelFor(scene, productSceneOptions)} icon={<LayoutTemplate className="h-4 w-4" aria-hidden="true" />} options={productSceneOptions} value={scene} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onSceneChange} />
-                <OptionMenu id="goal" label={labelFor(campaignGoal, campaignGoalOptions)} icon={<WandSparkles className="h-4 w-4" aria-hidden="true" />} options={campaignGoalOptions} value={campaignGoal} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onCampaignGoalChange} />
-              </>
-            ) : !isImageToSketch ? (
-              <OptionMenu id="style" label={labelFor(artStyle, artStyleOptions)} icon={<Palette className="h-4 w-4" aria-hidden="true" />} options={artStyleOptions} value={artStyle} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onArtStyleChange} />
-            ) : null}
-
-            {!isImageToSketch ? <>
-              <OptionMenu id="lighting" label={labelFor(lighting, lightingOptions)} icon={<LampDesk className="h-4 w-4" aria-hidden="true" />} options={lightingOptions} value={lighting} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onLightingChange} />
-              <OptionMenu id="ratio" label={aspectRatio} icon={<ImageIcon className="h-4 w-4" aria-hidden="true" />} options={ratioOptions} value={aspectRatio} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onAspectRatioChange} />
-            </> : null}
+            {!isImageToSketch ? <OptionMenu id="ratio" label={aspectRatio} icon={<ImageIcon className="h-4 w-4" aria-hidden="true" />} options={ratioOptions} value={aspectRatio} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onAspectRatioChange} /> : null}
 
             {!isImageToSketch ? <div className="relative">
-              <Button type="button" size="icon" variant="secondary" onClick={() => setOpenMenu(openMenu === "details" ? null : "details")} aria-label="Open optional image details" aria-haspopup="dialog" aria-expanded={openMenu === "details"}>
+              <Button type="button" size="icon" variant="secondary" onClick={() => setOpenMenu(openMenu === "details" ? null : "details")} aria-label="Open image settings" aria-haspopup="dialog" aria-expanded={openMenu === "details"} data-testid="image-settings-button">
                 <Settings2 className="h-4 w-4" aria-hidden="true" />
               </Button>
               {openMenu === "details" ? (
-                <DetailsPanel title="Optional details" onDone={() => setOpenMenu(null)}>
-                  {arenaId === "general-image" ? (
-                    <DetailField label="Exact text" hint="Airveek will ask Gemini to keep this wording readable.">
-                      <input value={exactText} onChange={(event) => onExactTextChange(event.target.value)} maxLength={240} className={detailInputClassName} placeholder="Launch day · 24 August" />
-                    </DetailField>
-                  ) : arenaId === "product-fashion" ? (
-                    <DetailField label="Background and mood" hint="Optional. Plain English is enough.">
-                      <textarea value={backgroundMood} onChange={(event) => onBackgroundMoodChange(event.target.value)} rows={3} maxLength={240} className={detailTextareaClassName} placeholder="Warm stone, quiet luxury, clean background." />
-                    </DetailField>
-                  ) : (
-                    <>
-                      <DetailField label="Main character" hint="Only needed when you do not add a Character image.">
-                        <textarea value={characterDescription} onChange={(event) => onCharacterDescriptionChange(event.target.value)} rows={3} maxLength={600} className={detailTextareaClassName} placeholder="Mina, age 8, curly hair, yellow raincoat." />
-                      </DetailField>
-                      <DetailField label="Page text" hint="Optional exact wording.">
-                        <textarea value={pageText} onChange={(event) => onPageTextChange(event.target.value)} rows={2} maxLength={500} className={detailTextareaClassName} placeholder="“Hello?” Mina whispered." />
-                      </DetailField>
-                    </>
-                  )}
-                </DetailsPanel>
+                <ComposerSettingsPanel
+                  arenaId={arenaId}
+                  style={style}
+                  onStyleChange={onStyleChange}
+                  mode={mode}
+                  onModeChange={onModeChange}
+                  scene={scene}
+                  onSceneChange={onSceneChange}
+                  campaignGoal={campaignGoal}
+                  onCampaignGoalChange={onCampaignGoalChange}
+                  artStyle={artStyle}
+                  onArtStyleChange={onArtStyleChange}
+                  lighting={lighting}
+                  onLightingChange={onLightingChange}
+                  exactText={exactText}
+                  onExactTextChange={onExactTextChange}
+                  backgroundMood={backgroundMood}
+                  onBackgroundMoodChange={onBackgroundMoodChange}
+                  characterDescription={characterDescription}
+                  onCharacterDescriptionChange={onCharacterDescriptionChange}
+                  pageText={pageText}
+                  onPageTextChange={onPageTextChange}
+                  onDone={() => setOpenMenu(null)}
+                />
               ) : null}
             </div> : null}
 
@@ -430,21 +404,117 @@ function MenuItem({ children, selected, onSelect }: { children: ReactNode; selec
   return <button type="button" role={selected === undefined ? "menuitem" : "menuitemradio"} aria-checked={selected} onClick={onSelect} className={cn("flex min-h-10 w-full items-center gap-2 rounded-lg px-3 text-left transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon", selected && "bg-brand-neon/10 text-brand-soft")}>{children}</button>;
 }
 
-function DetailsPanel({ title, children, onDone }: { title: string; children: ReactNode; onDone: () => void }) {
+function ComposerSettingsPanel({
+  arenaId,
+  style,
+  onStyleChange,
+  mode,
+  onModeChange,
+  scene,
+  onSceneChange,
+  campaignGoal,
+  onCampaignGoalChange,
+  artStyle,
+  onArtStyleChange,
+  lighting,
+  onLightingChange,
+  exactText,
+  onExactTextChange,
+  backgroundMood,
+  onBackgroundMoodChange,
+  characterDescription,
+  onCharacterDescriptionChange,
+  pageText,
+  onPageTextChange,
+  onDone,
+}: {
+  arenaId: CreatorArenaId;
+  style: string;
+  onStyleChange: (value: string) => void;
+  mode: ProductMode;
+  onModeChange: (value: ProductMode) => void;
+  scene: ProductScene;
+  onSceneChange: (value: ProductScene) => void;
+  campaignGoal: ProductCampaignGoal;
+  onCampaignGoalChange: (value: ProductCampaignGoal) => void;
+  artStyle: ArtStyle;
+  onArtStyleChange: (value: ArtStyle) => void;
+  lighting: LightingOption;
+  onLightingChange: (value: LightingOption) => void;
+  exactText: string;
+  onExactTextChange: (value: string) => void;
+  backgroundMood: string;
+  onBackgroundMoodChange: (value: string) => void;
+  characterDescription: string;
+  onCharacterDescriptionChange: (value: string) => void;
+  pageText: string;
+  onPageTextChange: (value: string) => void;
+  onDone: () => void;
+}) {
   return (
-    <div role="dialog" aria-label={title} className="absolute bottom-[calc(100%+0.5rem)] right-0 z-30 w-[min(22rem,calc(100vw-2rem))] space-y-4 rounded-xl border border-white/12 bg-[#202220] p-4 text-sm text-white shadow-2xl">
-      <div className="flex items-center justify-between gap-3"><h3 className="font-semibold">{title}</h3><Button type="button" variant="ghost" onClick={onDone}>Done</Button></div>
-      {children}
+    <div role="dialog" aria-label="Image settings" className="absolute bottom-[calc(100%+0.5rem)] right-0 z-30 max-h-[min(70vh,34rem)] w-[min(23rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-white/12 bg-[#202220] p-4 text-sm text-white shadow-2xl">
+      <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+        <div>
+          <h3 className="font-semibold">Image settings</h3>
+          <p className="mt-1 text-xs text-muted">Keep the composer simple. Change details only when you need them.</p>
+        </div>
+        <Button type="button" variant="ghost" onClick={onDone}>Done</Button>
+      </div>
+
+      <div className="mt-4 space-y-4">
+        {arenaId === "general-image" ? (
+          <>
+            <SettingsSelect label="Style" value={style} options={generalStyleOptions} onChange={onStyleChange} />
+            <SettingsField label="Exact text" hint="Optional wording to preserve in the image.">
+              <input value={exactText} onChange={(event) => onExactTextChange(event.target.value)} maxLength={240} className={detailInputClassName} placeholder="Launch day · 24 August" />
+            </SettingsField>
+          </>
+        ) : null}
+
+        {arenaId === "product-fashion" ? (
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              <SettingsSelect label="Mode" value={mode} options={productModeOptions} onChange={onModeChange} />
+              <SettingsSelect label="Scene" value={scene} options={productSceneOptions} onChange={onSceneChange} />
+            </div>
+            <SettingsSelect label="Goal" value={campaignGoal} options={campaignGoalOptions} onChange={onCampaignGoalChange} />
+            <SettingsField label="Background and mood" hint="Optional. Plain English is enough.">
+              <textarea value={backgroundMood} onChange={(event) => onBackgroundMoodChange(event.target.value)} rows={3} maxLength={240} className={detailTextareaClassName} placeholder="Warm stone, quiet luxury, clean background." />
+            </SettingsField>
+          </>
+        ) : null}
+
+        {arenaId === "storybook-page" ? (
+          <>
+            <SettingsSelect label="Art style" value={artStyle} options={artStyleOptions} onChange={onArtStyleChange} />
+            <SettingsField label="Main character" hint="Only needed when you do not add a Character image.">
+              <textarea value={characterDescription} onChange={(event) => onCharacterDescriptionChange(event.target.value)} rows={3} maxLength={600} className={detailTextareaClassName} placeholder="Mina, age 8, curly hair, yellow raincoat." />
+            </SettingsField>
+            <SettingsField label="Page text" hint="Optional exact wording.">
+              <textarea value={pageText} onChange={(event) => onPageTextChange(event.target.value)} rows={2} maxLength={500} className={detailTextareaClassName} placeholder="“Hello?” Mina whispered." />
+            </SettingsField>
+          </>
+        ) : null}
+
+        {arenaId !== "image-to-sketch" ? <SettingsSelect label="Lighting" value={lighting} options={lightingOptions} onChange={onLightingChange} /> : null}
+      </div>
     </div>
   );
 }
 
-function DetailField({ label, hint, children }: { label: string; hint: string; children: ReactNode }) {
+function SettingsField({ label, hint, children }: { label: string; hint: string; children: ReactNode }) {
   return <label className="block"><span className="font-semibold">{label}</span><span className="mt-1 block text-xs leading-5 text-muted">{hint}</span><span className="mt-2 block">{children}</span></label>;
 }
 
-function labelFor<T extends string>(value: T, options: Array<{ value: T; label: string }>): string {
-  return options.find((option) => option.value === value)?.label ?? value;
+function SettingsSelect<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: Array<{ value: T; label: string }>; onChange: (value: T) => void }) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block font-semibold">{label}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value as T)} className="min-h-11 w-full rounded-xl border border-white/12 bg-black/25 px-3 text-sm text-white focus:border-brand-neon/50 focus:outline-none">
+        {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+      </select>
+    </label>
+  );
 }
 
 const addOptions: Array<{ role: ReferenceRole; label: string; icon: typeof Package }> = [
@@ -452,7 +522,7 @@ const addOptions: Array<{ role: ReferenceRole; label: string; icon: typeof Packa
   { role: "model", label: "Model", icon: UserRound },
   { role: "character", label: "Character", icon: WandSparkles },
   { role: "style", label: "Style", icon: Palette },
-  { role: "reference", label: "Other image", icon: ImagePlus },
+  { role: "reference", label: "Image", icon: ImagePlus },
 ];
 
 const productAddOptions = addOptions.filter((option) => option.role !== "character");
@@ -463,9 +533,6 @@ const sketchAddOptions: Array<{ role: ReferenceRole; label: string; icon: typeof
 const referenceRoleOptions = addOptions.map(({ role: value, label }) => ({ value, label }));
 const productReferenceRoleOptions = productAddOptions.map(({ role: value, label }) => ({ value, label }));
 const sketchReferenceRoleOptions = [{ value: "reference" as const, label: "Sketch image" }];
-const outputOptions: Array<{ value: OutputType; label: string }> = [
-  { value: "image", label: "Image" }, { value: "poster", label: "Poster" }, { value: "illustration", label: "Illustration" }, { value: "social", label: "Social graphic" }, { value: "thumbnail", label: "Thumbnail" },
-];
 const generalStyleOptions = [
   { value: "premium editorial photography", label: "Premium editorial" }, { value: "clean commercial photography", label: "Clean commercial" }, { value: "bold graphic design", label: "Bold graphic" }, { value: "playful hand-drawn illustration", label: "Playful illustration" }, { value: "cinematic photorealism", label: "Cinematic" },
 ];

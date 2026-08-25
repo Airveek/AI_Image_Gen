@@ -68,7 +68,6 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   const [preferredRole, setPreferredRole] = useState<ReferenceRole | null>(null);
   const [arenaSearch, setArenaSearch] = useState("");
 
-  const [outputType, setOutputType] = useState<"image" | "poster" | "illustration" | "social" | "thumbnail">("image");
   const [subject, setSubject] = useState("");
   const [exactText, setExactText] = useState("");
   const [style, setStyle] = useState("premium editorial photography");
@@ -220,7 +219,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
     if (arenaId === "storybook-page") {
       return { arenaId, characterDescription, scene: storyScene, artStyle, pageText, lighting, aspectRatio, extraDirection: "", references };
     }
-    return { arenaId, outputType, subject, exactText, style, lighting, aspectRatio, extraDirection: "", references };
+    return { arenaId, outputType: "image", subject, exactText, style, lighting, aspectRatio, extraDirection: "", references };
   }
 
   function toggleReference(asset: CreatorAsset, role: ReferenceRole) {
@@ -292,7 +291,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
     <div ref={workspaceRef} className="min-h-[calc(100dvh-4rem)] bg-[#101210] lg:h-[calc(100dvh-4rem)] lg:overflow-hidden" data-testid="creator-workspace" data-ready="false">
       <h1 className="sr-only">Create {arena.title}</h1>
       <form onSubmit={handleGenerate} className="lg:h-full lg:overflow-hidden">
-        <div className="grid min-h-[calc(100dvh-4rem)] lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_288px]">
+        <div className="grid min-h-[calc(100dvh-4rem)] lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_280px]">
           <section className="flex min-h-[680px] min-w-0 flex-col bg-[#121412] lg:min-h-0" aria-label="Create image workspace">
             <div className="relative flex min-h-[420px] flex-1 items-center justify-center overflow-hidden px-4 py-8 sm:px-8 lg:min-h-0" data-testid="generation-result">
               <Button className="absolute right-4 top-4 z-10 lg:hidden" type="button" variant="secondary" onClick={() => { setPreferredRole(null); setAssetDialogOpen(true); }} data-testid="open-assets-button">
@@ -316,7 +315,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
                     aria-label={`Open ${singleReadyResult.asset.name}`}
                     data-testid="generation-result-image"
                   >
-                    <Image src={singleReadyResult.imageUrl} alt={singleReadyResult.asset.name} fill unoptimized className="object-contain transition-transform duration-300 group-hover:scale-[1.01]" sizes="(max-width: 1024px) 100vw, calc(100vw - 288px)" priority />
+                    <Image src={singleReadyResult.imageUrl} alt={singleReadyResult.asset.name} fill unoptimized className="object-contain transition-transform duration-300 group-hover:scale-[1.01]" sizes="(max-width: 1024px) 100vw, calc(100vw - 280px)" priority />
                   </button>
                   <a
                     href={`${singleReadyResult.imageUrl}?download=1`}
@@ -343,8 +342,6 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
                 selectedReferences={selectedReferences}
                 mainText={mainText}
                 onMainTextChange={setMainText}
-                outputType={outputType}
-                onOutputTypeChange={setOutputType}
                 exactText={exactText}
                 onExactTextChange={setExactText}
                 style={style}
@@ -381,7 +378,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
           </section>
 
           <aside className="hidden min-h-0 border-l border-white/10 bg-[#151715] lg:block">
-            <CreatorAssetPicker assets={assets} references={references} onToggle={toggleReference} onUpload={handleUpload} isUploading={isUploading} allowedReferenceRoles={referenceRolesForArena(arenaId)} defaultUploadRole={defaultUploadRole(arenaId)} helperText={arenaId === "image-to-sketch" ? "One image is enough. Add a second zoomed detail when useful." : undefined} uploadInputTestId="asset-upload-input" />
+            <CreatorAssetPicker assets={assets} references={references} onToggle={toggleReference} onUpload={handleUpload} isUploading={isUploading} allowedReferenceRoles={referenceRolesForArena(arenaId)} defaultUploadRole={defaultUploadRole(arenaId)} helperText={arenaId === "image-to-sketch" ? "One image is enough. Add a second zoomed detail when useful." : undefined} uploadInputTestId="asset-upload-input" presentation="kive" />
           </aside>
         </div>
       </form>
@@ -436,6 +433,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
             allowedReferenceRoles={referenceRolesForArena(arenaId)}
             helperText={arenaId === "image-to-sketch" ? "One image is enough. Add a second zoomed detail when useful." : undefined}
             compact
+            presentation="kive"
           />
         </div>
       </Dialog>
