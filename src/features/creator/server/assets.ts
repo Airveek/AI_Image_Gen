@@ -119,11 +119,21 @@ export async function createGenerationAsset(input: {
   providerModel: string;
 }): Promise<{ id: string; userId: string }> {
   const user = await requireCreatorUser();
-  await enforceGenerationLimit(user.id);
+  return createGenerationAssetForUser({ ...input, userId: user.id });
+}
+
+export async function createGenerationAssetForUser(input: {
+  userId: string;
+  request: GenerationRequest;
+  prompt: string;
+  providerKind: GeneratedImage["provider"];
+  providerModel: string;
+}): Promise<{ id: string; userId: string }> {
+  await enforceGenerationLimit(input.userId);
 
   try {
     const row = await insertAssetRow({
-      userId: user.id,
+      userId: input.userId,
       kind: "generation",
       name: generationName(input.request.arenaId),
       arenaId: input.request.arenaId,
@@ -134,7 +144,7 @@ export async function createGenerationAsset(input: {
       providerKind: input.providerKind,
       providerModel: input.providerModel,
     });
-    return { id: row.id, userId: user.id };
+    return { id: row.id, userId: input.userId };
   } catch (error) {
     if (isProcessingConstraintError(error)) {
       throw new CreatorServiceError(
@@ -199,6 +209,25 @@ export async function getOwnedAssetBytes(assetId: string): Promise<{
   name: string;
 }> {
   const row = await getOwnedAsset(assetId);
+  return getAssetBytesForUserRow(row);
+}
+
+export async function getAssetBytesForUser(assetId: string, userId: string): Promise<{
+  bytes: Uint8Array;
+  mimeType: AllowedImageMimeType;
+  kind: CreatorAssetKind;
+  name: string;
+}> {
+  const row = await getAssetRowForUser(assetId, userId);
+  return getAssetBytesForUserRow(row);
+}
+
+async function getAssetBytesForUserRow(row: CreatorAssetRow): Promise<{
+  bytes: Uint8Array;
+  mimeType: AllowedImageMimeType;
+  kind: CreatorAssetKind;
+  name: string;
+}> {
 
   if (row.status !== "ready" || !row.drive_file_id) {
     throw new CreatorServiceError("This image is not ready.", "not_found");

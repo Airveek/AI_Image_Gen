@@ -6,7 +6,7 @@ import { buildGenerationPrompt } from "@/features/creator/prompts";
 import { requireCreatorUser } from "@/features/creator/server/authorization";
 import {
   completeGenerationAsset,
-  createGenerationAsset,
+  createGenerationAssetForUser,
   CreatorServiceError,
   failGenerationAsset,
   getOwnedAssetBytes,
@@ -23,6 +23,7 @@ import type {
   CreatorErrorCode,
   CreatorResult,
   GenerationRequest,
+  AllowedImageMimeType,
   ReferenceRole,
 } from "@/features/creator/types";
 
@@ -31,15 +32,24 @@ type CreatorFailure = Extract<CreatorResult<never>, { ok: false }>;
 export async function generateCreatorImage(
   request: GenerationRequest,
 ): Promise<CreatorResult<CreatorAsset>> {
+  const user = await requireCreatorUser();
+  return generateCreatorImageForUser(request, user.id);
+}
+
+export async function generateCreatorImageForUser(
+  request: GenerationRequest,
+  userId: string,
+  externalReferences: Array<{ bytes: Uint8Array; mimeType: AllowedImageMimeType; label: string }> = [],
+): Promise<CreatorResult<CreatorAsset>> {
   let asset: { id: string; userId: string } | null = null;
   const traceId = randomUUID();
   const startedAt = performance.now();
 
   try {
-    await requireCreatorUser();
     const configuration = await getActiveProviderConfiguration();
     const prompt = buildGenerationPrompt(request);
-    asset = await createGenerationAsset({
+    asset = await createGenerationAssetForUser({
+      userId,
       request,
       prompt,
       providerKind: configuration.kind,
@@ -64,11 +74,12 @@ export async function generateCreatorImage(
       mimeType: reference.mimeType,
       label: `Image ${index + 1} — ${referenceRole(reference.role, request.arenaId)} named “${reference.name}”. This image follows the Image ${index + 1} instruction in the prompt.`,
     }));
+    const providerReferences = [...externalReferences, ...references];
     const image = await generateProviderImage(
       configuration,
       providerPrompt,
       request.aspectRatio,
-      references,
+      providerReferences,
       traceId,
     );
     console.info(`[creator-generation] trace=${traceId} phase=provider_image_ready`);

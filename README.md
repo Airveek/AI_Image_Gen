@@ -97,4 +97,6 @@ Configure that URL in Whop and subscribe to membership activation and deactivati
 
 Provider API keys, Whop keys, and the Google Drive refresh token are server-only values; they do not belong in browser code or committed files.
 
+For the Apindex bulk product image workflow, also configure `APINDEX_STORE_API_URL`, `APINDEX_STORE_API_TOKEN`, `APINDEX_STORE_MEDIA_HOSTS`, `INNGEST_EVENT_KEY`, and `INNGEST_SIGNING_KEY`. Apply `supabase/migrations/202608250003_store_image_runs.sql` before opening `/store-images`.
+
 Never expose `SUPABASE_SECRET_KEY`, R2 credentials, provider keys, or Drive tokens in browser code or commit them to the repository. Configure an R2 lifecycle rule to delete objects under `hot/` after one day.

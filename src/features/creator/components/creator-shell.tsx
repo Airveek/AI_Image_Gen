@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { Home, Images, LogOut, Sparkles } from "lucide-react";
+import { Home, Images, LogOut, Sparkles, Store } from "lucide-react";
 
 import { signOutAction } from "@/app/(creator)/actions";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ const navigation = [
   { href: "/dashboard", label: "Home", icon: Home },
   { href: "/create/general-image", label: "Create", icon: Sparkles },
   { href: "/library", label: "Library", icon: Images },
+  { href: "/store-images", label: "Store images", icon: Store },
 ];
 
 export function CreatorShell({
