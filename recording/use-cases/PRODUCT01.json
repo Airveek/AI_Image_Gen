@@ -1,9 +1,8 @@
 {
   "id": "PRODUCT01",
   "route": "/create/product-fashion",
-  "input": "public/images/artistly/features/ai-product-photographer.png",
-  "generation": "pack",
-  "variations": 1,
+  "input": "public/images/airveek/features/ai-product-photographer.png",
+  "variations": 3,
   "fields": [
     { "label": "Product only", "action": "select", "value": "Product only" },
     { "label": "Studio", "action": "select", "value": "Studio" },

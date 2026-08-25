@@ -22,7 +22,6 @@ import { featureArtworks, type Artwork } from "@/components/airveek/landing-data
 import type {
   CreatorArenaId,
   CreatorCategoryId,
-  ProductPhotoshootRecipe,
   ReferenceRole,
 } from "@/features/creator/types";
 
@@ -290,39 +289,6 @@ export const creatorCatalog: CreatorCatalogItem[] = [
     icon: Layers3,
     availability: "coming-next",
     arenaId: null,
-  },
-];
-
-export const productPhotoshootRecipes: readonly ProductPhotoshootRecipe[] = [
-  {
-    shot: "hero",
-    label: "Hero",
-    purpose: "Store listing",
-    mode: "product-scene",
-    scene: "studio",
-    campaignGoal: "store-listing",
-    lighting: "studio-softbox",
-    aspectRatio: "1:1",
-  },
-  {
-    shot: "lifestyle",
-    label: "Lifestyle",
-    purpose: "Social post",
-    mode: "influencer-lifestyle",
-    scene: "lifestyle",
-    campaignGoal: "social-post",
-    lighting: "soft-daylight",
-    aspectRatio: "4:5",
-  },
-  {
-    shot: "on-model",
-    label: "On-model",
-    purpose: "Lookbook",
-    mode: "on-model",
-    scene: "lifestyle",
-    campaignGoal: "lookbook",
-    lighting: "soft-daylight",
-    aspectRatio: "4:5",
   },
 ];
 

@@ -4,7 +4,7 @@ Updated: 2026-08-24
 
 ## Simple explanation
 
-Before, someone had to open Artistly, upload an image, fill the form, click Generate, record the screen, and collect every result by hand.
+Before, someone had to open Airveek, upload an image, fill the form, click Generate, record the screen, and collect every result by hand.
 
 Now, one command performs that real workflow with Playwright. It records the browser and saves the original input, generated images, video, and a small manifest together. The output is raw material for clippers; it does not edit or publish videos.
 
@@ -13,15 +13,15 @@ Now, one command performs that real workflow with Playwright. It records the bro
 - `scripts/save-recording-auth.mjs` saves a reusable login session outside Git.
 - `scripts/record-usecase.mjs` performs the configured creator workflow and records it.
 - `recording/use-cases/*.json` contains the reusable inputs and field values.
-- Stable `data-testid` hooks mark the creator workspace, upload input, loading state, Generate button, photoshoot-pack button, visible pack results, and final images.
+- Stable `data-testid` hooks mark the creator workspace, upload input, loading state, generation-count selector, Generate button, batch results, and final images.
 - `content-kits/` is ignored by Git and receives one timestamped folder per run.
-- The personal Codex skill is installed at `~/.codex/skills/artistly-usecase-recording`.
+- The personal Codex recording skill is installed in the local Codex skills directory.
 
 ## Current pilot use cases
 
 | ID | Demonstration |
 | --- | --- |
-| `PRODUCT01` | Product reference to a visible three-image photoshoot pack (Hero, Lifestyle, On-model) |
+| `PRODUCT01` | Product reference to three visible image variations |
 | `POD01` | One visual idea to a coordinated shirt, mug, and hoodie presentation |
 | `TEXT01` | AI image with supplied exact marketing text |
 | `GUIDED01` | Simple guided setup to a polished general image |
@@ -29,7 +29,7 @@ Now, one command performs that real workflow with Playwright. It records the bro
 
 ## First-time setup
 
-Start Artistly at its normal local URL:
+Start Airveek at its normal local URL:
 
 ```bash
 pnpm dev
@@ -62,11 +62,9 @@ open configured creator route
 → upload prepared image
 → for Image to Sketch, optionally upload a second detail image through the visible Add image menu
 → fill/select the configured fields
-→ for a single run: click the visible Generate button
-  → wait for the visible loading state and result
-→ for a pack run: click the visible Create 3 images button
+→ choose the visible generation count and click the primary Generate icon
   → stay on the same creator page
-  → wait for the visible Hero, Lifestyle, and On-model cards
+  → wait for the visible Image 1, Image 2, and Image 3 cards
   → wait until each card says Saved to your library
 → save the visible result images as recording artifacts
 → close the recorded browser
@@ -87,16 +85,16 @@ content-kits/
         └── manifest.json
 ```
 
-Use `RECORDING_BASE_URL` for another local/staging URL. Use `RECORDING_HEADED=1` to watch the browser. Set `"generation": "single"` (the default) for one result or `"generation": "pack"` for the fixed three-shot Product & Fashion workflow. A pack always creates Hero, Lifestyle, and On-model in that order; `variations` applies to single runs only. A pack performs three real generations, so it consumes three requests from the configured Gemini account pool. Keep the page open while the pack is running.
+Use `RECORDING_BASE_URL` for another local/staging URL. Use `RECORDING_HEADED=1` to watch the browser. Set `variations` from one to three to select the number of independent images. The recorder selects that count in the visible menu, clicks Generate once, and waits for each saved result. Each image is a real generation request, so three variations consume three requests from the configured Gemini account pool. Keep the page open while they are running.
 
 ## Recorder rules
 
 The recording must match the page shown to a viewer:
 
 - Use visible labels, menus, buttons, and the existing stable test IDs. Do not use coordinate clicks or hidden form values.
-- Never call the generation API directly, inject a hidden request, or navigate between shots. The visible composer is the only way to start generation.
-- For a pack, click `Create 3 images` once and wait on the same `/create/product-fashion` page for all three visible result cards. A result is complete only when its card is visible and says `Saved to your library`.
-- For Image to Sketch, upload the prepared image through the visible picker, optionally choose `Add image` for a second detail view, then click the visible `Create high-quality sketch` button and wait for the normal saved result on the same page.
+- Never call the generation API directly, inject a hidden request, or navigate between results. The visible composer is the only way to start generation.
+- Select the desired `1x`, `2x`, or `3x` option from the visible generation-count menu, click the primary Generate icon once, and wait on the same creator page for each visible result card. A result is complete only when its card is visible and says `Saved to your library`.
+- For Image to Sketch, upload the prepared image through the visible picker, optionally choose `Add image` for a second detail view, then click the visible Generate icon and wait for the normal saved result on the same page.
 - The request helper is used only after a visible result to copy that image into the content kit. It must never start generation or bypass the UI.
 - If a visible step fails, stop and report the exact step. Do not substitute a mock image.
 
@@ -108,8 +106,7 @@ Copy one file in `recording/use-cases/` and change only:
 - creator route;
 - repository-relative input image;
 - optional `additionalInputs` image paths for a second visible reference upload;
-- optional `generation` (`single` or `pack`); pack is intended for the fixed Product & Fashion three-shot flow;
-- one to three variations for a single run;
+- one to three variations for any current creator arena;
 - the visible field labels, action (`fill` or `select`), and value.
 
 Prefer accessible labels and the existing stable test IDs. Do not add coordinate-based clicking or visual guessing.

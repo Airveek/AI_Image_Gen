@@ -4,7 +4,7 @@ import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 
 const authPath = path.resolve(process.env.RECORDING_STORAGE_STATE ?? ".recording-auth/user.json");
-const imagePath = "public/images/artistly/features/ai-product-photographer.png";
+const imagePath = "public/images/airveek/features/ai-product-photographer.png";
 
 test.beforeEach(() => {
   test.skip(!existsSync(authPath), "Run pnpm recording:auth to create the local test login state.");
@@ -49,6 +49,7 @@ test("sends Product then Model in the selected order from the compact composer",
   await expect(page.getByText("Model", { exact: true }).first()).toBeVisible();
 
   await page.getByTestId("creation-prompt").fill("Place both in a premium studio campaign with clean space on the left.");
+  await selectGenerationCount(page, 1);
   await page.getByTestId("generate-button").click();
   await expect(page.getByTestId("generation-result-image")).toBeVisible();
 
@@ -89,6 +90,7 @@ test("keeps a Style image distinct in the generation request", async ({ page }) 
   await page.getByTestId("add-reference-button").click();
   await page.getByRole("menuitem", { name: "Style" }).click();
   await page.locator("dialog[open]").locator('input[type="file"]').setInputFiles(imagePath);
+  await selectGenerationCount(page, 1);
   await page.getByTestId("generate-button").click();
   await expect(page.getByTestId("generation-result-image")).toBeVisible();
 
@@ -98,115 +100,72 @@ test("keeps a Style image distinct in the generation request", async ({ page }) 
   });
 });
 
-test("creates a fixed three-image photoshoot and retries only a failed shot", async ({ page }) => {
+test("selects a generation count, sends identical requests in parallel, and retries one failed image", async ({ page }) => {
   const generationBodies: unknown[] = [];
-  let generationCount = 0;
   let inFlight = 0;
   let maxInFlight = 0;
   let releaseAllRequests: () => void = () => undefined;
   const allRequestsSeen = new Promise<void>((resolve) => { releaseAllRequests = resolve; });
-  const responseGates = new Map<string, Promise<void>>();
-  const responseReleases = new Map<string, () => void>();
-  for (const mode of ["influencer-lifestyle", "on-model"]) {
-    let release: () => void = () => undefined;
-    const gate = new Promise<void>((resolve) => { release = resolve; });
-    responseGates.set(mode, gate);
-    responseReleases.set(mode, release);
-  }
+  let releaseResponses: () => void = () => undefined;
+  const responseGate = new Promise<void>((resolve) => { releaseResponses = resolve; });
 
   await page.route("**/api/creator/generate", async (route) => {
     inFlight += 1;
     maxInFlight = Math.max(maxInFlight, inFlight);
-    generationCount += 1;
-    const body = route.request().postDataJSON() as { mode?: string };
+    const requestNumber = generationBodies.length + 1;
+    const body = route.request().postDataJSON() as unknown;
     generationBodies.push(body);
     if (generationBodies.length === 3) releaseAllRequests();
-    await allRequestsSeen;
-    if (body.mode && responseGates.has(body.mode)) await responseGates.get(body.mode);
+    if (requestNumber <= 3) {
+      await allRequestsSeen;
+      await responseGate;
+    }
     inFlight -= 1;
 
-    if (body.mode === "influencer-lifestyle" && generationCount <= 3) {
-      await route.fulfill({
-        status: 503,
-        contentType: "application/json",
-        body: JSON.stringify({ ok: false, code: "provider_unavailable", message: "Lifestyle is temporarily unavailable." }),
-      });
+    if (requestNumber === 2) {
+      await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ ok: false, code: "provider_unavailable", message: "This image is temporarily unavailable." }) });
       return;
     }
     await route.fulfill({
       contentType: "application/json",
-      body: JSON.stringify({
-        ok: true,
-        data: assetFixture({
-          id: `bd9f30c8-2066-426d-8d82-9cf38f37fb7${generationCount}`,
-          kind: "generation",
-          name: `Photoshoot ${generationCount}`,
-          arenaId: "product-fashion",
-          providerKind: "gemini-compatible",
-          providerModel: "gemini-3.1-flash-image",
-        }),
-      }),
+      body: JSON.stringify({ ok: true, data: assetFixture({ id: `bd9f30c8-2066-426d-8d82-9cf38f37fb${requestNumber}`, kind: "generation", name: `Image ${requestNumber}`, arenaId: "product-fashion", providerKind: "gemini-compatible", providerModel: "gemini-3.1-flash-image" }) }),
     });
   });
 
   await page.goto("/create/product-fashion");
   await page.getByRole("button", { name: /^Use .* as Product$/ }).first().click();
   await expect(page.getByTestId("creator-composer").getByText("Product", { exact: true })).toBeVisible();
-  await page.getByTestId("photoshoot-pack-button").click();
-  await expect(page.getByTestId("photoshoot-pack-button")).toBeDisabled();
+  await expect(page.getByTestId("generation-count-button")).toHaveText("2x");
+  await page.getByTestId("generation-count-button").click();
+  await expect(page.getByRole("menuitemradio", { name: "1x", exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menuitemradio", { name: "1x", exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("generation-count-button")).toBeFocused();
+  await page.getByTestId("generation-count-button").click();
+  await expect(page.getByRole("menuitemradio", { name: "3x", exact: true })).toBeVisible();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("generation-count-button")).toHaveText("3x");
+  await expect(page.getByRole("menuitemradio", { name: "3x", exact: true })).toHaveCount(0);
+
+  await page.getByTestId("generate-button").click();
+  await expect(page.getByTestId("generate-button")).toBeDisabled();
+  await expect(page.getByTestId("generation-count-button")).toBeDisabled();
   await expect.poll(() => generationBodies.length).toBe(3);
+  releaseResponses();
   expect(maxInFlight).toBe(3);
+  expect(generationBodies[1]).toEqual(generationBodies[0]);
+  expect(generationBodies[2]).toEqual(generationBodies[0]);
+  await expect(page.getByTestId("generation-item-1").getByRole("button", { name: "Open Image 1" })).toBeVisible();
+  await expect(page.getByTestId("generation-item-3").getByRole("button", { name: "Open Image 3" })).toBeVisible();
+  await expect(page.getByTestId("generation-item-2")).toContainText("temporarily unavailable");
+  await expect(page.getByTestId("generation-progress-status")).toContainText("2 of 3 images ready");
 
-  const heroShot = page.getByTestId("photoshoot-shot-hero");
-  await expect(heroShot.getByRole("button", { name: "Open Hero image" })).toBeVisible();
-  await expect(heroShot).not.toContainText("Store listing");
-  await expect(heroShot).not.toContainText("Saved to your library");
-  await heroShot.hover();
-  await expect(heroShot.getByRole("link", { name: "Download Hero image" })).toBeVisible();
-  await heroShot.getByRole("button", { name: "Open Hero image" }).click();
-  const packImageViewer = page.locator("dialog[open]");
-  await expect(packImageViewer.getByRole("link", { name: "Download" })).toBeVisible();
-  await expect(packImageViewer.getByRole("button", { name: "Close", exact: true })).toBeVisible();
-  await packImageViewer.getByRole("button", { name: "Close", exact: true }).click();
-  await expect(page.locator("dialog[open]")).toHaveCount(0);
-  await expect(page.getByTestId("photoshoot-progress-status")).toContainText("1 of 3 ready");
-  responseReleases.get("influencer-lifestyle")?.();
-  responseReleases.get("on-model")?.();
-  await expect(page.getByTestId("photoshoot-shot-lifestyle")).toContainText("temporarily unavailable");
-  await expect(page.getByTestId("photoshoot-shot-on-model").getByRole("button", { name: "Open On-model image" })).toBeVisible();
-  expect(generationBodies).toHaveLength(3);
-  expect(generationBodies).toEqual(expect.arrayContaining([
-    expect.objectContaining({
-      mode: "product-scene",
-      scene: "studio",
-      campaignGoal: "store-listing",
-      lighting: "studio-softbox",
-      aspectRatio: "1:1",
-      references: expect.arrayContaining([expect.objectContaining({ role: "product" })]),
-    }),
-    expect.objectContaining({
-      mode: "influencer-lifestyle",
-      scene: "lifestyle",
-      campaignGoal: "social-post",
-      lighting: "soft-daylight",
-      aspectRatio: "4:5",
-    }),
-    expect.objectContaining({
-      mode: "on-model",
-      scene: "lifestyle",
-      campaignGoal: "lookbook",
-      lighting: "soft-daylight",
-      aspectRatio: "4:5",
-    }),
-  ]));
-  const referencePayloads = generationBodies.map((body) => (body as { references: unknown[] }).references);
-  expect(referencePayloads[1]).toEqual(referencePayloads[0]);
-  expect(referencePayloads[2]).toEqual(referencePayloads[0]);
-
-  await page.getByTestId("photoshoot-shot-lifestyle").getByRole("button", { name: "Retry" }).click();
-  await expect(page.getByTestId("photoshoot-shot-lifestyle").getByRole("button", { name: "Open Lifestyle image" })).toBeVisible();
+  await page.getByTestId("generation-item-2").getByRole("button", { name: "Retry" }).click();
+  await expect(page.getByTestId("generation-item-2").getByRole("button", { name: "Open Image 2" })).toBeVisible();
   expect(generationBodies).toHaveLength(4);
-  expect(generationBodies[3]).toMatchObject({ mode: "influencer-lifestyle", campaignGoal: "social-post" });
+  expect(generationBodies[3]).toEqual(generationBodies[0]);
 });
 
 test("does not offer Character for Product & Fashion", async ({ page }) => {
@@ -270,7 +229,7 @@ test("creates Image to Sketch from one primary image and one optional detail ima
   await expect(page.getByTestId("creation-prompt")).toBeVisible();
   await page.getByTestId("creation-prompt").fill("Keep the neckline and seam details exact.");
   await expect(page.getByRole("button", { name: "Auto light" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /Create high-quality sketch/ })).toBeVisible();
+  await expect(page.getByTestId("generation-count-button")).toHaveText("2x");
 
   await page.getByTestId("asset-upload-input").setInputFiles(imagePath);
   await expect(page.getByText("Sketch image 1", { exact: true })).toBeVisible();
@@ -280,6 +239,7 @@ test("creates Image to Sketch from one primary image and one optional detail ima
   await page.locator("dialog[open]").locator('input[type="file"]').setInputFiles(imagePath);
   await expect(page.getByText("Sketch image 2", { exact: true })).toBeVisible();
 
+  await selectGenerationCount(page, 1);
   await page.getByTestId("generate-button").click();
   await expect(page.getByTestId("generation-result-image")).toBeVisible();
 
@@ -317,6 +277,11 @@ async function mockGeneration(page: Page, onBody: (body: unknown) => void) {
   });
 }
 
+async function selectGenerationCount(page: Page, count: 1 | 2 | 3) {
+  await page.getByTestId("generation-count-button").click();
+  await page.getByRole("menuitemradio", { name: `${count}x`, exact: true }).click();
+}
+
 function assetFixture({
   id,
   kind,
@@ -343,7 +308,7 @@ function assetFixture({
     status: "ready",
     mimeType: "image/png",
     createdAt: new Date().toISOString(),
-    imageUrl: "/images/artistly/features/ai-product-photographer.png",
+    imageUrl: "/images/airveek/features/ai-product-photographer.png",
     providerKind,
     providerModel,
   };

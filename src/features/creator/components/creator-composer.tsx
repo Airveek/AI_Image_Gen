@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import {
   ChevronDown,
   ImageIcon,
@@ -12,7 +12,6 @@ import {
   Package,
   Palette,
   Plus,
-  RefreshCw,
   Send,
   Settings2,
   UserRound,
@@ -26,6 +25,7 @@ import { getCreatorArena } from "@/features/creator/catalog";
 import type {
   CreatorArenaId,
   CreatorAsset,
+  GenerationCount,
   GenerationReference,
   ImageAspectRatio,
   LightingOption,
@@ -50,6 +50,7 @@ type MenuId =
   | "scene"
   | "goal"
   | "details"
+  | "generation-count"
   | `reference-${string}`;
 
 const lightingOptions: Array<{ value: LightingOption; label: string }> = [
@@ -65,6 +66,12 @@ const ratioOptions: Array<{ value: ImageAspectRatio; label: string }> = [
   { value: "4:5", label: "Portrait · 4:5" },
   { value: "9:16", label: "Story · 9:16" },
   { value: "16:9", label: "Landscape · 16:9" },
+];
+
+const generationCountOptions: Array<{ value: GenerationCount; label: string }> = [
+  { value: 1, label: "1x" },
+  { value: 2, label: "2x" },
+  { value: 3, label: "3x" },
 ];
 
 export function CreatorComposer({
@@ -100,10 +107,9 @@ export function CreatorComposer({
   onOpenAssets,
   onRemoveReference,
   onChangeReferenceRole,
-  hasResult,
   isGenerating,
-  packGenerating,
-  onGeneratePack,
+  generationCount,
+  onGenerationCountChange,
   generationDisabled,
 }: {
   arenaId: CreatorArenaId;
@@ -138,13 +144,14 @@ export function CreatorComposer({
   onOpenAssets: (role: ReferenceRole) => void;
   onRemoveReference: (assetId: string) => void;
   onChangeReferenceRole: (assetId: string, role: ReferenceRole) => void;
-  hasResult: boolean;
   isGenerating: boolean;
-  packGenerating: boolean;
-  onGeneratePack: () => void;
+  generationCount: GenerationCount;
+  onGenerationCountChange: (value: GenerationCount) => void;
   generationDisabled: boolean;
 }) {
   const composerRef = useRef<HTMLDivElement>(null);
+  const generationCountButtonRef = useRef<HTMLButtonElement>(null);
+  const generationMenuWasOpen = useRef(false);
   const [openMenu, setOpenMenu] = useState<MenuId | null>(null);
   const arena = getCreatorArena(arenaId);
 
@@ -167,6 +174,13 @@ export function CreatorComposer({
       document.removeEventListener("pointerdown", closeOnOutsideClick);
       document.removeEventListener("keydown", closeOnEscape);
     };
+  }, [openMenu]);
+
+  useEffect(() => {
+    if (generationMenuWasOpen.current && openMenu !== "generation-count") {
+      generationCountButtonRef.current?.focus();
+    }
+    generationMenuWasOpen.current = openMenu === "generation-count";
   }, [openMenu]);
 
   if (!arena) return null;
@@ -248,7 +262,7 @@ export function CreatorComposer({
         ) : (
           <>
             <label className="sr-only" htmlFor="creation-prompt">Describe the image you want</label>
-            {arenaId === "product-fashion" ? <p className="px-3 pt-1 text-xs text-muted">Use a clear photo with the whole product visible. Keep this page open while the three images are created.</p> : null}
+            {arenaId === "product-fashion" ? <p className="px-3 pt-1 text-xs text-muted">Use a clear photo with the whole product visible. Keep this page open while your images are created.</p> : null}
             <textarea
               id="creation-prompt"
               value={mainText}
@@ -335,20 +349,21 @@ export function CreatorComposer({
               ) : null}
             </div> : null}
 
-            {arenaId === "product-fashion" ? (
-              <Button type="button" variant="primary" disabled={isGenerating || packGenerating || generationDisabled} onClick={onGeneratePack} data-testid="photoshoot-pack-button">
-                {packGenerating ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <WandSparkles className="h-4 w-4" aria-hidden="true" />}
-                <span className="hidden sm:inline">{packGenerating ? "Creating 3 images…" : "Create 3 images"}</span>
-              </Button>
-            ) : null}
-            {hasResult ? (
-              <Button type="submit" variant="secondary" disabled={isGenerating} aria-label="Create a variation">
-                <RefreshCw className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">Variation</span>
-              </Button>
-            ) : null}
-            <Button type="submit" variant={isImageToSketch || arenaId !== "product-fashion" ? "primary" : "secondary"} size={isImageToSketch ? "default" : "icon"} disabled={isGenerating || packGenerating || generationDisabled} aria-label={isGenerating ? "Creating image" : isImageToSketch ? "Create high-quality sketch" : "Create one image"} data-testid="generate-button">
+            <OptionMenu
+              id="generation-count"
+              label={`${generationCount}x`}
+              options={generationCountOptions}
+              value={generationCount}
+              openMenu={openMenu}
+              setOpenMenu={setOpenMenu}
+              onChange={onGenerationCountChange}
+              disabled={isGenerating || generationDisabled}
+              buttonRef={generationCountButtonRef}
+              ariaLabel={`Select image count, currently ${generationCount}x`}
+              testId="generation-count-button"
+            />
+            <Button type="submit" variant="primary" size="icon" disabled={isGenerating || generationDisabled} aria-label={isGenerating ? "Creating images" : `Create ${generationCount} ${generationCount === 1 ? "image" : "images"}`} data-testid="generate-button">
               {isGenerating ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Send className="h-4 w-4" aria-hidden="true" />}
-              {isImageToSketch ? <span>{isGenerating ? "Creating sketch…" : "Create high-quality sketch"}</span> : null}
             </Button>
           </div>
         </div>
@@ -357,19 +372,23 @@ export function CreatorComposer({
   );
 }
 
-function OptionMenu<T extends string>({ id, label, icon, options, value, openMenu, setOpenMenu, onChange }: {
+function OptionMenu<T extends string | number>({ id, label, icon, options, value, openMenu, setOpenMenu, onChange, disabled = false, buttonRef, ariaLabel, testId }: {
   id: Exclude<MenuId, "add" | "details" | `reference-${string}`>;
   label: string;
-  icon: ReactNode;
+  icon?: ReactNode;
   options: Array<{ value: T; label: string }>;
   value: T;
   openMenu: MenuId | null;
   setOpenMenu: (value: MenuId | null) => void;
   onChange: (value: T) => void;
+  disabled?: boolean;
+  buttonRef?: RefObject<HTMLButtonElement | null>;
+  ariaLabel?: string;
+  testId?: string;
 }) {
   return (
     <div className="relative">
-      <button type="button" onClick={() => setOpenMenu(openMenu === id ? null : id)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-muted transition-colors hover:bg-white/[0.06] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon" aria-label={label} aria-haspopup="menu" aria-expanded={openMenu === id}>
+      <button ref={buttonRef} type="button" disabled={disabled} onClick={() => setOpenMenu(openMenu === id ? null : id)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-muted transition-colors hover:bg-white/[0.06] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon disabled:cursor-not-allowed disabled:opacity-50" aria-label={ariaLabel ?? label} aria-haspopup="menu" aria-expanded={openMenu === id} data-testid={testId}>
         {icon}<span>{label}</span><ChevronDown className="h-3 w-3" aria-hidden="true" />
       </button>
       {openMenu === id ? (
@@ -382,6 +401,12 @@ function OptionMenu<T extends string>({ id, label, icon, options, value, openMen
 }
 
 function OptionPanel({ children, align = "right" }: { children: ReactNode; align?: "left" | "right" }) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    panelRef.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus();
+  }, []);
+
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (!(["ArrowDown", "ArrowUp", "Home", "End"] as string[]).includes(event.key)) return;
     const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
@@ -395,7 +420,7 @@ function OptionPanel({ children, align = "right" }: { children: ReactNode; align
   }
 
   return (
-    <div role="menu" onKeyDown={handleKeyDown} className={cn("absolute bottom-[calc(100%+0.5rem)] z-30 min-w-52 rounded-xl border border-white/12 bg-[#202220] p-1.5 text-sm text-white shadow-2xl", align === "left" ? "left-0" : "right-0")}>
+    <div ref={panelRef} role="menu" onKeyDown={handleKeyDown} className={cn("absolute bottom-[calc(100%+0.5rem)] z-30 min-w-52 rounded-xl border border-white/12 bg-[#202220] p-1.5 text-sm text-white shadow-2xl", align === "left" ? "left-0" : "right-0")}>
       {children}
     </div>
   );

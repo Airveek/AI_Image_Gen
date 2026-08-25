@@ -34,7 +34,6 @@ export type ProductCampaignGoal =
   | "social-post"
   | "ad-banner"
   | "lookbook";
-export type ProductPhotoshootShot = "hero" | "lifestyle" | "on-model";
 export type ProductFashionMode = "product-scene" | "on-model" | "influencer-lifestyle";
 export type ProductFashionScene = "studio" | "lifestyle" | "flat-lay" | "outdoor" | "custom";
 export type ReferenceRole =
@@ -74,17 +73,6 @@ export type ProductFashionRequest = {
   references: GenerationReference[];
 };
 
-export type ProductPhotoshootRecipe = {
-  shot: ProductPhotoshootShot;
-  label: string;
-  purpose: string;
-  mode: ProductFashionMode;
-  scene: ProductFashionScene;
-  campaignGoal: ProductCampaignGoal;
-  lighting: LightingOption;
-  aspectRatio: ImageAspectRatio;
-};
-
 export type StorybookPageRequest = {
   arenaId: "storybook-page";
   characterDescription: string;
@@ -109,6 +97,17 @@ export type GenerationRequest =
   | ProductFashionRequest
   | StorybookPageRequest
   | ImageToSketchRequest;
+
+export type GenerationCount = 1 | 2 | 3;
+export type CreatorBatchStatus = "idle" | "generating" | "completed" | "completed-with-errors";
+export type CreatorBatchItemStatus = "generating" | "ready" | "failed";
+export type CreatorBatchItem = {
+  index: number;
+  request: GenerationRequest;
+  status: CreatorBatchItemStatus;
+  asset: CreatorAsset | null;
+  error: string | null;
+};
 
 export type GeneratedImage = {
   bytes: Uint8Array;
@@ -152,15 +151,6 @@ export type CreatorAsset = {
   imageUrl: string | null;
   providerKind: ImageProviderKind | null;
   providerModel: string | null;
-};
-
-export type CreatorPackStatus = "idle" | "generating" | "completed" | "completed-with-errors";
-export type CreatorPackShotStatus = "pending" | "generating" | "ready" | "failed";
-export type CreatorPackShotState = {
-  recipe: ProductPhotoshootRecipe;
-  status: CreatorPackShotStatus;
-  asset: CreatorAsset | null;
-  error: string | null;
 };
 
 export type CreatorAssetRow = {

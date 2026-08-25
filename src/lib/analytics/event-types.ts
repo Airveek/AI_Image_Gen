@@ -2,7 +2,6 @@ import type {
   CreatorArenaId,
   CreatorErrorCode,
   ProductCampaignGoal,
-  ProductPhotoshootShot,
 } from "@/features/creator/types";
 import type { PlanKey } from "@/lib/whop/types";
 
@@ -21,7 +20,6 @@ export type UserEventProperties = {
   planKey?: PlanKey;
   referenceCount?: 0 | 1 | 2;
   campaignGoal?: ProductCampaignGoal;
-  shot?: ProductPhotoshootShot;
   errorCode?: CreatorErrorCode;
 };
 
@@ -43,7 +41,6 @@ export function sanitizeUserEventProperties(properties: UserEventProperties | un
   if (properties.planKey) normalized.planKey = properties.planKey;
   if (properties.referenceCount !== undefined) normalized.referenceCount = properties.referenceCount;
   if (properties.campaignGoal) normalized.campaignGoal = properties.campaignGoal;
-  if (properties.shot) normalized.shot = properties.shot;
   if (properties.errorCode) normalized.errorCode = properties.errorCode;
   return normalized;
 }

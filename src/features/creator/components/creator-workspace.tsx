@@ -14,29 +14,27 @@ import {
   referenceRoleLabel,
 } from "@/features/creator/components/creator-asset-picker";
 import { CreatorComposer } from "@/features/creator/components/creator-composer";
+import { CreatorBatchProgress } from "@/features/creator/components/creator-batch-progress";
 import { CreatorImageViewer } from "@/features/creator/components/creator-image-viewer";
-import { CreatorPackProgress } from "@/features/creator/components/creator-pack-progress";
 import {
   creatorCatalog,
   getCategoryLabel,
   getCreatorArena,
-  productPhotoshootRecipes,
   referenceRolesForArena,
 } from "@/features/creator/catalog";
 import type {
   CreatorArenaId,
   CreatorAsset,
   CreatorAssetKind,
-  CreatorPackShotState,
-  CreatorPackStatus,
+  CreatorBatchItem,
+  CreatorBatchStatus,
   CreatorResult,
   GenerationReference,
+  GenerationCount,
   GenerationRequest,
   ImageAspectRatio,
   LightingOption,
   ProductCampaignGoal,
-  ProductPhotoshootRecipe,
-  ProductPhotoshootShot,
   ReferenceRole,
 } from "@/features/creator/types";
 import { cn } from "@/lib/utils";
@@ -59,12 +57,11 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
     const reusedAsset = initialAssets.find((asset) => asset.id === reusedAssetId && asset.status === "ready");
     return reusedAsset ? [{ assetId: reusedAsset.id, role: defaultRoleForAsset(reusedAsset) }] : [];
   });
-  const [result, setResult] = useState<CreatorAsset | null>(null);
   const [viewingAsset, setViewingAsset] = useState<CreatorAsset | null>(null);
   const [message, setMessage] = useState(storageMessage ?? "");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [packStatus, setPackStatus] = useState<CreatorPackStatus>("idle");
-  const [packShots, setPackShots] = useState<CreatorPackShotState[]>(createInitialPackShots);
+  const [generationCount, setGenerationCount] = useState<GenerationCount>(2);
+  const [batchStatus, setBatchStatus] = useState<CreatorBatchStatus>("idle");
+  const [batchItems, setBatchItems] = useState<CreatorBatchItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [arenaDialogOpen, setArenaDialogOpen] = useState(false);
   const [assetDialogOpen, setAssetDialogOpen] = useState(false);
@@ -100,10 +97,11 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   if (!arena) return null;
 
   const mainText = arenaId === "general-image" ? subject : arenaId === "product-fashion" ? extraDirection : arenaId === "storybook-page" ? storyScene : sketchPrompt;
-  const isPackGenerating = packStatus === "generating";
-  const isBusy = isGenerating || isPackGenerating;
-  const hasPackResults = packShots.some((shot) => shot.asset !== null);
-  const readyResult = result?.imageUrl ? { asset: result, imageUrl: result.imageUrl } : null;
+  const isGenerating = batchStatus === "generating";
+  const isBusy = isGenerating;
+  const singleReadyResult = batchItems.length === 1 && batchItems[0]?.status === "ready" && batchItems[0].asset?.imageUrl
+    ? { asset: batchItems[0].asset, imageUrl: batchItems[0].asset.imageUrl }
+    : null;
 
   function setMainText(value: string) {
     if (arenaId === "general-image") setSubject(value);
@@ -115,78 +113,54 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   async function handleGenerate(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
     if (isBusy || !validateForGeneration()) return;
-    setIsGenerating(true);
-    setMessage(arenaId === "image-to-sketch" ? "Airveek is cleaning your sketch…" : "Airveek is creating one polished 1K image…");
+    const request = buildRequest();
+    const items = createBatchItems(request, generationCount);
+    setBatchItems(items);
+    setBatchStatus("generating");
+    setMessage(arenaId === "image-to-sketch" ? `Airveek is cleaning ${generationCount === 1 ? "your sketch" : `${generationCount} versions of your sketch`}…` : `Airveek is creating ${generationCount} image${generationCount === 1 ? "" : "s"}…`);
 
-    try {
-      const parsed = await requestGeneration(buildRequest());
+    const jobs = items.map(async (item): Promise<AssetResult> => {
+      const parsed = await requestGeneration(item.request);
       if (!parsed.ok) {
-        setMessage(parsed.message);
-        return;
-      }
-      addGeneratedAsset(parsed.data);
-      setMessage("Your image is ready and saved privately to the library.");
-      router.refresh();
-    } finally {
-      setIsGenerating(false);
-    }
-  }
-
-  async function handleGeneratePack() {
-    if (arenaId !== "product-fashion" || isBusy || !validateForGeneration()) return;
-    setPackStatus("generating");
-    setPackShots(productPhotoshootRecipes.map((recipe) => ({
-      recipe,
-      status: "generating",
-      asset: null,
-      error: null,
-    })));
-    setMessage("All three images are starting together. Keep this page open while they are created.");
-
-    const jobs = productPhotoshootRecipes.map(async (recipe): Promise<AssetResult> => {
-      const parsed = await requestGeneration(buildPackRequest(recipe));
-      if (!parsed.ok) {
-        updatePackShot(recipe.shot, { status: "failed", error: parsed.message });
+        updateBatchItem(item.index, { status: "failed", error: parsed.message });
         return parsed;
       }
-
       addGeneratedAsset(parsed.data);
-      updatePackShot(recipe.shot, { status: "ready", asset: parsed.data, error: null });
+      updateBatchItem(item.index, { status: "ready", asset: parsed.data, error: null });
       return parsed;
     });
     const settled = await Promise.allSettled(jobs);
     settled.forEach((outcome, index) => {
       if (outcome.status === "rejected") {
         const reason = outcome.reason instanceof Error ? outcome.reason.message : "The image request failed. Please try again.";
-        updatePackShot(productPhotoshootRecipes[index].shot, { status: "failed", error: reason });
+        updateBatchItem(items[index].index, { status: "failed", error: reason });
       }
     });
-    const hasFailure = settled.some((result) => result.status === "rejected" || (result.status === "fulfilled" && !result.value.ok));
-
-    setPackStatus(hasFailure ? "completed-with-errors" : "completed");
-    setMessage(hasFailure ? "Some images are ready. Retry any failed shot below." : "Your three-image photoshoot is ready and saved to the library.");
+    const hasFailure = settled.some((outcome) => outcome.status === "rejected" || (outcome.status === "fulfilled" && !outcome.value.ok));
+    setBatchStatus(hasFailure ? "completed-with-errors" : "completed");
+    setMessage(hasFailure ? "Some images are ready. Retry any failed image below." : `${generationCount === 1 ? "Your image is" : "Your images are"} ready and saved to the library.`);
     router.refresh();
   }
 
-  async function handleRetryPackShot(shot: ProductPhotoshootShot) {
-    if (arenaId !== "product-fashion" || isBusy) return;
-    const recipe = productPhotoshootRecipes.find((item) => item.shot === shot);
-    if (!recipe) return;
-    const hasOtherFailures = packShots.some((item) => item.recipe.shot !== shot && item.status === "failed");
-    setPackStatus("generating");
-    updatePackShot(shot, { status: "generating", error: null });
-    setMessage(`Retrying the ${recipe.label.toLowerCase()} image…`);
-    const parsed = await requestGeneration(buildPackRequest(recipe));
+  async function handleRetryBatchItem(index: number) {
+    if (isBusy) return;
+    const item = batchItems.find((candidate) => candidate.index === index);
+    if (!item) return;
+    updateBatchItem(index, { status: "generating", error: null });
+    setBatchStatus("generating");
+    setMessage(`Retrying image ${index}…`);
+    const parsed = await requestGeneration(item.request);
     if (!parsed.ok) {
-      updatePackShot(shot, { status: "failed", error: parsed.message });
-      setPackStatus("completed-with-errors");
-      setMessage(`${recipe.label} still needs attention. You can retry it again.`);
+      updateBatchItem(index, { status: "failed", error: parsed.message });
+      setBatchStatus("completed-with-errors");
+      setMessage(`Image ${index} still needs attention. You can retry it again.`);
       return;
     }
     addGeneratedAsset(parsed.data);
-    updatePackShot(shot, { status: "ready", asset: parsed.data, error: null });
-    setPackStatus(hasOtherFailures ? "completed-with-errors" : "completed");
-    setMessage(hasOtherFailures ? `${recipe.label} is ready. Another shot still needs attention.` : "Your three-image photoshoot is ready and saved to the library.");
+    updateBatchItem(index, { status: "ready", asset: parsed.data, error: null });
+    const hasOtherFailures = batchItems.some((candidate) => candidate.index !== index && candidate.status === "failed");
+    setBatchStatus(hasOtherFailures ? "completed-with-errors" : "completed");
+    setMessage(hasOtherFailures ? `Image ${index} is ready. Another image still needs attention.` : "All images are ready and saved to the library.");
     router.refresh();
   }
 
@@ -205,12 +179,11 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   }
 
   function addGeneratedAsset(asset: CreatorAsset) {
-    setResult(asset);
     setAssets((current) => [asset, ...current.filter((item) => item.id !== asset.id)]);
   }
 
-  function updatePackShot(shot: ProductPhotoshootShot, update: Partial<CreatorPackShotState>) {
-    setPackShots((current) => current.map((item) => item.recipe.shot === shot ? { ...item, ...update } : item));
+  function updateBatchItem(index: number, update: Partial<CreatorBatchItem>) {
+    setBatchItems((current) => current.map((item) => item.index === index ? { ...item, ...update } : item));
   }
 
   function validateForGeneration(): boolean {
@@ -248,20 +221,6 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
       return { arenaId, characterDescription, scene: storyScene, artStyle, pageText, lighting, aspectRatio, extraDirection: "", references };
     }
     return { arenaId, outputType, subject, exactText, style, lighting, aspectRatio, extraDirection: "", references };
-  }
-
-  function buildPackRequest(recipe: ProductPhotoshootRecipe): GenerationRequest {
-    return {
-      arenaId: "product-fashion",
-      mode: recipe.mode,
-      scene: recipe.scene,
-      campaignGoal: recipe.campaignGoal,
-      backgroundMood,
-      lighting: recipe.lighting,
-      aspectRatio: recipe.aspectRatio,
-      extraDirection,
-      references,
-    };
   }
 
   function toggleReference(asset: CreatorAsset, role: ReferenceRole) {
@@ -340,27 +299,27 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
                 <PanelRightOpen className="h-4 w-4" aria-hidden="true" /> Assets
               </Button>
               <div className="pointer-events-none absolute inset-0 opacity-25 [background-image:radial-gradient(circle_at_center,rgba(131,255,0,0.08),transparent_38%)]" aria-hidden="true" />
-              {hasPackResults || isPackGenerating ? (
-                <CreatorPackProgress shots={packShots} isGenerating={isPackGenerating} onRetry={(shot) => void handleRetryPackShot(shot)} retryDisabled={isBusy} />
+              {batchItems.length > 1 || (batchItems.length === 1 && batchItems[0]?.status === "failed") ? (
+                <CreatorBatchProgress items={batchItems} isGenerating={isGenerating} onRetry={(index) => void handleRetryBatchItem(index)} retryDisabled={isBusy} onOpenImage={setViewingAsset} />
               ) : isGenerating ? (
                 <div className="relative max-w-sm text-center" data-testid="generation-loading">
                   <LoaderCircle className="mx-auto h-9 w-9 animate-spin text-brand-neon" aria-hidden="true" />
                   <h2 className="mt-5 font-display text-2xl font-bold">Creating your image</h2>
                   <p className="mt-2 text-base leading-6 text-muted">This can take a minute. Keep this page open.</p>
                 </div>
-              ) : readyResult ? (
+              ) : singleReadyResult ? (
                 <div className="group relative h-full min-h-[420px] w-full">
                   <button
                     type="button"
                     className="absolute inset-0 block h-full w-full cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-brand-neon"
-                    onClick={() => setViewingAsset(readyResult.asset)}
-                    aria-label={`Open ${readyResult.asset.name}`}
+                    onClick={() => setViewingAsset(singleReadyResult.asset)}
+                    aria-label={`Open ${singleReadyResult.asset.name}`}
                     data-testid="generation-result-image"
                   >
-                    <Image src={readyResult.imageUrl} alt={readyResult.asset.name} fill unoptimized className="object-contain transition-transform duration-300 group-hover:scale-[1.01]" sizes="(max-width: 1024px) 100vw, calc(100vw - 288px)" priority />
+                    <Image src={singleReadyResult.imageUrl} alt={singleReadyResult.asset.name} fill unoptimized className="object-contain transition-transform duration-300 group-hover:scale-[1.01]" sizes="(max-width: 1024px) 100vw, calc(100vw - 288px)" priority />
                   </button>
                   <a
-                    href={`${readyResult.imageUrl}?download=1`}
+                    href={`${singleReadyResult.imageUrl}?download=1`}
                     download
                     onClick={(event) => event.stopPropagation()}
                     className="absolute right-3 top-3 z-10 flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 bg-black/75 text-white opacity-0 shadow-lg backdrop-blur transition-opacity hover:bg-black focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-neon group-hover:opacity-100"
@@ -412,10 +371,9 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
                 onOpenAssets={openAssets}
                 onRemoveReference={removeReference}
                 onChangeReferenceRole={changeReferenceRole}
-                hasResult={Boolean(result)}
                 isGenerating={isGenerating}
-                packGenerating={isPackGenerating}
-                onGeneratePack={handleGeneratePack}
+                generationCount={generationCount}
+                onGenerationCountChange={setGenerationCount}
                 generationDisabled={Boolean(storageMessage)}
               />
               <div className="mx-auto mt-2 min-h-5 max-w-[900px] text-center text-sm text-muted" aria-live="polite" aria-atomic="true">{message}</div>
@@ -502,10 +460,11 @@ function readAssetResult(value: unknown): AssetResult {
   return { ok: false, message: "The server returned an invalid response.", code: "unknown" };
 }
 
-function createInitialPackShots(): CreatorPackShotState[] {
-  return productPhotoshootRecipes.map((recipe) => ({
-    recipe,
-    status: "pending",
+function createBatchItems(request: GenerationRequest, count: GenerationCount): CreatorBatchItem[] {
+  return Array.from({ length: count }, (_, index) => ({
+    index: index + 1,
+    request,
+    status: "generating" as const,
     asset: null,
     error: null,
   }));

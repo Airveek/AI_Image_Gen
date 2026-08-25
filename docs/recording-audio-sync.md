@@ -10,10 +10,10 @@ Create a `narration-segments.json` file in the content-kit directory:
 [
   { "event": "workspace_ready", "file": "audio/01-intro.mp3" },
   { "event": "reference_selected", "index": 1, "file": "audio/02-upload.mp3" },
-  { "event": "photoshoot_started", "file": "audio/03-create.mp3" },
-  { "event": "shot_ready", "shot": "hero", "file": "audio/04-hero.mp3" },
-  { "event": "shot_ready", "shot": "lifestyle", "file": "audio/05-lifestyle.mp3" },
-  { "event": "shot_ready", "shot": "on-model", "file": "audio/06-on-model.mp3" }
+  { "event": "generation_started", "file": "audio/03-create.mp3" },
+  { "event": "generation_ready", "index": 1, "file": "audio/04-image-1.mp3" },
+  { "event": "generation_ready", "index": 2, "file": "audio/05-image-2.mp3" },
+  { "event": "generation_ready", "index": 3, "file": "audio/06-image-3.mp3" }
 ]
 ```
 

@@ -96,11 +96,7 @@ try {
   }
 
   await page.waitForTimeout(fieldPauseMs);
-  if (config.generation === "pack") {
-    await recordPhotoshootPack(page, context, baseUrl, outputDirectory, resultFiles);
-  } else {
-    await recordSingleGenerations(page, context, baseUrl, config.variations, outputDirectory, resultFiles);
-  }
+  await recordGenerations(page, context, baseUrl, config.variations, outputDirectory, resultFiles);
 
   await copyFile(inputPath, path.join(outputDirectory, `input${path.extname(inputPath).toLowerCase()}`));
   for (const [index, additionalInputPath] of additionalInputPaths.entries()) {
@@ -150,38 +146,37 @@ function positiveInteger(value, fallback) {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
 
-async function recordSingleGenerations(page, context, baseUrl, variations, outputDirectory, resultFiles) {
-  for (let index = 1; index <= variations; index += 1) {
-    markTimelineEvent("generation_started", { index });
-    await page.getByTestId("generate-button").click();
+async function recordGenerations(page, context, baseUrl, variations, outputDirectory, resultFiles) {
+  await page.getByTestId("generation-count-button").click();
+  await page.getByRole("menuitemradio", { name: `${variations}x`, exact: true }).click();
+  await page.getByTestId("generate-button").click();
+
+  if (variations === 1) {
+    markTimelineEvent("generation_started", { index: 1 });
     await page.getByTestId("generation-loading").waitFor({ state: "visible", timeout: 15_000 });
     const resultImage = page.getByTestId("generation-result-image");
     await resultImage.waitFor({ state: "visible", timeout: 300_000 });
     await waitForImage(resultImage);
-    markTimelineEvent("generation_ready", { index });
+    markTimelineEvent("generation_ready", { index: 1 });
     await page.waitForTimeout(resultPauseMs);
-    await saveResultImage(resultImage, context, baseUrl, outputDirectory, resultFiles, index);
-    markTimelineEvent("result_saved", { index });
+    await saveResultImage(resultImage, context, baseUrl, outputDirectory, resultFiles, 1);
+    markTimelineEvent("result_saved", { index: 1 });
+    return;
   }
-}
 
-async function recordPhotoshootPack(page, context, baseUrl, outputDirectory, resultFiles) {
-  markTimelineEvent("photoshoot_started");
-  await page.getByTestId("photoshoot-pack-button").click();
-  await page.getByTestId("photoshoot-results").waitFor({ state: "visible", timeout: 15_000 });
-  const shots = ["hero", "lifestyle", "on-model"];
-  for (let index = 0; index < shots.length; index += 1) {
-    markTimelineEvent("shot_started", { shot: shots[index], index: index + 1 });
-    const card = page.getByTestId(`photoshoot-shot-${shots[index]}`);
+  await page.getByTestId("generation-batch-results").waitFor({ state: "visible", timeout: 15_000 });
+  for (let index = 1; index <= variations; index += 1) {
+    markTimelineEvent("generation_started", { index });
+    const card = page.getByTestId(`generation-item-${index}`);
     await card.waitFor({ state: "visible", timeout: 15_000 });
     await card.getByText("Saved to your library", { exact: true }).waitFor({ state: "visible", timeout: 300_000 });
     const resultImage = card.locator("img").first();
     await resultImage.waitFor({ state: "visible", timeout: 15_000 });
     await waitForImage(resultImage);
-    markTimelineEvent("shot_ready", { shot: shots[index], index: index + 1 });
+    markTimelineEvent("generation_ready", { index });
     await page.waitForTimeout(resultPauseMs);
-    await saveResultImage(resultImage, context, baseUrl, outputDirectory, resultFiles, index + 1);
-    markTimelineEvent("result_saved", { shot: shots[index], index: index + 1 });
+    await saveResultImage(resultImage, context, baseUrl, outputDirectory, resultFiles, index);
+    markTimelineEvent("result_saved", { index });
   }
 }
 
@@ -216,8 +211,6 @@ function readConfig(value) {
   const id = requiredString(value.id, "id");
   const route = requiredString(value.route, "route");
   const input = requiredString(value.input, "input");
-  const generation = value.generation === undefined ? "single" : value.generation;
-  if (generation !== "single" && generation !== "pack") throw new Error("Use-case generation must be single or pack.");
   const additionalInputs = value.additionalInputs === undefined ? [] : value.additionalInputs;
   if (!Array.isArray(additionalInputs) || additionalInputs.some((item) => typeof item !== "string" || !item.trim())) {
     throw new Error("Use-case additionalInputs must contain image paths.");
@@ -230,7 +223,7 @@ function readConfig(value) {
     if (!action) throw new Error("Field action must be fill or select.");
     return { label: requiredString(item.label, "field label"), value: requiredString(item.value, "field value"), action };
   });
-  return { id, route, input, additionalInputs: additionalInputs.map((item) => item.trim()), generation, variations, fields };
+  return { id, route, input, additionalInputs: additionalInputs.map((item) => item.trim()), variations, fields };
 }
 
 function isRecord(value) {
