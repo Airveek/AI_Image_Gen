@@ -1,6 +1,7 @@
 "use server";
 
 import {
+  cancelActiveStoreRuns,
   getLatestStoreBulkRun,
   requestStoreItemPublish,
   requestStoreItemRetry,
@@ -31,6 +32,10 @@ export async function publishStoreRunAction(runId: string): Promise<void> {
 
 export async function retryStoreItemAction(itemId: string): Promise<void> {
   return requestStoreItemRetry(itemId);
+}
+
+export async function cancelActiveStoreRunsAction(): Promise<number> {
+  return cancelActiveStoreRuns();
 }
 
 export async function getLatestStoreRunAction() {

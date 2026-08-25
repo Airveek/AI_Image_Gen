@@ -5,11 +5,11 @@ import {
   createRunItems,
   getItemForWorker,
   getRunForWorker,
+  loadRunProducts,
   publishStoreItemForWorker,
   setItemStatus,
   setRunStatus,
 } from "@/features/store-images/server/runs";
-import { listStoreProducts } from "@/features/store-images/server/store-client";
 import { generateStoreProductImage } from "@/features/store-images/server/store-generation";
 
 type RunEvent = { runId: string; userId: string };
@@ -22,17 +22,25 @@ export const dispatchStoreRun = inngest.createFunction(
     retries: 3,
     onFailure: async ({ event, step }) => {
       const payload = event.data.event.data as unknown as RunEvent;
-      await step.run("mark-run-failed", () => setRunStatus(payload.runId, payload.userId, "failed"));
+      const run = await step.run("load-failed-run", () => getRunForWorker(payload.runId, payload.userId));
+      if (run?.status !== "cancelled") {
+        await step.run("mark-run-failed", () => setRunStatus(payload.runId, payload.userId, "failed"));
+      }
     },
   },
   async ({ event, step }) => {
     const payload = event.data as unknown as RunEvent;
+    const run = await step.run("load-run", () => getRunForWorker(payload.runId, payload.userId));
+    if (!run || run.status === "cancelled") return;
+
     await step.run("mark-run-running", () => setRunStatus(payload.runId, payload.userId, "running"));
 
-    const run = await step.run("load-run", () => getRunForWorker(payload.runId, payload.userId));
-    if (!run) throw new Error("The bulk run no longer exists.");
-
-    const products = await step.run("load-store-products", () => loadRunProducts(run));
+    const products = await step.run("load-store-products", () => loadRunProducts({
+      selectionMode: run.selection_mode,
+      selectedProductIds: run.selected_product_ids,
+      search: run.search,
+      status: run.status_filter,
+    }));
     const itemIds = await step.run("create-run-items", () => createRunItems({
       runId: payload.runId,
       userId: payload.userId,
@@ -62,19 +70,31 @@ export const generateStoreItem = inngest.createFunction(
     concurrency: { limit: 3 },
     onFailure: async ({ event, step }) => {
       const payload = event.data.event.data as unknown as ItemEvent;
+      const run = await step.run("load-failed-item-run", () => getRunForWorker(payload.runId, payload.userId));
       await step.run("mark-item-failed", () => setItemStatus({
         itemId: payload.itemId,
         userId: payload.userId,
-        status: "failed",
-        errorMessage: "Image generation failed after several retries.",
+        status: run?.status === "cancelled" ? "cancelled" : "failed",
+        errorMessage: run?.status === "cancelled" ? "Run cancelled before generation completed." : "Image generation failed after several retries.",
       }));
     },
   },
   async ({ event, step }) => {
     const payload = event.data as unknown as ItemEvent;
     const item = await step.run("load-item", () => getItemForWorker(payload.itemId, payload.userId));
-    if (!item || item.status === "ready" || item.status === "published") return;
+    if (!item || ["ready", "published", "cancelled"].includes(item.status)) return;
     if (!item.source_image_url) throw new Error("This product has no source image.");
+
+    const run = await step.run("load-item-run", () => getRunForWorker(item.run_id, payload.userId));
+    if (!run || run.status === "cancelled") {
+      await step.run("mark-item-cancelled", () => setItemStatus({
+        itemId: item.id,
+        userId: payload.userId,
+        status: "cancelled",
+        errorMessage: "Run cancelled before generation.",
+      }));
+      return;
+    }
 
     await step.run("mark-item-generating", () => setItemStatus({
       itemId: item.id,
@@ -84,16 +104,27 @@ export const generateStoreItem = inngest.createFunction(
     }));
 
     const assetId = await step.run("generate-image", async () => {
-      const run = await getRunForWorker(item.run_id, payload.userId);
       const asset = await generateStoreProductImage({
         userId: payload.userId,
         productName: item.product_name,
         sourceImageUrl: item.source_image_url as string,
-        prompt: run?.prompt ?? "Create a clean product listing image.",
-        referenceAssetId: run?.reference_asset_id ?? null,
+        prompt: run.prompt,
+        referenceAssetId: run.reference_asset_id,
       });
       return asset.id;
     });
+
+    const latestRun = await step.run("check-run-before-ready", () => getRunForWorker(item.run_id, payload.userId));
+    if (!latestRun || latestRun.status === "cancelled") {
+      await step.run("mark-item-cancelled", () => setItemStatus({
+        itemId: item.id,
+        userId: payload.userId,
+        status: "cancelled",
+        generatedAssetId: assetId,
+        errorMessage: "Run cancelled after generation.",
+      }));
+      return;
+    }
 
     await step.run("mark-item-ready", () => setItemStatus({
       itemId: item.id,
@@ -126,30 +157,5 @@ export const publishStoreItem = inngest.createFunction(
     await step.run("publish-item", () => publishStoreItemForWorker(payload.itemId, payload.userId));
   },
 );
-
-async function loadRunProducts(run: {
-  selection_mode: "selected" | "all";
-  selected_product_ids: string[];
-  search: string;
-  status_filter: "active" | "draft" | "archived";
-}) {
-  const selected = new Set(run.selected_product_ids);
-  const products = [];
-  let cursor: string | null = null;
-
-  for (let page = 0; page < 500; page += 1) {
-    const result = await listStoreProducts({
-      cursor,
-      limit: 100,
-      search: run.search,
-      status: run.status_filter,
-    });
-    products.push(...result.products.filter((product) => run.selection_mode === "all" || selected.has(product.id)));
-    cursor = result.nextCursor;
-    if (!cursor) break;
-  }
-
-  return products;
-}
 
 export const storeImageFunctions = [dispatchStoreRun, generateStoreItem, publishStoreItem];

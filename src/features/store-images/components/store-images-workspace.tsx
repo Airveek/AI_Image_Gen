@@ -7,6 +7,7 @@ import { Check, ChevronDown, Download, Eye, ImageIcon, LoaderCircle, RefreshCw, 
 import { CreatorImageViewer } from "@/features/creator/components/creator-image-viewer";
 import { CreatorAssetPicker } from "@/features/creator/components/creator-asset-picker";
 import {
+  cancelActiveStoreRunsAction,
   getLatestStoreRunAction,
   publishStoreItemAction,
   publishStoreRunAction,
@@ -54,6 +55,7 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, initialLogoA
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [viewingItem, setViewingItem] = useState<StoreBulkItem | null>(null);
 
@@ -119,7 +121,7 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, initialLogoA
       });
       const nextRun = await getLatestStoreRunAction();
       setRun(nextRun ?? { id: runId, prompt, referenceAssetId: logoAsset?.id ?? null, imageMode, selectionMode: allMatches ? "all" : "selected", status: "queued", totalCount: 0, completedCount: 0, failedCount: 0, publishedCount: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), items: [] });
-      setMessage("Generation queued. You can leave this page open or come back later.");
+      setMessage(nextRun?.status === "completed" || nextRun?.status === "completed-with-errors" ? "Images generated. Review them below before publishing." : "Generation queued. You can leave this page open or come back later.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "The bulk run could not be started.");
     } finally {
@@ -150,9 +152,23 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, initialLogoA
   }
 
   function toggleLogoAsset(asset: CreatorAsset) {
-    if (activeRun) return;
     setLogoAsset((current) => current?.id === asset.id ? null : asset);
     setMessage(logoAsset?.id === asset.id ? "Logo reference removed from the next run." : `${asset.name} selected as the logo reference.`);
+  }
+
+  async function handleCancelActiveRuns() {
+    if (isCancelling) return;
+    setIsCancelling(true);
+    try {
+      const count = await cancelActiveStoreRunsAction();
+      const nextRun = await getLatestStoreRunAction();
+      setRun(nextRun);
+      setMessage(count > 0 ? `${count} active run${count === 1 ? "" : "s"} cancelled. You can start a new generation.` : "There are no active runs to cancel.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "The active runs could not be cancelled.");
+    } finally {
+      setIsCancelling(false);
+    }
   }
 
   async function handlePublishAll() {
@@ -276,6 +292,7 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, initialLogoA
           <span className="text-muted">{run.completedCount}/{run.totalCount || "—"} ready</span>
           <div className="h-1.5 w-24 overflow-hidden rounded-full bg-white/10" aria-label={`${run.completedCount} of ${run.totalCount || 0} completed`} role="progressbar" aria-valuemax={run.totalCount} aria-valuemin={0} aria-valuenow={run.completedCount}><div className="h-full rounded-full bg-brand-neon transition-all" style={{ width: `${run.totalCount ? Math.min((run.completedCount / run.totalCount) * 100, 100) : 0}%` }} /></div>
           <span className="text-muted">{run.failedCount} failed · {run.publishedCount} published</span>
+          {activeRun ? <button type="button" onClick={() => void handleCancelActiveRuns()} disabled={isCancelling} className="ml-auto inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-red-300/30 px-3 font-bold text-red-200 hover:bg-red-300/10 disabled:opacity-50"><X className="h-3.5 w-3.5" aria-hidden="true" /> {isCancelling ? "Cancelling…" : "Cancel active runs"}</button> : null}
           {readyItems.length > 0 ? <button type="button" onClick={handlePublishAll} disabled={isPublishing} className="ml-auto inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-brand-neon/40 px-3 font-bold text-brand-neon hover:bg-brand-neon/10 disabled:opacity-50"><UploadCloud className="h-3.5 w-3.5" aria-hidden="true" /> Publish {readyItems.length}</button> : null}
         </> : <span className="text-muted">No run yet. Generated images will stay here until you publish them.</span>}
       </section>

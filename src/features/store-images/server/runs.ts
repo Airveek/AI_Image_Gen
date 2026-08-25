@@ -4,7 +4,8 @@ import { requireCreatorUser } from "@/features/creator/server/authorization";
 import { getAssetBytesForUser, getOwnedAsset } from "@/features/creator/server/assets";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { inngest } from "@/features/store-images/server/inngest-client";
-import { publishStoreImage } from "@/features/store-images/server/store-client";
+import { listStoreProducts, publishStoreImage } from "@/features/store-images/server/store-client";
+import { generateStoreProductImage } from "@/features/store-images/server/store-generation";
 import type {
   StoreBulkItem,
   StoreBulkRun,
@@ -47,6 +48,15 @@ type ItemRow = {
   published_image_url: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export const SMALL_RUN_LIMIT = 5;
+
+type RunProduct = {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  imageVersion: string;
 };
 
 export async function startStoreBulkRun(input: {
@@ -93,12 +103,42 @@ export async function startStoreBulkRun(input: {
 
   if (error || !data) throw new Error(error?.message ?? "The bulk run could not be created.");
 
-  await inngest.send({
-    name: "store/run.requested",
-    data: { runId: data.id, userId: user.id },
-  });
+  const runId = String(data.id);
+  try {
+    let products: RunProduct[] | null = null;
+    const search = input.search.trim().slice(0, 120);
+    const status = input.status ?? "active";
 
-  return data.id;
+    if (input.selectionMode === "selected" && selectedProductIds.length < SMALL_RUN_LIMIT) {
+      products = await loadRunProducts({ selectionMode: input.selectionMode, selectedProductIds, search, status });
+    } else if (input.selectionMode === "all") {
+      const firstPage = await listStoreProducts({ limit: 100, search, status });
+      if (firstPage.total < SMALL_RUN_LIMIT) {
+        products = firstPage.nextCursor
+          ? await loadRunProducts({ selectionMode: input.selectionMode, selectedProductIds, search, status })
+          : firstPage.products;
+      }
+    }
+
+    if (products && products.length < SMALL_RUN_LIMIT) {
+      await runSmallStoreGeneration({
+        runId,
+        userId: user.id,
+        products,
+      });
+      return runId;
+    }
+
+    await inngest.send({
+      name: "store/run.requested",
+      data: { runId, userId: user.id },
+    });
+  } catch (error) {
+    await setRunStatus(runId, user.id, "failed").catch(() => undefined);
+    throw error;
+  }
+
+  return runId;
 }
 
 export async function getStoreBulkRun(runId: string): Promise<StoreBulkRun | null> {
@@ -135,6 +175,15 @@ export async function requestStoreItemRetry(itemId: string): Promise<void> {
   const item = await getItemForUser(itemId, user.id);
   if (!item || item.status !== "failed") throw new Error("Only failed items can be retried.");
 
+  const run = await getRunForWorker(item.run_id, user.id);
+  if (run?.status === "cancelled") throw new Error("This run was cancelled. Start a new run instead.");
+
+  if ((run?.total_count ?? 0) < SMALL_RUN_LIMIT) {
+    await setItemStatus({ itemId, userId: user.id, status: "queued", errorMessage: null });
+    await generateStoreItemDirect(itemId, user.id);
+    return;
+  }
+
   await setItemStatus({ itemId, userId: user.id, status: "queued", errorMessage: null });
   await inngest.send({
     name: "store/item.requested",
@@ -153,6 +202,25 @@ export async function requestStoreRunPublish(runId: string): Promise<void> {
     }));
 
   if (events.length > 0) await inngest.send(events);
+}
+
+export async function cancelStoreRun(runId: string): Promise<void> {
+  const user = await requireCreatorUser();
+  await cancelStoreRunForUser(runId, user.id);
+}
+
+export async function cancelActiveStoreRuns(): Promise<number> {
+  const user = await requireCreatorUser();
+  const { data, error } = await createSupabaseAdminClient()
+    .from("store_bulk_runs")
+    .select("id")
+    .eq("user_id", user.id)
+    .in("status", ["queued", "running"]);
+  if (error) throw new Error(error.message);
+
+  const runIds = (data ?? []).map((row) => String(row.id));
+  await Promise.all(runIds.map((runId) => cancelStoreRunForUser(runId, user.id)));
+  return runIds.length;
 }
 
 export async function getRunForWorker(runId: string, userId: string): Promise<RunRow | null> {
@@ -202,11 +270,13 @@ export async function createRunItems(input: {
 export async function setRunStatus(runId: string, userId: string, status: StoreBulkRunStatus, totalCount?: number): Promise<void> {
   const update: Record<string, unknown> = { status, updated_at: new Date().toISOString() };
   if (totalCount !== undefined) update.total_count = totalCount;
-  const { error } = await createSupabaseAdminClient()
+  let query = createSupabaseAdminClient()
     .from("store_bulk_runs")
     .update(update)
     .eq("id", runId)
     .eq("user_id", userId);
+  if (status !== "cancelled") query = query.neq("status", "cancelled");
+  const { error } = await query;
   if (error) throw new Error(error.message);
 }
 
@@ -225,11 +295,13 @@ export async function setItemStatus(input: {
   if (input.generatedAssetId !== undefined) update.generated_asset_id = input.generatedAssetId;
   if (input.errorMessage !== undefined) update.error_message = input.errorMessage;
   if (input.publishedImageUrl !== undefined) update.published_image_url = input.publishedImageUrl;
-  const { error } = await createSupabaseAdminClient()
+  let query = createSupabaseAdminClient()
     .from("store_bulk_items")
     .update(update)
     .eq("id", input.itemId)
     .eq("user_id", input.userId);
+  if (input.status !== "cancelled") query = query.neq("status", "cancelled");
+  const { error } = await query;
   if (error) throw new Error(error.message);
 
   await refreshRunProgress(existingItem.run_id, input.userId);
@@ -237,8 +309,11 @@ export async function setItemStatus(input: {
 
 export async function publishStoreItemForWorker(itemId: string, userId: string): Promise<void> {
   const item = await getItemForWorker(itemId, userId);
-  if (!item || item.status === "published") return;
+  if (!item || item.status === "published" || item.status === "cancelled") return;
   if (!item.generated_asset_id || !item.source_image_version) throw new Error("This item has no publishable generated image.");
+
+  const currentRun = await getRunForWorker(item.run_id, userId);
+  if (!currentRun || currentRun.status === "cancelled") return;
 
   await setItemStatus({ itemId, userId, status: "publishing" });
   try {
@@ -255,7 +330,13 @@ export async function publishStoreItemForWorker(itemId: string, userId: string):
     });
     await setItemStatus({ itemId, userId, status: "published", publishedImageUrl: published.imageUrl, errorMessage: null });
   } catch (error) {
-    await setItemStatus({ itemId, userId, status: "failed", errorMessage: error instanceof Error ? error.message : "Publishing failed." });
+    const latestRun = await getRunForWorker(item.run_id, userId);
+    await setItemStatus({
+      itemId,
+      userId,
+      status: latestRun?.status === "cancelled" ? "cancelled" : "failed",
+      errorMessage: latestRun?.status === "cancelled" ? "Run cancelled during publishing." : error instanceof Error ? error.message : "Publishing failed.",
+    });
     throw error;
   }
 }
@@ -279,6 +360,118 @@ async function getStoreBulkRunForUser(runId: string, userId: string): Promise<St
     updatedAt: run.updated_at,
     items: items.map(mapItem),
   };
+}
+
+async function cancelStoreRunForUser(runId: string, userId: string): Promise<void> {
+  const { data: run, error: runError } = await createSupabaseAdminClient()
+    .from("store_bulk_runs")
+    .select("id, status")
+    .eq("id", runId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (runError) throw new Error(runError.message);
+  if (!run || !["queued", "running"].includes(String(run.status))) return;
+
+  const now = new Date().toISOString();
+  const { error: itemError } = await createSupabaseAdminClient()
+    .from("store_bulk_items")
+    .update({ status: "cancelled", error_message: "Cancelled by user.", updated_at: now })
+    .eq("run_id", runId)
+    .eq("user_id", userId)
+    .in("status", ["queued", "generating", "publishing"]);
+  if (itemError) throw new Error(itemError.message);
+
+  const { error } = await createSupabaseAdminClient()
+    .from("store_bulk_runs")
+    .update({ status: "cancelled", updated_at: now })
+    .eq("id", runId)
+    .eq("user_id", userId)
+    .in("status", ["queued", "running"]);
+  if (error) throw new Error(error.message);
+}
+
+async function runSmallStoreGeneration(input: {
+  runId: string;
+  userId: string;
+  products: RunProduct[];
+}): Promise<void> {
+  const itemIds = await createRunItems({
+    runId: input.runId,
+    userId: input.userId,
+    products: input.products,
+  });
+  await setRunStatus(input.runId, input.userId, "running", input.products.length);
+
+  if (itemIds.length === 0) {
+    await setRunStatus(input.runId, input.userId, "completed", 0);
+    return;
+  }
+
+  await Promise.allSettled(itemIds.map((itemId) => generateStoreItemDirect(itemId, input.userId)));
+}
+
+async function generateStoreItemDirect(itemId: string, userId: string): Promise<void> {
+  const item = await getItemForWorker(itemId, userId);
+  if (!item || item.status === "ready" || item.status === "published" || item.status === "cancelled") return;
+
+  const run = await getRunForWorker(item.run_id, userId);
+  if (!run || run.status === "cancelled") {
+    await setItemStatus({ itemId, userId, status: "cancelled", errorMessage: "Run cancelled before generation." });
+    return;
+  }
+  if (!item.source_image_url) {
+    await setItemStatus({ itemId, userId, status: "failed", errorMessage: "This product has no source image." });
+    return;
+  }
+
+  await setItemStatus({ itemId, userId, status: "generating", errorMessage: null });
+  try {
+    const asset = await generateStoreProductImage({
+      userId,
+      productName: item.product_name,
+      sourceImageUrl: item.source_image_url,
+      prompt: run.prompt,
+      referenceAssetId: run.reference_asset_id,
+    });
+    const latestRun = await getRunForWorker(item.run_id, userId);
+    if (!latestRun || latestRun.status === "cancelled") {
+      await setItemStatus({ itemId, userId, status: "cancelled", generatedAssetId: asset.id, errorMessage: "Run cancelled after generation." });
+      return;
+    }
+    await setItemStatus({ itemId, userId, status: "ready", generatedAssetId: asset.id, errorMessage: null });
+  } catch (error) {
+    await setItemStatus({
+      itemId,
+      userId,
+      status: "failed",
+      errorMessage: error instanceof Error ? error.message : "Image generation failed.",
+    });
+  }
+}
+
+export async function loadRunProducts(input: {
+  selectionMode: StoreSelectionMode;
+  selectedProductIds: string[];
+  search: string;
+  status: "active" | "draft" | "archived";
+}): Promise<RunProduct[]> {
+  const selected = new Set(input.selectedProductIds);
+  const products: RunProduct[] = [];
+  let cursor: string | null = null;
+
+  for (let page = 0; page < 500; page += 1) {
+    const result = await listStoreProducts({
+      cursor,
+      limit: 100,
+      search: input.search,
+      status: input.status,
+    });
+    products.push(...result.products.filter((product) => input.selectionMode === "all" || selected.has(product.id)));
+    cursor = result.nextCursor;
+    if (!cursor) break;
+  }
+
+  return products;
 }
 
 function isUuid(value: string): boolean {
@@ -308,6 +501,15 @@ async function getItemForUser(itemId: string, userId: string): Promise<ItemRow |
 }
 
 async function refreshRunProgress(runId: string, userId: string): Promise<void> {
+  const { data: run, error: runStatusError } = await createSupabaseAdminClient()
+    .from("store_bulk_runs")
+    .select("status")
+    .eq("id", runId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (runStatusError) throw new Error(runStatusError.message);
+  if (run?.status === "cancelled") return;
+
   const { data: items, error: itemsError } = await createSupabaseAdminClient()
     .from("store_bulk_items")
     .select("status")
@@ -319,8 +521,9 @@ async function refreshRunProgress(runId: string, userId: string): Promise<void> 
   const completedCount = rows.filter((item) => ["ready", "publishing", "published"].includes(item.status)).length;
   const failedCount = rows.filter((item) => item.status === "failed").length;
   const publishedCount = rows.filter((item) => item.status === "published").length;
-  const allTerminal = rows.length > 0 && rows.every((item) => ["ready", "published", "failed"].includes(item.status));
-  const status = allTerminal ? (failedCount > 0 ? "completed-with-errors" : "completed") : "running";
+  const cancelledCount = rows.filter((item) => item.status === "cancelled").length;
+  const allTerminal = rows.length > 0 && rows.every((item) => ["ready", "published", "failed", "cancelled"].includes(item.status));
+  const status = allTerminal ? (failedCount > 0 || cancelledCount > 0 ? "completed-with-errors" : "completed") : "running";
 
   const { error: runError } = await createSupabaseAdminClient()
     .from("store_bulk_runs")

@@ -5,14 +5,16 @@ export type StoreBulkRunStatus =
   | "running"
   | "completed"
   | "completed-with-errors"
-  | "failed";
+  | "failed"
+  | "cancelled";
 export type StoreBulkItemStatus =
   | "queued"
   | "generating"
   | "ready"
   | "publishing"
   | "published"
-  | "failed";
+  | "failed"
+  | "cancelled";
 
 export type StoreProductStatus = "active" | "draft" | "archived";
 
