@@ -66,6 +66,14 @@ export async function downloadStoreImage(imageUrl: string): Promise<{
   return { bytes, mimeType };
 }
 
+export function getStoreSourceImageUrl(productId: string): string {
+  const baseUrl = requiredEnvironment("APINDEX_STORE_API_URL");
+  return new URL(
+    `/api/artistly/products/${encodeURIComponent(productId)}/source-image`,
+    `${baseUrl.replace(/\/$/, "")}/`,
+  ).toString();
+}
+
 export async function publishStoreImage(input: {
   productId: string;
   image: Uint8Array;

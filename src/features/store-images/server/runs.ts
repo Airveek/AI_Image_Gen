@@ -4,7 +4,7 @@ import { requireCreatorUser } from "@/features/creator/server/authorization";
 import { getAssetBytesForUser, getOwnedAsset } from "@/features/creator/server/assets";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { inngest } from "@/features/store-images/server/inngest-client";
-import { listStoreProducts, publishStoreImage } from "@/features/store-images/server/store-client";
+import { getStoreSourceImageUrl, listStoreProducts, publishStoreImage } from "@/features/store-images/server/store-client";
 import { generateStoreProductImage } from "@/features/store-images/server/store-generation";
 import type {
   StoreBulkItem,
@@ -178,6 +178,13 @@ export async function requestStoreItemRetry(itemId: string): Promise<void> {
 
   const run = await getRunForWorker(item.run_id, user.id);
   if (run?.status === "cancelled") throw new Error("This run was cancelled. Start a new run instead.");
+
+  const { error: sourceImageError } = await createSupabaseAdminClient()
+    .from("store_bulk_items")
+    .update({ source_image_url: getStoreSourceImageUrl(item.product_id), updated_at: new Date().toISOString() })
+    .eq("id", item.id)
+    .eq("user_id", user.id);
+  if (sourceImageError) throw new Error(sourceImageError.message);
 
   if ((run?.total_count ?? 0) < SMALL_RUN_LIMIT) {
     await setItemStatus({ itemId, userId: user.id, status: "queued", errorMessage: null });
