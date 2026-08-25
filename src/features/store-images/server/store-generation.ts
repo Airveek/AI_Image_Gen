@@ -10,6 +10,7 @@ export async function generateStoreProductImage(input: {
   productName: string;
   sourceImageUrl: string;
   prompt: string;
+  referenceAssetId: string | null;
 }): Promise<CreatorAsset> {
   const source = await downloadStoreImage(input.sourceImageUrl);
   const request: ProductFashionRequest = {
@@ -21,14 +22,14 @@ export async function generateStoreProductImage(input: {
     lighting: "studio-softbox",
     aspectRatio: "1:1",
     extraDirection: `Create a commercial product listing image for ${input.productName}. ${input.prompt}`,
-    references: [],
+    references: input.referenceAssetId ? [{ assetId: input.referenceAssetId, role: "logo" }] : [],
   };
 
   const result = await generateCreatorImageForUser(inputRequest(request), input.userId, [
     {
       bytes: source.bytes,
       mimeType: source.mimeType,
-      label: `Image 1 — the exact existing product image for ${input.productName}. Preserve the product identity, packaging, label, shape, colors, and visible details.`,
+      label: `the exact existing product image for ${input.productName}. Preserve the product identity, packaging, label, shape, colors, and visible details`,
     },
   ]);
 

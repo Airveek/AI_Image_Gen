@@ -1,7 +1,7 @@
 import "server-only";
 
 import { requireCreatorUser } from "@/features/creator/server/authorization";
-import { getAssetBytesForUser } from "@/features/creator/server/assets";
+import { getAssetBytesForUser, getOwnedAsset } from "@/features/creator/server/assets";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { inngest } from "@/features/store-images/server/inngest-client";
 import { publishStoreImage } from "@/features/store-images/server/store-client";
@@ -18,6 +18,7 @@ type RunRow = {
   id: string;
   user_id: string;
   prompt: string;
+  reference_asset_id: string | null;
   image_mode: StoreImageMode;
   selection_mode: StoreSelectionMode;
   selected_product_ids: string[];
@@ -50,6 +51,7 @@ type ItemRow = {
 
 export async function startStoreBulkRun(input: {
   prompt: string;
+  referenceAssetId: string | null;
   imageMode: StoreImageMode;
   selectionMode: StoreSelectionMode;
   productIds: string[];
@@ -59,6 +61,15 @@ export async function startStoreBulkRun(input: {
   const user = await requireCreatorUser();
   const prompt = input.prompt.trim().slice(0, 600);
   if (!prompt) throw new Error("Tell Artistly what the new product images should look like.");
+
+  const referenceAssetId = input.referenceAssetId?.trim() || null;
+  if (referenceAssetId) {
+    if (!isUuid(referenceAssetId)) throw new Error("Choose a valid logo reference image.");
+    const referenceAsset = await getOwnedAsset(referenceAssetId);
+    if (referenceAsset.status !== "ready" || referenceAsset.kind !== "reference") {
+      throw new Error("Choose a ready logo reference image.");
+    }
+  }
 
   const selectedProductIds = Array.from(new Set(input.productIds.map((id) => id.trim()).filter(Boolean))).slice(0, 10_000);
   if (input.selectionMode === "selected" && selectedProductIds.length === 0) {
@@ -70,6 +81,7 @@ export async function startStoreBulkRun(input: {
     .insert({
       user_id: user.id,
       prompt,
+      reference_asset_id: referenceAssetId,
       image_mode: input.imageMode,
       selection_mode: input.selectionMode,
       selected_product_ids: selectedProductIds,
@@ -255,6 +267,7 @@ async function getStoreBulkRunForUser(runId: string, userId: string): Promise<St
   return {
     id: run.id,
     prompt: run.prompt,
+    referenceAssetId: run.reference_asset_id,
     imageMode: run.image_mode,
     selectionMode: run.selection_mode,
     status: run.status,
@@ -266,6 +279,10 @@ async function getStoreBulkRunForUser(runId: string, userId: string): Promise<St
     updatedAt: run.updated_at,
     items: items.map(mapItem),
   };
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 async function listItemsForRun(runId: string, userId: string): Promise<ItemRow[]> {

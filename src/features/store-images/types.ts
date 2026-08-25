@@ -48,6 +48,7 @@ export type StoreBulkItem = {
 export type StoreBulkRun = {
   id: string;
   prompt: string;
+  referenceAssetId: string | null;
   imageMode: StoreImageMode;
   selectionMode: StoreSelectionMode;
   status: StoreBulkRunStatus;

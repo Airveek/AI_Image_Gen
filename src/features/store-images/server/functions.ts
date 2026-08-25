@@ -90,6 +90,7 @@ export const generateStoreItem = inngest.createFunction(
         productName: item.product_name,
         sourceImageUrl: item.source_image_url as string,
         prompt: run?.prompt ?? "Create a clean product listing image.",
+        referenceAssetId: run?.reference_asset_id ?? null,
       });
       return asset.id;
     });

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Check, ChevronDown, ImageIcon, LoaderCircle, RefreshCw, Search, Sparkles, UploadCloud, X } from "lucide-react";
 
 import { CreatorImageViewer } from "@/features/creator/components/creator-image-viewer";
+import { CreatorAssetPicker } from "@/features/creator/components/creator-asset-picker";
 import {
   getLatestStoreRunAction,
   publishStoreItemAction,
@@ -19,11 +20,13 @@ import type {
   StoreProduct,
   StoreProductPage,
 } from "@/features/store-images/types";
+import type { CreatorAsset } from "@/features/creator/types";
 import { cn } from "@/lib/utils";
 
 type Props = {
   initialProducts: StoreProductPage;
   initialRun: StoreBulkRun | null;
+  initialLogoAssets: CreatorAsset[];
   connectionError: string | null;
 };
 
@@ -33,7 +36,7 @@ const imageModes: Array<{ value: StoreImageMode; label: string; description: str
   { value: "replace-all", label: "Replace gallery", description: "Use the generated image as the only image." },
 ];
 
-export function StoreImagesWorkspace({ initialProducts, initialRun, connectionError }: Props) {
+export function StoreImagesWorkspace({ initialProducts, initialRun, initialLogoAssets, connectionError }: Props) {
   const [products, setProducts] = useState(initialProducts.products);
   const [nextCursor, setNextCursor] = useState(initialProducts.nextCursor);
   const [total, setTotal] = useState(initialProducts.total);
@@ -43,12 +46,15 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, connectionEr
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [allMatches, setAllMatches] = useState(false);
   const [prompt, setPrompt] = useState("Create a clean, premium product listing image with a soft neutral studio background.");
+  const [logoAssets, setLogoAssets] = useState(initialLogoAssets);
+  const [logoAsset, setLogoAsset] = useState<CreatorAsset | null>(() => initialLogoAssets.find((asset) => asset.id === initialRun?.referenceAssetId) ?? null);
   const [imageMode, setImageMode] = useState<StoreImageMode>("replace-primary");
   const [run, setRun] = useState<StoreBulkRun | null>(initialRun);
   const [message, setMessage] = useState(connectionError ?? "");
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [viewingItem, setViewingItem] = useState<StoreBulkItem | null>(null);
 
   const activeRun = run?.status === "queued" || run?.status === "running";
@@ -98,12 +104,13 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, connectionEr
   }
 
   async function handleStart() {
-    if (isStarting || activeRun || selectedCount === 0 || !prompt.trim()) return;
+    if (isStarting || activeRun || isUploadingLogo || selectedCount === 0 || !prompt.trim()) return;
     setIsStarting(true);
     setMessage("");
     try {
       const runId = await startStoreImagesAction({
         prompt,
+        referenceAssetId: logoAsset?.id ?? null,
         imageMode,
         selectionMode: allMatches ? "all" : "selected",
         productIds: Array.from(selectedIds),
@@ -111,13 +118,41 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, connectionEr
         status,
       });
       const nextRun = await getLatestStoreRunAction();
-      setRun(nextRun ?? { id: runId, prompt, imageMode, selectionMode: allMatches ? "all" : "selected", status: "queued", totalCount: 0, completedCount: 0, failedCount: 0, publishedCount: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), items: [] });
+      setRun(nextRun ?? { id: runId, prompt, referenceAssetId: logoAsset?.id ?? null, imageMode, selectionMode: allMatches ? "all" : "selected", status: "queued", totalCount: 0, completedCount: 0, failedCount: 0, publishedCount: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), items: [] });
       setMessage("Generation queued. You can leave this page open or come back later.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "The bulk run could not be started.");
     } finally {
       setIsStarting(false);
     }
+  }
+
+  async function handleLogoUpload(file: File) {
+    setIsUploadingLogo(true);
+    setMessage("Saving your logo reference privately…");
+    try {
+      const formData = new FormData();
+      formData.set("file", file);
+      formData.set("kind", "reference");
+      formData.set("name", `Logo — ${file.name.replace(/\.[^.]+$/, "")}`.slice(0, 100));
+      const response = await fetch("/api/creator/assets", { method: "POST", body: formData });
+      const payload: unknown = await response.json();
+      const parsed = readAssetUploadResult(payload);
+      if (!parsed.ok) throw new Error(parsed.message);
+      setLogoAssets((current) => [parsed.data, ...current.filter((asset) => asset.id !== parsed.data.id)]);
+      setLogoAsset(parsed.data);
+      setMessage("Logo uploaded. It will be attached as the brand reference for this run.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "The logo could not be uploaded.");
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  }
+
+  function toggleLogoAsset(asset: CreatorAsset) {
+    if (activeRun) return;
+    setLogoAsset((current) => current?.id === asset.id ? null : asset);
+    setMessage(logoAsset?.id === asset.id ? "Logo reference removed from the next run." : `${asset.name} selected as the logo reference.`);
   }
 
   async function handlePublishAll() {
@@ -201,6 +236,20 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, connectionEr
           <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-neon/10 text-brand-neon"><Sparkles className="h-5 w-5" aria-hidden="true" /></span><div><h2 className="font-display text-lg font-bold">Image direction</h2><p className="text-xs text-muted">One instruction will be used for every selected product.</p></div></div>
           <label className="mt-5 block text-sm font-semibold" htmlFor="store-image-prompt">What should the new images look like?</label>
           <textarea id="store-image-prompt" value={prompt} onChange={(event) => setPrompt(event.target.value.slice(0, 600))} rows={3} className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-muted focus:border-brand-neon/50 focus:ring-2 focus:ring-brand-neon/20" placeholder="Describe the background, lighting, and mood." />
+          <div className="mt-4 rounded-xl border border-white/10 bg-black/20">
+            <CreatorAssetPicker
+              assets={logoAssets}
+              references={logoAsset ? [{ assetId: logoAsset.id, role: "logo" }] : []}
+              onToggle={toggleLogoAsset}
+              onUpload={handleLogoUpload}
+              isUploading={isUploadingLogo || activeRun}
+              preferredRole="logo"
+              allowedReferenceRoles={["logo"]}
+              defaultUploadRole="logo"
+              helperText="Upload once, then select this saved logo for future runs."
+              compact
+            />
+          </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
             {imageModes.map((mode) => (
               <label key={mode.value} className={cn("cursor-pointer rounded-xl border p-3 transition-colors", imageMode === mode.value ? "border-brand-neon/60 bg-brand-neon/10" : "border-white/10 hover:border-white/25")}>
@@ -210,7 +259,7 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, connectionEr
               </label>
             ))}
           </div>
-          <button type="button" onClick={handleStart} disabled={isStarting || activeRun || selectedCount === 0 || !prompt.trim()} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-neon px-5 text-sm font-bold text-black transition-colors hover:bg-brand-soft disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">
+          <button type="button" onClick={handleStart} disabled={isStarting || activeRun || isUploadingLogo || selectedCount === 0 || !prompt.trim()} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-neon px-5 text-sm font-bold text-black transition-colors hover:bg-brand-soft disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">
             {isStarting ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Sparkles className="h-4 w-4" aria-hidden="true" />}
             {isStarting ? "Starting…" : "Generate selected images"}
           </button>
@@ -260,4 +309,16 @@ function ResultCard({ item, onView, onPublish, onRetry, disabled }: { item: Stor
 function readError(value: unknown, fallback: string): string {
   if (typeof value === "object" && value !== null && !Array.isArray(value) && typeof (value as Record<string, unknown>).error === "string") return (value as Record<string, unknown>).error as string;
   return fallback;
+}
+
+function readAssetUploadResult(value: unknown): { ok: true; data: CreatorAsset } | { ok: false; message: string } {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return { ok: false, message: "The logo upload returned an invalid response." };
+  const record = value as Record<string, unknown>;
+  if (record.ok === true && typeof record.data === "object" && record.data !== null && !Array.isArray(record.data)) {
+    const asset = record.data as Record<string, unknown>;
+    if (typeof asset.id === "string" && typeof asset.name === "string" && asset.kind === "reference") {
+      return { ok: true, data: asset as unknown as CreatorAsset };
+    }
+  }
+  return { ok: false, message: typeof record.message === "string" ? record.message : "The logo could not be uploaded." };
 }

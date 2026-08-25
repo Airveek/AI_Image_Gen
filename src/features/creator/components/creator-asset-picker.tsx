@@ -184,6 +184,7 @@ export function referenceRoleLabel(role: ReferenceRole): string {
     model: "Model",
     character: "Character",
     style: "Style",
+    logo: "Logo",
     reference: "Reference",
   }[role];
 }

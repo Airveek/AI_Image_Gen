@@ -124,7 +124,7 @@ function readReferences(record: UnknownRecord, legacyRole: ReferenceRole): Gener
     const references = record.references.map((item) => {
       const reference = requireRecord(item, "Choose valid reference images.");
       const assetId = readString(reference, "assetId");
-      const role = readEnum(reference, "role", ["product", "model", "character", "style", "reference"]);
+      const role = readEnum(reference, "role", ["product", "model", "character", "style", "logo", "reference"]);
       if (!isUuid(assetId)) {
         throw new Error("Choose valid reference images.");
       }

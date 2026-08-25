@@ -11,6 +11,7 @@ import type { StoreImageMode, StoreSelectionMode } from "@/features/store-images
 
 export async function startStoreImagesAction(input: {
   prompt: string;
+  referenceAssetId: string | null;
   imageMode: StoreImageMode;
   selectionMode: StoreSelectionMode;
   productIds: string[];

@@ -42,6 +42,7 @@ export type ReferenceRole =
   | "model"
   | "character"
   | "style"
+  | "logo"
   | "reference";
 
 export type GenerationReference = {
