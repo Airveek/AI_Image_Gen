@@ -37,6 +37,7 @@ import type {
   ProductCampaignGoal,
   ReferenceRole,
 } from "@/features/creator/types";
+import { studioRecipeIdForScene } from "@/features/creator/quality";
 import { cn } from "@/lib/utils";
 
 type AssetResult = CreatorResult<CreatorAsset>;
@@ -211,7 +212,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
 
   function buildRequest(): GenerationRequest {
     if (arenaId === "product-fashion") {
-      return { arenaId, mode, scene, campaignGoal, backgroundMood, lighting, aspectRatio, extraDirection, references };
+      return { arenaId, mode, scene, campaignGoal, studioRecipeId: studioRecipeIdForScene(scene), backgroundMood, lighting, aspectRatio, extraDirection, references };
     }
     if (arenaId === "image-to-sketch") {
       return { arenaId, aspectRatio: "1:1", prompt: sketchPrompt, references };

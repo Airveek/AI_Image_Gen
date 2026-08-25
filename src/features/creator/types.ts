@@ -66,6 +66,7 @@ export type ProductFashionRequest = {
   mode: ProductFashionMode;
   scene: ProductFashionScene;
   campaignGoal: ProductCampaignGoal;
+  studioRecipeId?: StudioRecipeId;
   backgroundMood: string;
   lighting: LightingOption;
   aspectRatio: ImageAspectRatio;
@@ -99,6 +100,32 @@ export type GenerationRequest =
   | ImageToSketchRequest;
 
 export type GenerationCount = 1 | 2 | 3;
+
+export type ProductProfileSnapshot = {
+  name: string;
+  category: string;
+  material: string;
+  colors: string;
+  identityNotes: string;
+  prohibitedChanges: string;
+};
+
+export type StudioRecipeId = "clean-studio" | "warm-stone" | "editorial-lifestyle";
+
+export type StudioRecipe = {
+  id: StudioRecipeId;
+  label: string;
+  scene: string;
+  composition: string;
+  camera: string;
+  lighting: string;
+  constraints: readonly string[];
+};
+
+export type PromptContext = {
+  productProfile?: ProductProfileSnapshot;
+  studioRecipe?: StudioRecipe;
+};
 export type CreatorBatchStatus = "idle" | "generating" | "completed" | "completed-with-errors";
 export type CreatorBatchItemStatus = "generating" | "ready" | "failed";
 export type CreatorBatchItem = {

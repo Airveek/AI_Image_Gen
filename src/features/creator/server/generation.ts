@@ -3,6 +3,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 
 import { buildGenerationPrompt } from "@/features/creator/prompts";
+import { getStudioRecipe, parseProductProfileSnapshot } from "@/features/creator/quality";
 import { requireCreatorUser } from "@/features/creator/server/authorization";
 import {
   completeGenerationAsset,
@@ -10,6 +11,7 @@ import {
   CreatorServiceError,
   failGenerationAsset,
   getOwnedAssetBytes,
+  getAssetSettingsForUser,
 } from "@/features/creator/server/assets";
 import { getActiveProviderConfiguration } from "@/features/creator/server/integrations";
 import { recordUserEvent, type UserEventProperties } from "@/lib/analytics/user-events";
@@ -24,6 +26,7 @@ import type {
   CreatorResult,
   GenerationRequest,
   AllowedImageMimeType,
+  PromptContext,
   ReferenceRole,
 } from "@/features/creator/types";
 
@@ -47,7 +50,8 @@ export async function generateCreatorImageForUser(
 
   try {
     const configuration = await getActiveProviderConfiguration();
-    const prompt = buildGenerationPrompt(request);
+    const promptContext = await loadPromptContext(request, userId);
+    const prompt = buildGenerationPrompt(request, promptContext);
     asset = await createGenerationAssetForUser({
       userId,
       request,
@@ -117,6 +121,22 @@ export async function generateCreatorImageForUser(
     );
     return result;
   }
+}
+
+async function loadPromptContext(
+  request: GenerationRequest,
+  userId: string,
+): Promise<PromptContext | undefined> {
+  if (request.arenaId !== "product-fashion") return undefined;
+
+  const productReference = request.references.find((reference) => reference.role === "product");
+  const productProfile = productReference
+    ? parseProductProfileSnapshot(await getAssetSettingsForUser(productReference.assetId, userId))
+    : undefined;
+  const studioRecipe = getStudioRecipe(request.studioRecipeId);
+
+  if (!productProfile && !studioRecipe) return undefined;
+  return { productProfile, studioRecipe };
 }
 
 function generationEventProperties(request: GenerationRequest): UserEventProperties {

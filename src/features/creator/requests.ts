@@ -36,11 +36,13 @@ export function parseGenerationRequest(value: unknown): GenerationRequest {
     if (!references.some((reference) => reference.role === "product")) {
       throw new Error("Add a saved product or garment image before generating.");
     }
+    const studioRecipeId = readOptionalEnum(record, "studioRecipeId", ["clean-studio", "warm-stone", "editorial-lifestyle"]);
     return {
       arenaId,
       mode: readEnum(record, "mode", ["product-scene", "on-model", "influencer-lifestyle"]),
       scene: readEnum(record, "scene", ["studio", "lifestyle", "flat-lay", "outdoor", "custom"]),
       campaignGoal: readCampaignGoal(record),
+      ...(studioRecipeId ? { studioRecipeId } : {}),
       backgroundMood: readOptionalText(record, "backgroundMood", 240),
       lighting,
       aspectRatio,
@@ -180,6 +182,12 @@ function readEnum<const T extends string>(record: UnknownRecord, key: string, va
     return value as T;
   }
   throw new Error(`Choose a valid ${humanize(key)}.`);
+}
+
+function readOptionalEnum<const T extends string>(record: UnknownRecord, key: string, values: readonly T[]): T | undefined {
+  const value = record[key];
+  if (value === undefined || value === null || value === "") return undefined;
+  return readEnum(record, key, values);
 }
 
 function requireRecord(value: unknown, message: string): UnknownRecord {

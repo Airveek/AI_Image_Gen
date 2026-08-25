@@ -250,6 +250,7 @@ export function CreatorComposer({
           </>
         ) : (
           <>
+            {arenaId === "product-fashion" ? <p className="px-3 pt-1 text-xs leading-5 text-muted">Use a sharp, well-lit product photo with the full product visible and labels readable.</p> : null}
             <label className="sr-only" htmlFor="creation-prompt">Describe the image you want</label>
             <textarea
               id="creation-prompt"

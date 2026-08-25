@@ -23,6 +23,7 @@ import type {
   GeneratedImage,
   GenerationRequest,
 } from "@/features/creator/types";
+import { createProductProfileSnapshot } from "@/features/creator/quality";
 
 const DEFAULT_DAILY_LIMIT = 5;
 const MAX_LIST_SIZE = 100;
@@ -82,7 +83,7 @@ export async function uploadCreatorAsset(input: {
     name,
     arenaId: null,
     prompt: null,
-    settings: {},
+    settings: input.kind === "product" ? { productProfile: createProductProfileSnapshot(name) } : {},
     sourceAssetIds: [],
     mimeType: image.mimeType,
     providerKind: null,
@@ -220,6 +221,11 @@ export async function getAssetBytesForUser(assetId: string, userId: string): Pro
 }> {
   const row = await getAssetRowForUser(assetId, userId);
   return getAssetBytesForUserRow(row);
+}
+
+export async function getAssetSettingsForUser(assetId: string, userId: string): Promise<unknown> {
+  const row = await getAssetRowForUser(assetId, userId);
+  return row.settings;
 }
 
 async function getAssetBytesForUserRow(row: CreatorAssetRow): Promise<{

@@ -1,11 +1,16 @@
-import type { GenerationRequest, LightingOption } from "@/features/creator/types";
+import type {
+  GenerationRequest,
+  LightingOption,
+  ProductFashionRequest,
+  PromptContext,
+} from "@/features/creator/types";
 
-export function buildGenerationPrompt(request: GenerationRequest): string {
+export function buildGenerationPrompt(request: GenerationRequest, context?: PromptContext): string {
   switch (request.arenaId) {
     case "general-image":
       return buildGeneralImagePrompt(request);
     case "product-fashion":
-      return buildProductFashionPrompt(request);
+      return buildProductFashionPrompt(request, context);
     case "storybook-page":
       return buildStorybookPagePrompt(request);
     case "image-to-sketch":
@@ -34,7 +39,7 @@ function buildGeneralImagePrompt(request: Extract<GenerationRequest, { arenaId: 
   return lines.join("\n");
 }
 
-function buildProductFashionPrompt(request: Extract<GenerationRequest, { arenaId: "product-fashion" }>): string {
+function buildProductFashionPrompt(request: ProductFashionRequest, context?: PromptContext): string {
   const modeDirection = {
     "product-scene": "Create a high-end product photograph where the supplied product is the clear hero.",
     "on-model": "Create a high-end fashion photograph with the supplied garment or product worn naturally by a model.",
@@ -43,12 +48,16 @@ function buildProductFashionPrompt(request: Extract<GenerationRequest, { arenaId
 
   const lines = [
     modeDirection,
+    ...(context?.productProfile ? productIdentityLines(context.productProfile) : []),
+    ...(context?.studioRecipe ? studioRecipeLines(context.studioRecipe) : []),
     `Scene direction: ${request.scene.replace("-", " ")}.`,
     `Campaign goal: ${campaignGoalDirection(request.campaignGoal)}.`,
     `Background and mood: ${request.backgroundMood || "clean, premium, commercially useful"}.`,
     `Lighting: ${lightingDirection(request.lighting)}.`,
     `Composition: ${request.aspectRatio} aspect ratio, realistic perspective, natural shadows, controlled highlights, premium campaign finish.`,
-    "Preserve the exact product shape, proportions, colors, logo, label, material, garment construction, and important identifying details from the references.",
+    context
+      ? "Preserve the exact product shape, proportions, colors, logo, label, material, garment construction, and important identifying details from the references. Keep the product complete, sharp, correctly scaled, and clearly readable."
+      : "Preserve the exact product shape, proportions, colors, logo, label, material, garment construction, and important identifying details from the references.",
     "Do not invent extra logos, alter packaging text, deform the product, replace the selected product, add random text, or add duplicate products unless explicitly requested.",
   ];
 
@@ -58,6 +67,27 @@ function buildProductFashionPrompt(request: Extract<GenerationRequest, { arenaId
 
   lines.push("Return one finished photograph only, without an explanation or contact sheet.");
   return lines.join("\n");
+}
+
+function productIdentityLines(profile: NonNullable<PromptContext["productProfile"]>): string[] {
+  const lines = [`Product identity: use the supplied product reference as the source of truth for “${profile.name}”.`];
+  if (profile.category) lines.push(`Product category: ${profile.category}.`);
+  if (profile.material) lines.push(`Product material: ${profile.material}.`);
+  if (profile.colors) lines.push(`Product colors: ${profile.colors}.`);
+  if (profile.identityNotes) lines.push(`Identity details to preserve: ${profile.identityNotes}.`);
+  if (profile.prohibitedChanges) lines.push(`Never change these identity details: ${profile.prohibitedChanges}.`);
+  return lines;
+}
+
+function studioRecipeLines(recipe: NonNullable<PromptContext["studioRecipe"]>): string[] {
+  return [
+    `Visual recipe: ${recipe.label}.`,
+    `Recipe scene: ${recipe.scene}.`,
+    `Recipe composition: ${recipe.composition}.`,
+    `Recipe camera: ${recipe.camera}.`,
+    `Recipe lighting: ${recipe.lighting}.`,
+    ...recipe.constraints,
+  ];
 }
 
 function campaignGoalDirection(goal: Extract<GenerationRequest, { arenaId: "product-fashion" }>["campaignGoal"]): string {
