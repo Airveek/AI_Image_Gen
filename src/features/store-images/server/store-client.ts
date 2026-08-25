@@ -44,7 +44,13 @@ export async function downloadStoreImage(imageUrl: string): Promise<{
   const url = new URL(imageUrl);
   await assertAllowedStoreHost(url);
 
+  const apiUrl = new URL(requiredEnvironment("APINDEX_STORE_API_URL"));
+  const headers = url.origin === apiUrl.origin && url.pathname.startsWith("/api/artistly/")
+    ? { authorization: `Bearer ${requiredEnvironment("APINDEX_STORE_API_TOKEN")}` }
+    : undefined;
+
   const response = await fetch(url, {
+    headers,
     cache: "no-store",
     signal: AbortSignal.timeout(45_000),
   });
