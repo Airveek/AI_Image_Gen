@@ -7,6 +7,7 @@ import {
   isValidWebhookTimestamp,
   shouldIgnoreEntitlementEvent,
 } from "@/lib/whop/webhooks";
+import { recordUserEvent } from "@/lib/analytics/user-events";
 
 export const runtime = "nodejs";
 
@@ -91,9 +92,23 @@ export async function POST(request: Request): Promise<Response> {
       return new Response("Unable to save entitlement", { status: 500 });
     }
 
+    await recordUserEvent({
+      userId,
+      eventName: event.type === "membership.activated" ? "membership_activated" : "membership_deactivated",
+      properties: { planKey: readPlanKey(membership.plan.id) },
+      externalEventId: event.id,
+      occurredAt: event.timestamp,
+    });
+
     return new Response("OK", { status: 200 });
   } catch (error: unknown) {
     console.error("Invalid Whop webhook.", error);
     return new Response("Invalid webhook", { status: 400 });
   }
+}
+
+function readPlanKey(planId: string): "commercial" | "premium" | undefined {
+  if (planId === process.env.WHOP_PREMIUM_PLAN_ID) return "premium";
+  if (planId === process.env.WHOP_COMMERCIAL_PLAN_ID) return "commercial";
+  return undefined;
 }

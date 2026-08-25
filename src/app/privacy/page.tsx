@@ -21,6 +21,7 @@ const sections: LegalSection[] = [
     paragraphs: [<>We collect information you choose to provide when you create an account, purchase a plan, use the Service, or contact us.</>],
     bullets: [
       <>Account details, such as your name, email address, login information, and profile preferences.</>,
+      <>Optional account profile answers, such as the type of work you do, your main creation goal, industry, and broad target market.</>,
       <>Purchase and transaction details, such as the product selected, billing metadata, receipts, and payment status. Payment providers process full card or account details under their own policies.</>,
       <>Support requests, feedback, survey responses, and other communications you send to Airveek.</>,
       <>Prompts, uploaded images, reference materials, instructions, generated outputs, and related project information submitted when using creative tools.</>,
@@ -33,6 +34,7 @@ const sections: LegalSection[] = [
     bullets: [
       <>IP address, browser type, operating system, device identifiers, language, and approximate location derived from IP.</>,
       <>Pages viewed, referring pages, feature interactions, timestamps, session events, performance data, and error logs.</>,
+      <>Signed-in product activity, such as account creation, successful login, checkout started, paid access changes, and creation outcomes. We use this to understand adoption, improve features, and measure retention.</>,
       <>Security and fraud-prevention signals, including unusual access patterns and failed login activity.</>,
     ],
   },

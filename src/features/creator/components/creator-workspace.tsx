@@ -14,6 +14,8 @@ import {
   referenceRoleLabel,
 } from "@/features/creator/components/creator-asset-picker";
 import { CreatorComposer } from "@/features/creator/components/creator-composer";
+import { CreatorImageViewer } from "@/features/creator/components/creator-image-viewer";
+import { CreatorPackProgress } from "@/features/creator/components/creator-pack-progress";
 import {
   creatorCatalog,
   getCategoryLabel,
@@ -58,6 +60,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
     return reusedAsset ? [{ assetId: reusedAsset.id, role: defaultRoleForAsset(reusedAsset) }] : [];
   });
   const [result, setResult] = useState<CreatorAsset | null>(null);
+  const [viewingAsset, setViewingAsset] = useState<CreatorAsset | null>(null);
   const [message, setMessage] = useState(storageMessage ?? "");
   const [isGenerating, setIsGenerating] = useState(false);
   const [packStatus, setPackStatus] = useState<CreatorPackStatus>("idle");
@@ -100,6 +103,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   const isPackGenerating = packStatus === "generating";
   const isBusy = isGenerating || isPackGenerating;
   const hasPackResults = packShots.some((shot) => shot.asset !== null);
+  const readyResult = result?.imageUrl ? { asset: result, imageUrl: result.imageUrl } : null;
 
   function setMainText(value: string) {
     if (arenaId === "general-image") setSubject(value);
@@ -131,22 +135,33 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   async function handleGeneratePack() {
     if (arenaId !== "product-fashion" || isBusy || !validateForGeneration()) return;
     setPackStatus("generating");
-    setPackShots(createInitialPackShots());
-    setMessage("Keep this page open while Airveek creates your three images.");
+    setPackShots(productPhotoshootRecipes.map((recipe) => ({
+      recipe,
+      status: "generating",
+      asset: null,
+      error: null,
+    })));
+    setMessage("All three images are starting together. Keep this page open while they are created.");
 
-    let hasFailure = false;
-    for (const recipe of productPhotoshootRecipes) {
-      updatePackShot(recipe.shot, { status: "generating", error: null });
+    const jobs = productPhotoshootRecipes.map(async (recipe): Promise<AssetResult> => {
       const parsed = await requestGeneration(buildPackRequest(recipe));
       if (!parsed.ok) {
-        hasFailure = true;
         updatePackShot(recipe.shot, { status: "failed", error: parsed.message });
-        continue;
+        return parsed;
       }
+
       addGeneratedAsset(parsed.data);
       updatePackShot(recipe.shot, { status: "ready", asset: parsed.data, error: null });
-      setMessage(`${recipe.label} image is ready. Creating the next image…`);
-    }
+      return parsed;
+    });
+    const settled = await Promise.allSettled(jobs);
+    settled.forEach((outcome, index) => {
+      if (outcome.status === "rejected") {
+        const reason = outcome.reason instanceof Error ? outcome.reason.message : "The image request failed. Please try again.";
+        updatePackShot(productPhotoshootRecipes[index].shot, { status: "failed", error: reason });
+      }
+    });
+    const hasFailure = settled.some((result) => result.status === "rejected" || (result.status === "fulfilled" && !result.value.ok));
 
     setPackStatus(hasFailure ? "completed-with-errors" : "completed");
     setMessage(hasFailure ? "Some images are ready. Retry any failed shot below." : "Your three-image photoshoot is ready and saved to the library.");
@@ -326,28 +341,32 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
               </Button>
               <div className="pointer-events-none absolute inset-0 opacity-25 [background-image:radial-gradient(circle_at_center,rgba(131,255,0,0.08),transparent_38%)]" aria-hidden="true" />
               {hasPackResults || isPackGenerating ? (
-                <div className="relative w-full max-w-5xl" data-testid="photoshoot-results">
-                  <div className="mb-3 flex items-center justify-between gap-3 text-sm">
-                    <span className="font-semibold text-white">{isPackGenerating ? "Creating your photoshoot" : "Your photoshoot"}</span>
-                    <span className="text-muted">{packShots.filter((shot) => shot.status === "ready").length} of {packShots.length} ready</span>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    {packShots.map((shot) => (
-                      <PhotoshootResultCard key={shot.recipe.shot} shot={shot} onRetry={() => void handleRetryPackShot(shot.recipe.shot)} disabled={isBusy} />
-                    ))}
-                  </div>
-                </div>
+                <CreatorPackProgress shots={packShots} isGenerating={isPackGenerating} onRetry={(shot) => void handleRetryPackShot(shot)} retryDisabled={isBusy} />
               ) : isGenerating ? (
                 <div className="relative max-w-sm text-center" data-testid="generation-loading">
                   <LoaderCircle className="mx-auto h-9 w-9 animate-spin text-brand-neon" aria-hidden="true" />
                   <h2 className="mt-5 font-display text-2xl font-bold">Creating your image</h2>
                   <p className="mt-2 text-base leading-6 text-muted">This can take a minute. Keep this page open.</p>
                 </div>
-              ) : result?.imageUrl ? (
-                <div className="relative h-full min-h-[420px] w-full">
-                  <Image src={result.imageUrl} alt={result.name} fill unoptimized className="object-contain" sizes="(max-width: 1024px) 100vw, calc(100vw - 288px)" priority data-testid="generation-result-image" />
-                  <a href={`${result.imageUrl}?download=1`} className="absolute right-3 top-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/15 bg-black/75 px-4 text-sm font-bold text-white backdrop-blur hover:bg-black" download>
-                    <Download className="h-4 w-4" aria-hidden="true" /> Download
+              ) : readyResult ? (
+                <div className="group relative h-full min-h-[420px] w-full">
+                  <button
+                    type="button"
+                    className="absolute inset-0 block h-full w-full cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-brand-neon"
+                    onClick={() => setViewingAsset(readyResult.asset)}
+                    aria-label={`Open ${readyResult.asset.name}`}
+                    data-testid="generation-result-image"
+                  >
+                    <Image src={readyResult.imageUrl} alt={readyResult.asset.name} fill unoptimized className="object-contain transition-transform duration-300 group-hover:scale-[1.01]" sizes="(max-width: 1024px) 100vw, calc(100vw - 288px)" priority />
+                  </button>
+                  <a
+                    href={`${readyResult.imageUrl}?download=1`}
+                    download
+                    onClick={(event) => event.stopPropagation()}
+                    className="absolute right-3 top-3 z-10 flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 bg-black/75 text-white opacity-0 shadow-lg backdrop-blur transition-opacity hover:bg-black focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-neon group-hover:opacity-100"
+                    aria-label="Download generated image"
+                  >
+                    <Download className="h-5 w-5" aria-hidden="true" />
                   </a>
                 </div>
               ) : (
@@ -408,6 +427,8 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
           </aside>
         </div>
       </form>
+
+      <CreatorImageViewer asset={viewingAsset} onClose={() => setViewingAsset(null)} />
 
       <Dialog open={arenaDialogOpen} onOpenChange={setArenaDialogOpen} title="Choose what to create" description="Your saved assets remain available in every tool.">
         <label className="sr-only" htmlFor="arena-search">Search creation tools</label>
@@ -488,43 +509,6 @@ function createInitialPackShots(): CreatorPackShotState[] {
     asset: null,
     error: null,
   }));
-}
-
-function PhotoshootResultCard({ shot, onRetry, disabled }: {
-  shot: CreatorPackShotState;
-  onRetry: () => void;
-  disabled: boolean;
-}) {
-  return (
-    <article className="overflow-hidden rounded-xl border border-white/12 bg-[#1a1c1a]" data-testid={`photoshoot-shot-${shot.recipe.shot}`}>
-      <div className="relative aspect-square bg-black/20">
-        {shot.asset?.imageUrl ? <Image src={shot.asset.imageUrl} alt={shot.recipe.label} fill unoptimized className="object-contain" sizes="(max-width: 640px) 100vw, 30vw" /> : (
-          <div className="flex h-full items-center justify-center text-center text-xs text-muted">
-            {shot.status === "generating" ? <LoaderCircle className="h-6 w-6 animate-spin text-brand-neon" aria-label="Creating" /> : shot.status === "failed" ? "Could not create this shot" : "Waiting to start"}
-          </div>
-        )}
-      </div>
-      <div className="space-y-1 p-3">
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold text-white">{shot.recipe.label}</h3>
-          <span className="text-xs text-muted">{shot.recipe.purpose}</span>
-        </div>
-        {shot.status === "ready" && shot.asset?.imageUrl ? (
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs text-muted">Saved to your library</span>
-            <a href={`${shot.asset.imageUrl}?download=1`} download className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-muted hover:bg-white/[0.06] hover:text-white">
-              <Download className="h-3.5 w-3.5" aria-hidden="true" /> Download
-            </a>
-          </div>
-        ) : shot.status === "failed" ? (
-          <div className="flex items-center justify-between gap-2">
-            <p className="line-clamp-2 text-xs text-red-200">{shot.error}</p>
-            <Button type="button" variant="secondary" className="min-h-9 px-3 text-xs" onClick={onRetry} disabled={disabled}>Retry</Button>
-          </div>
-        ) : <p className="text-xs text-muted">{shot.status === "ready" ? "Saved to your library" : shot.status === "generating" ? "Creating now…" : "Waiting"}</p>}
-      </div>
-    </article>
-  );
 }
 
 function defaultUploadRole(arenaId: CreatorArenaId): ReferenceRole {

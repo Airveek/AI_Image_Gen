@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { LayoutDashboard, LogOut, Plug, Users } from "lucide-react";
+import { BarChart3, LayoutDashboard, LogOut, Plug, Users } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Sidebar, SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -12,6 +12,7 @@ import { Sidebar, SidebarInset, SidebarProvider, SidebarTrigger } from "@/compon
 const navigation = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/insights", label: "Insights", icon: BarChart3 },
   { href: "/admin/integrations", label: "Integrations", icon: Plug },
 ];
 

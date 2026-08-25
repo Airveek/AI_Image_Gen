@@ -8,6 +8,7 @@ import {
   getWhopPlanId,
 } from "@/lib/whop/client";
 import { isCheckoutRequest } from "@/lib/whop/checkout";
+import { recordUserEvent } from "@/lib/analytics/user-events";
 
 export async function POST(request: NextRequest): Promise<Response> {
   const supabase = await createSupabaseServerClient();
@@ -43,6 +44,12 @@ export async function POST(request: NextRequest): Promise<Response> {
     if (!checkout.purchase_url) {
       throw new Error("Whop did not return a checkout URL.");
     }
+
+    await recordUserEvent({
+      userId: user.id,
+      eventName: "checkout_started",
+      properties: { planKey: requestBody.plan },
+    });
 
     return NextResponse.json({ purchaseUrl: checkout.purchase_url });
   } catch (error: unknown) {

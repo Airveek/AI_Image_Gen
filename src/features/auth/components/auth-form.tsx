@@ -9,12 +9,14 @@ import {
   initialAuthActionState,
   type AuthAction,
 } from "@/features/auth/types";
+import type { FirstTouchAttribution } from "@/features/account/types";
 
 type AuthFormProps = {
   mode: "login" | "register";
   action: AuthAction;
   nextPath?: string;
   initialMessage?: string;
+  attribution?: FirstTouchAttribution;
 };
 
 export function AuthForm({
@@ -22,6 +24,7 @@ export function AuthForm({
   action,
   nextPath = "/dashboard",
   initialMessage = "",
+  attribution,
 }: AuthFormProps) {
   const [state, formAction, pending] = useActionState(action, {
     ...initialAuthActionState,
@@ -45,6 +48,13 @@ export function AuthForm({
 
       <form action={formAction} className="mt-7 space-y-5">
         <input type="hidden" name="next" value={nextPath} />
+        {isRegister && attribution ? (
+          <>
+            <input type="hidden" name="firstTouchSource" value={attribution.source} />
+            <input type="hidden" name="firstTouchMedium" value={attribution.medium} />
+            <input type="hidden" name="firstTouchCampaign" value={attribution.campaign} />
+          </>
+        ) : null}
         {isRegister ? (
           <div className="space-y-2">
             <label className="text-sm font-semibold text-brand-white" htmlFor="display-name">

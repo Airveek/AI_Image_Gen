@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Search, Sparkles, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { UserProfileForm } from "@/features/account/components/user-profile-form";
+import type { UserProfile } from "@/features/account/types";
 import {
   creatorCatalog,
   creatorCategories,
@@ -19,10 +21,12 @@ export function CreatorDashboard({
   recent,
   storageMessage,
   access,
+  profile,
 }: {
   recent: CreatorAsset[];
   storageMessage: string | null;
   access: CreatorAccessSummary;
+  profile: UserProfile | null;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -74,6 +78,8 @@ export function CreatorDashboard({
             : "Complete checkout to update your Airveek access status."}
         </p>
       </section>
+
+      {!profile?.completedAt ? <section className="mt-8"><UserProfileForm profile={profile} /></section> : null}
 
       <section className="mt-9" aria-label="Find a creation tool">
         <label className="sr-only" htmlFor="creator-search">Search creation tools</label>

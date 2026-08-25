@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 import { getPathWithNext, getSafeRedirectPath } from "@/lib/auth/redirect-path";
+import { sanitizeUserEventProperties } from "@/lib/analytics/event-types";
+import { isPrimaryGoal, isUserType } from "@/features/account/types";
 import { isCheckoutRequest, isCheckoutResponse } from "@/lib/whop/checkout";
 import { isPlanKey } from "@/lib/whop/types";
 import {
@@ -57,4 +59,21 @@ test("ignores duplicate and older entitlement events", () => {
   expect(shouldIgnoreEntitlementEvent(existing, "evt_2", currentEventTime - 1)).toBe(true);
   expect(shouldIgnoreEntitlementEvent(existing, "evt_2", currentEventTime + 1)).toBe(false);
   expect(shouldIgnoreEntitlementEvent(null, "evt_1", currentEventTime)).toBe(false);
+});
+
+test("keeps user profile and event data limited to approved values", () => {
+  expect(isUserType("designer")).toBe(true);
+  expect(isUserType("admin")).toBe(false);
+  expect(isPrimaryGoal("product-photos")).toBe(true);
+  expect(isPrimaryGoal("private-data")).toBe(false);
+
+  expect(sanitizeUserEventProperties({
+    arenaId: "general-image",
+    referenceCount: 2,
+    errorCode: "provider_timeout",
+  })).toEqual({
+    arenaId: "general-image",
+    referenceCount: 2,
+    errorCode: "provider_timeout",
+  });
 });

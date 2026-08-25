@@ -52,6 +52,13 @@ test("sends Product then Model in the selected order from the compact composer",
   await page.getByTestId("generate-button").click();
   await expect(page.getByTestId("generation-result-image")).toBeVisible();
 
+  await page.getByTestId("generation-result-image").click();
+  const imageViewer = page.locator("dialog[open]");
+  await expect(imageViewer.getByRole("link", { name: "Download" })).toBeVisible();
+  await expect(imageViewer.getByRole("button", { name: "Close", exact: true })).toBeVisible();
+  await imageViewer.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(page.locator("dialog[open]")).toHaveCount(0);
+
   expect(generationBody).toMatchObject({
     arenaId: "product-fashion",
     lighting: "auto",
@@ -94,11 +101,31 @@ test("keeps a Style image distinct in the generation request", async ({ page }) 
 test("creates a fixed three-image photoshoot and retries only a failed shot", async ({ page }) => {
   const generationBodies: unknown[] = [];
   let generationCount = 0;
+  let inFlight = 0;
+  let maxInFlight = 0;
+  let releaseAllRequests: () => void = () => undefined;
+  const allRequestsSeen = new Promise<void>((resolve) => { releaseAllRequests = resolve; });
+  const responseGates = new Map<string, Promise<void>>();
+  const responseReleases = new Map<string, () => void>();
+  for (const mode of ["influencer-lifestyle", "on-model"]) {
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    responseGates.set(mode, gate);
+    responseReleases.set(mode, release);
+  }
 
   await page.route("**/api/creator/generate", async (route) => {
+    inFlight += 1;
+    maxInFlight = Math.max(maxInFlight, inFlight);
     generationCount += 1;
-    generationBodies.push(route.request().postDataJSON() as unknown);
-    if (generationCount === 2) {
+    const body = route.request().postDataJSON() as { mode?: string };
+    generationBodies.push(body);
+    if (generationBodies.length === 3) releaseAllRequests();
+    await allRequestsSeen;
+    if (body.mode && responseGates.has(body.mode)) await responseGates.get(body.mode);
+    inFlight -= 1;
+
+    if (body.mode === "influencer-lifestyle" && generationCount <= 3) {
       await route.fulfill({
         status: 503,
         contentType: "application/json",
@@ -126,39 +153,58 @@ test("creates a fixed three-image photoshoot and retries only a failed shot", as
   await page.getByRole("button", { name: /^Use .* as Product$/ }).first().click();
   await expect(page.getByTestId("creator-composer").getByText("Product", { exact: true })).toBeVisible();
   await page.getByTestId("photoshoot-pack-button").click();
+  await expect(page.getByTestId("photoshoot-pack-button")).toBeDisabled();
+  await expect.poll(() => generationBodies.length).toBe(3);
+  expect(maxInFlight).toBe(3);
 
-  await expect(page.getByTestId("photoshoot-shot-hero")).toContainText("Saved to your library");
+  const heroShot = page.getByTestId("photoshoot-shot-hero");
+  await expect(heroShot.getByRole("button", { name: "Open Hero image" })).toBeVisible();
+  await expect(heroShot).not.toContainText("Store listing");
+  await expect(heroShot).not.toContainText("Saved to your library");
+  await heroShot.hover();
+  await expect(heroShot.getByRole("link", { name: "Download Hero image" })).toBeVisible();
+  await heroShot.getByRole("button", { name: "Open Hero image" }).click();
+  const packImageViewer = page.locator("dialog[open]");
+  await expect(packImageViewer.getByRole("link", { name: "Download" })).toBeVisible();
+  await expect(packImageViewer.getByRole("button", { name: "Close", exact: true })).toBeVisible();
+  await packImageViewer.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(page.locator("dialog[open]")).toHaveCount(0);
+  await expect(page.getByTestId("photoshoot-progress-status")).toContainText("1 of 3 ready");
+  responseReleases.get("influencer-lifestyle")?.();
+  responseReleases.get("on-model")?.();
   await expect(page.getByTestId("photoshoot-shot-lifestyle")).toContainText("temporarily unavailable");
-  await expect(page.getByTestId("photoshoot-shot-on-model")).toContainText("Saved to your library");
+  await expect(page.getByTestId("photoshoot-shot-on-model").getByRole("button", { name: "Open On-model image" })).toBeVisible();
   expect(generationBodies).toHaveLength(3);
-  expect(generationBodies[0]).toMatchObject({
-    mode: "product-scene",
-    scene: "studio",
-    campaignGoal: "store-listing",
-    lighting: "studio-softbox",
-    aspectRatio: "1:1",
-    references: [{ role: "product" }],
-  });
-  expect(generationBodies[1]).toMatchObject({
-    mode: "influencer-lifestyle",
-    scene: "lifestyle",
-    campaignGoal: "social-post",
-    lighting: "soft-daylight",
-    aspectRatio: "4:5",
-  });
-  const firstReferences = (generationBodies[0] as { references: unknown[] }).references;
-  expect((generationBodies[1] as { references: unknown[] }).references).toEqual(firstReferences);
-  expect((generationBodies[2] as { references: unknown[] }).references).toEqual(firstReferences);
-  expect(generationBodies[2]).toMatchObject({
-    mode: "on-model",
-    scene: "lifestyle",
-    campaignGoal: "lookbook",
-    lighting: "soft-daylight",
-    aspectRatio: "4:5",
-  });
+  expect(generationBodies).toEqual(expect.arrayContaining([
+    expect.objectContaining({
+      mode: "product-scene",
+      scene: "studio",
+      campaignGoal: "store-listing",
+      lighting: "studio-softbox",
+      aspectRatio: "1:1",
+      references: expect.arrayContaining([expect.objectContaining({ role: "product" })]),
+    }),
+    expect.objectContaining({
+      mode: "influencer-lifestyle",
+      scene: "lifestyle",
+      campaignGoal: "social-post",
+      lighting: "soft-daylight",
+      aspectRatio: "4:5",
+    }),
+    expect.objectContaining({
+      mode: "on-model",
+      scene: "lifestyle",
+      campaignGoal: "lookbook",
+      lighting: "soft-daylight",
+      aspectRatio: "4:5",
+    }),
+  ]));
+  const referencePayloads = generationBodies.map((body) => (body as { references: unknown[] }).references);
+  expect(referencePayloads[1]).toEqual(referencePayloads[0]);
+  expect(referencePayloads[2]).toEqual(referencePayloads[0]);
 
   await page.getByTestId("photoshoot-shot-lifestyle").getByRole("button", { name: "Retry" }).click();
-  await expect(page.getByTestId("photoshoot-shot-lifestyle")).toContainText("Saved to your library");
+  await expect(page.getByTestId("photoshoot-shot-lifestyle").getByRole("button", { name: "Open Lifestyle image" })).toBeVisible();
   expect(generationBodies).toHaveLength(4);
   expect(generationBodies[3]).toMatchObject({ mode: "influencer-lifestyle", campaignGoal: "social-post" });
 });

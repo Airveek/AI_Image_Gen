@@ -4,15 +4,18 @@ import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { X } from "lucide-react";
 
+import { cn } from "@/lib/utils";
+
 type DialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   description?: string;
+  className?: string;
   children: ReactNode;
 };
 
-export function Dialog({ open, onOpenChange, title, description, children }: DialogProps) {
+export function Dialog({ open, onOpenChange, title, description, className, children }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -34,7 +37,7 @@ export function Dialog({ open, onOpenChange, title, description, children }: Dia
   return (
     <dialog
       ref={dialogRef}
-      className="fixed left-1/2 top-1/2 m-0 max-h-[min(90vh,48rem)] w-[min(92vw,32rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-white/10 bg-brand-panel p-0 text-brand-white shadow-2xl backdrop:bg-black/70"
+      className={cn("fixed left-1/2 top-1/2 m-0 max-h-[min(90vh,48rem)] w-[min(92vw,32rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-white/10 bg-brand-panel p-0 text-brand-white shadow-2xl backdrop:bg-black/70", className)}
       onCancel={(event) => {
         event.preventDefault();
         onOpenChange(false);

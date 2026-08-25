@@ -136,11 +136,22 @@ export function CreatorLibrary({
       {visibleAssets.length > 0 ? (
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {visibleAssets.map((asset) => (
-            <article key={asset.id} className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+            <article key={asset.id} className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
               <button type="button" onClick={() => setSelected(asset)} className="group relative block aspect-square w-full overflow-hidden bg-brand-panel text-left" aria-label={`View ${asset.name}`}>
                 {asset.imageUrl ? <Image src={asset.imageUrl} alt={asset.name} fill unoptimized className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" sizes="(max-width: 640px) 50vw, 20vw" /> : <ImageIcon className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />}
                 {asset.status !== "ready" ? <Badge className="absolute left-2 top-2" variant={asset.status === "failed" ? "danger" : "warning"}>{asset.status}</Badge> : null}
               </button>
+              {asset.kind === "generation" && asset.imageUrl ? (
+                <a
+                  href={`${asset.imageUrl}?download=1`}
+                  download
+                  onClick={(event) => event.stopPropagation()}
+                  className="absolute right-3 top-3 z-10 flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 bg-black/75 text-white opacity-0 shadow-lg backdrop-blur transition-opacity hover:bg-black focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-neon group-hover:opacity-100"
+                  aria-label={`Download ${asset.name}`}
+                >
+                  <Download className="h-5 w-5" aria-hidden="true" />
+                </a>
+              ) : null}
               <div className="p-3">
                 <p className="truncate text-sm font-semibold">{asset.name}</p>
                 <div className="mt-1 flex items-center justify-between gap-2">
@@ -168,9 +179,10 @@ export function CreatorLibrary({
             <div className="relative aspect-square overflow-hidden rounded-xl bg-black/30">
               {selected.imageUrl ? <Image src={selected.imageUrl} alt={selected.name} fill unoptimized className="object-contain" sizes="500px" /> : null}
             </div>
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
               {selected.imageUrl ? <a href={`${selected.imageUrl}?download=1`} download className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-4 text-sm font-semibold hover:border-brand-neon/40"><Download className="h-4 w-4" aria-hidden="true" /> Download</a> : null}
               <Link href={`/create/${reuseArena(selected)}?asset=${selected.id}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-neon px-4 text-sm font-bold text-black hover:bg-brand-soft"><RefreshCw className="h-4 w-4" aria-hidden="true" /> Reuse</Link>
+              <Button type="button" variant="secondary" onClick={() => setSelected(null)}>Close</Button>
             </div>
           </div>
         ) : null}

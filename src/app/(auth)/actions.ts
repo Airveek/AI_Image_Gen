@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import type { AuthActionState } from "@/features/auth/types";
 import { getSafeRedirectPath } from "@/lib/auth/redirect-path";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { recordUserEvent } from "@/lib/analytics/user-events";
+import { saveInitialAttribution } from "@/features/account/server/profile";
 
 export async function signInAction(
   _previousState: AuthActionState,
@@ -18,10 +20,14 @@ export async function signInAction(
   }
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     return { ok: false, message: "The email or password is incorrect." };
+  }
+
+  if (data.user) {
+    await recordUserEvent({ userId: data.user.id, eventName: "login_succeeded" });
   }
 
   redirect(getSafeRedirectPath(readField(formData, "next")));
@@ -59,6 +65,15 @@ export async function registerAction(
     return { ok: false, message: error.message };
   }
 
+  if (data.user) {
+    await recordUserEvent({ userId: data.user.id, eventName: "account_created" });
+    await saveInitialAttribution(data.user.id, {
+      source: readLimitedField(formData, "firstTouchSource", 120),
+      medium: readLimitedField(formData, "firstTouchMedium", 120),
+      campaign: readLimitedField(formData, "firstTouchCampaign", 160),
+    });
+  }
+
   if (data.session) {
     redirect(nextPath);
   }
@@ -72,6 +87,10 @@ export async function registerAction(
 function readField(formData: FormData, name: string): string {
   const value = formData.get(name);
   return typeof value === "string" ? value.trim() : "";
+}
+
+function readLimitedField(formData: FormData, name: string, maxLength: number): string {
+  return readField(formData, name).replace(/[^a-zA-Z0-9 _./-]/g, "").slice(0, maxLength);
 }
 
 function getSiteUrl(): string {

@@ -27,6 +27,14 @@ type GenerationUsage = {
   lastGenerationAt: string | null;
 };
 
+type UserInsightMetadata = {
+  paidPlan: string | null;
+  paidStatus: string | null;
+  userType: string | null;
+  primaryGoal: string | null;
+  acquisitionSource: string | null;
+};
+
 type GenerationUsageRow = {
   user_id: string;
   status: string;
@@ -122,7 +130,7 @@ export async function deleteAdminUser(userId: string): Promise<void> {
   }
 }
 
-async function listAllUsers(): Promise<User[]> {
+export async function listAllUsers(): Promise<User[]> {
   const adminClient = createSupabaseAdminClient();
   const users: User[] = [];
 
@@ -170,14 +178,20 @@ function mapSupabaseUser(user: User): AdminUser {
     generationRequests: 0,
     failedGenerations: 0,
     lastGenerationAt: null,
+    paidPlan: null,
+    paidStatus: null,
+    userType: null,
+    primaryGoal: null,
+    acquisitionSource: null,
   };
 }
 
 async function listUsersWithGenerationUsage(): Promise<AdminUser[]> {
-  const [users, usage] = await Promise.all([listAllUsers(), listGenerationUsage()]);
+  const [users, usage, metadata] = await Promise.all([listAllUsers(), listGenerationUsage(), listUserInsightMetadata()]);
   return users.map((user) => {
     const mapped = mapSupabaseUser(user);
     const userUsage = usage.get(user.id);
+    const userMetadata = metadata.get(user.id);
     return userUsage
       ? {
           ...mapped,
@@ -185,9 +199,64 @@ async function listUsersWithGenerationUsage(): Promise<AdminUser[]> {
           generationRequests: userUsage.total,
           failedGenerations: userUsage.failed,
           lastGenerationAt: userUsage.lastGenerationAt,
+          ...(userMetadata ?? {}),
         }
-      : mapped;
+      : { ...mapped, ...(userMetadata ?? {}) };
   });
+}
+
+async function listUserInsightMetadata(): Promise<Map<string, UserInsightMetadata>> {
+  try {
+    const adminClient = createSupabaseAdminClient();
+    const [{ data: profiles, error: profilesError }, { data: entitlements, error: entitlementsError }] = await Promise.all([
+      adminClient.from("user_profiles").select("user_id,user_type,primary_goal,first_touch_source"),
+      adminClient.from("whop_entitlements").select("user_id,whop_plan_id,status,updated_at").order("updated_at", { ascending: false }),
+    ]);
+
+    if (profilesError || entitlementsError) return new Map();
+
+    const metadata = new Map<string, UserInsightMetadata>();
+    for (const row of profiles ?? []) {
+      const profile = row as {
+        user_id: string;
+        user_type: string | null;
+        primary_goal: string | null;
+        first_touch_source: string | null;
+      };
+      metadata.set(profile.user_id, {
+        paidPlan: null,
+        paidStatus: null,
+        userType: profile.user_type,
+        primaryGoal: profile.primary_goal,
+        acquisitionSource: profile.first_touch_source,
+      });
+    }
+
+    for (const row of entitlements ?? []) {
+      const entitlement = row as {
+        user_id: string;
+        whop_plan_id: string;
+        status: string;
+        updated_at: string;
+      };
+      const current = metadata.get(entitlement.user_id) ?? {
+        paidPlan: null,
+        paidStatus: null,
+        userType: null,
+        primaryGoal: null,
+        acquisitionSource: null,
+      };
+      if (!current.paidStatus) {
+        current.paidPlan = planLabel(entitlement.whop_plan_id);
+        current.paidStatus = entitlement.status;
+        metadata.set(entitlement.user_id, current);
+      }
+    }
+
+    return metadata;
+  } catch {
+    return new Map();
+  }
 }
 
 async function listGenerationUsage(): Promise<Map<string, GenerationUsage>> {
@@ -244,4 +313,10 @@ function toMetadata(value: unknown): Metadata {
 function readString(metadata: Metadata, key: string): string | undefined {
   const value = metadata[key];
   return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
+function planLabel(planId: string): string {
+  if (planId === process.env.WHOP_PREMIUM_PLAN_ID) return "Premium";
+  if (planId === process.env.WHOP_COMMERCIAL_PLAN_ID) return "Commercial";
+  return "Paid plan";
 }

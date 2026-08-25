@@ -149,6 +149,11 @@ function UserDetails({ user }: { user: AdminUser }) {
       <Detail label="All generation requests" value={String(user.generationRequests)} />
       <Detail label="Failed generations" value={String(user.failedGenerations)} />
       <Detail label="Last generation" value={user.lastGenerationAt ? formatDateTime(user.lastGenerationAt) : "Never"} />
+      <Detail label="Paid plan" value={user.paidPlan ?? "None"} />
+      <Detail label="Paid status" value={user.paidStatus ?? "Not paid"} />
+      <Detail label="User type" value={user.userType ?? "Not provided"} />
+      <Detail label="Primary goal" value={user.primaryGoal ?? "Not provided"} />
+      <Detail label="Acquisition source" value={user.acquisitionSource ?? "Not provided"} />
       <Detail className="sm:col-span-2" label="User ID" value={user.id} />
     </dl>
   );
