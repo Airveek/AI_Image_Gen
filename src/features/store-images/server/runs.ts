@@ -13,6 +13,7 @@ import type {
   StoreBulkRunStatus,
   StoreImageMode,
   StoreItemRetryResult,
+  StorePublishStartResult,
   StoreRunStartResult,
   StoreSelectionMode,
 } from "@/features/store-images/types";
@@ -179,7 +180,7 @@ export async function getLatestStoreBulkRun(): Promise<StoreBulkRun | null> {
   return data ? getStoreBulkRunForUser(String(data.id), user.id) : null;
 }
 
-export async function requestStoreItemPublish(itemId: string): Promise<void> {
+export async function requestStoreItemPublish(itemId: string): Promise<StorePublishStartResult> {
   const user = await requireCreatorUser();
   const item = await getItemForUser(itemId, user.id);
   if (!item || item.status !== "ready") throw new Error("This generated image is not ready to publish.");
@@ -192,15 +193,12 @@ export async function requestStoreItemPublish(itemId: string): Promise<void> {
   });
   if (claimedItems.length === 0) throw new Error("This generated image is no longer ready to publish.");
 
-  try {
-    await inngest.send({
-      name: "store/item.publish.requested",
-      data: { itemId, runId: item.run_id, userId: user.id },
-    });
-  } catch (error) {
-    await restorePublishingItems({ itemIds: [item.id], runId: item.run_id, userId: user.id, status: "ready" });
-    throw error;
-  }
+  return dispatchStorePublishes({
+    items: claimedItems,
+    runId: item.run_id,
+    userId: user.id,
+    restoreStatus: "ready",
+  });
 }
 
 export async function requestStoreItemRetry(itemId: string): Promise<StoreItemRetryResult> {
@@ -220,16 +218,17 @@ export async function requestStoreItemRetry(itemId: string): Promise<StoreItemRe
       expectedStatus: "failed",
     });
     if (claimedItems.length === 0) throw new Error("This image is no longer ready to retry.");
-    try {
-      await inngest.send({
-        name: "store/item.publish.requested",
-        data: { itemId, runId: item.run_id, userId: user.id },
-      });
-    } catch (error) {
-      await restorePublishingItems({ itemIds: [item.id], runId: item.run_id, userId: user.id, status: "failed" });
-      throw error;
-    }
-    return { executionMode: "publishing" };
+    const result = await dispatchStorePublishes({
+      items: claimedItems,
+      runId: item.run_id,
+      userId: user.id,
+      restoreStatus: "failed",
+    });
+    return {
+      executionMode: result.executionMode,
+      operation: "publishing",
+      failedCount: result.failedCount,
+    };
   }
 
   const { error: sourceImageError } = await createSupabaseAdminClient()
@@ -241,7 +240,7 @@ export async function requestStoreItemRetry(itemId: string): Promise<StoreItemRe
 
   if ((run?.total_count ?? 0) < SMALL_RUN_LIMIT) {
     await setItemStatus({ itemId, userId: user.id, status: "queued", errorMessage: null });
-    return { executionMode: "direct" };
+    return { executionMode: "direct", operation: "generation", failedCount: 0 };
   }
 
   await setItemStatus({ itemId, userId: user.id, status: "queued", errorMessage: null });
@@ -249,14 +248,14 @@ export async function requestStoreItemRetry(itemId: string): Promise<StoreItemRe
     name: "store/item.requested",
     data: { itemId, runId: item.run_id, userId: user.id },
   });
-  return { executionMode: "queued" };
+  return { executionMode: "queued", operation: "generation", failedCount: 0 };
 }
 
-export async function requestStoreRunPublish(runId: string): Promise<void> {
+export async function requestStoreRunPublish(runId: string): Promise<StorePublishStartResult> {
   const user = await requireCreatorUser();
   const items = await listItemsForRun(runId, user.id);
   const readyItemIds = items.filter((item) => item.status === "ready").map((item) => item.id);
-  if (readyItemIds.length === 0) return;
+  if (readyItemIds.length === 0) return { executionMode: "direct", requestedCount: 0, failedCount: 0 };
 
   const claimedItems = await markItemsForPublishing({
     itemIds: readyItemIds,
@@ -264,23 +263,13 @@ export async function requestStoreRunPublish(runId: string): Promise<void> {
     userId: user.id,
     expectedStatus: "ready",
   });
-  const events = claimedItems
-    .map((item) => ({
-      name: "store/item.publish.requested" as const,
-      data: { itemId: item.id, runId, userId: user.id },
-    }));
 
-  try {
-    if (events.length > 0) await inngest.send(events);
-  } catch (error) {
-    await restorePublishingItems({
-      itemIds: claimedItems.map((item) => item.id),
-      runId,
-      userId: user.id,
-      status: "ready",
-    });
-    throw error;
-  }
+  return dispatchStorePublishes({
+    items: claimedItems,
+    runId,
+    userId: user.id,
+    restoreStatus: "ready",
+  });
 }
 
 export async function cancelStoreRun(runId: string): Promise<void> {
@@ -386,7 +375,11 @@ export async function setItemStatus(input: {
   await refreshRunProgress(existingItem.run_id, input.userId);
 }
 
-export async function publishStoreItemForWorker(itemId: string, userId: string): Promise<void> {
+export async function publishStoreItemForWorker(
+  itemId: string,
+  userId: string,
+  options: { markFailedOnError?: boolean } = {},
+): Promise<void> {
   const item = await getItemForWorker(itemId, userId);
   if (!item || item.status === "published" || item.status === "cancelled") return;
   if (!item.generated_asset_id || !item.source_image_version) throw new Error("This item has no publishable generated image.");
@@ -409,15 +402,28 @@ export async function publishStoreItemForWorker(itemId: string, userId: string):
     });
     await setItemStatus({ itemId, userId, status: "published", publishedImageUrl: published.imageUrl, errorMessage: null });
   } catch (error) {
-    const latestRun = await getRunForWorker(item.run_id, userId);
-    await setItemStatus({
-      itemId,
-      userId,
-      status: latestRun?.status === "cancelled" ? "cancelled" : "failed",
-      errorMessage: latestRun?.status === "cancelled" ? "Run cancelled during publishing." : error instanceof Error ? error.message : "Publishing failed.",
-    });
+    if (options.markFailedOnError !== false) {
+      await markStoreItemPublishFailed(
+        itemId,
+        userId,
+        error instanceof Error ? error.message : "Publishing failed.",
+      );
+    }
     throw error;
   }
+}
+
+export async function markStoreItemPublishFailed(itemId: string, userId: string, message: string): Promise<void> {
+  const item = await getItemForWorker(itemId, userId);
+  if (!item || item.status === "published" || item.status === "cancelled") return;
+
+  const run = await getRunForWorker(item.run_id, userId);
+  await setItemStatus({
+    itemId,
+    userId,
+    status: run?.status === "cancelled" ? "cancelled" : "failed",
+    errorMessage: run?.status === "cancelled" ? "Run cancelled during publishing." : message.slice(0, 600),
+  });
 }
 
 async function getStoreBulkRunForUser(runId: string, userId: string): Promise<StoreBulkRun | null> {
@@ -662,6 +668,52 @@ async function restorePublishingItems(input: {
     .eq("status", "publishing");
   if (error) throw new Error(error.message);
   await refreshRunProgress(input.runId, input.userId);
+}
+
+async function dispatchStorePublishes(input: {
+  items: ItemRow[];
+  runId: string;
+  userId: string;
+  restoreStatus: "ready" | "failed";
+}): Promise<StorePublishStartResult> {
+  if (input.items.length === 0) {
+    return { executionMode: "direct", requestedCount: 0, failedCount: 0 };
+  }
+
+  if (input.items.length < SMALL_RUN_LIMIT) {
+    const results = await Promise.allSettled(
+      input.items.map((item) => publishStoreItemForWorker(item.id, input.userId)),
+    );
+    await refreshRunProgress(input.runId, input.userId);
+    return {
+      executionMode: "direct",
+      requestedCount: input.items.length,
+      failedCount: results.filter((result) => result.status === "rejected").length,
+    };
+  }
+
+  const events = input.items.map((item) => {
+    const updatedAt = Date.parse(item.updated_at);
+    return {
+      id: `store-publish-${item.id}-${Number.isFinite(updatedAt) ? updatedAt : item.id}`,
+      name: "store/item.publish.requested" as const,
+      data: { itemId: item.id, runId: input.runId, userId: input.userId },
+    };
+  });
+
+  try {
+    await inngest.send(events);
+  } catch (error) {
+    await restorePublishingItems({
+      itemIds: input.items.map((item) => item.id),
+      runId: input.runId,
+      userId: input.userId,
+      status: input.restoreStatus,
+    });
+    throw error;
+  }
+
+  return { executionMode: "queued", requestedCount: input.items.length, failedCount: 0 };
 }
 
 function mapItem(item: ItemRow): StoreBulkItem {

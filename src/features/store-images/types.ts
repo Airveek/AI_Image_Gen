@@ -2,13 +2,21 @@ export type StoreImageMode = "replace-primary" | "keep-both" | "replace-all";
 export type StoreSelectionMode = "selected" | "all";
 export type StoreRunExecutionMode = "direct" | "queued";
 
+export type StorePublishStartResult = {
+  executionMode: StoreRunExecutionMode;
+  requestedCount: number;
+  failedCount: number;
+};
+
 export type StoreRunStartResult = {
   runId: string;
   executionMode: StoreRunExecutionMode;
 };
 
 export type StoreItemRetryResult = {
-  executionMode: StoreRunExecutionMode | "publishing";
+  executionMode: StoreRunExecutionMode;
+  operation: "generation" | "publishing";
+  failedCount: number;
 };
 export type StoreBulkRunStatus =
   | "queued"

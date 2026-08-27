@@ -304,10 +304,18 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, initialLogoA
     setRunItemsStatus(itemIds, "publishing");
     setNotice({ tone: "info", text: `Publishing ${itemIds.length} image${itemIds.length === 1 ? "" : "s"} to Apindex…` });
     try {
-      await publishStoreRunAction(run.id);
+      const result = await publishStoreRunAction(run.id);
       await loadRun(run.id);
+      if (result.executionMode === "direct") {
+        setNotice(result.failedCount > 0
+          ? { tone: "error", text: `${result.failedCount} image${result.failedCount === 1 ? "" : "s"} could not be published. Review the item error and retry.` }
+          : { tone: "success", text: `${result.requestedCount} image${result.requestedCount === 1 ? "" : "s"} published to Apindex.` });
+      } else {
+        setNotice({ tone: "info", text: `${result.requestedCount} images are publishing to Apindex in the background.` });
+      }
     } catch (error) {
       setRunItemsStatus(itemIds, "ready");
+      await loadRun(run.id).catch(() => undefined);
       setNotice({ tone: "error", text: error instanceof Error ? error.message : "Publishing could not be started." });
     } finally {
       setIsPublishingAll(false);
@@ -320,10 +328,16 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, initialLogoA
     setRunItemsStatus([item.id], "publishing");
     setNotice({ tone: "info", text: `${item.productName} is publishing to Apindex…` });
     try {
-      await publishStoreItemAction(item.id);
+      const result = await publishStoreItemAction(item.id);
       if (run) await loadRun(run.id);
+      setNotice(result.failedCount > 0
+        ? { tone: "error", text: `${item.productName} could not be published. Review the item error and retry.` }
+        : result.executionMode === "direct"
+          ? { tone: "success", text: `${item.productName} was published to Apindex.` }
+          : { tone: "info", text: `${item.productName} is publishing to Apindex in the background.` });
     } catch (error) {
       setRunItemsStatus([item.id], "ready");
+      if (run) await loadRun(run.id).catch(() => undefined);
       setNotice({ tone: "error", text: error instanceof Error ? error.message : "This image could not be published." });
     } finally {
       setItemPending(item.id, false);
@@ -341,10 +355,20 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, initialLogoA
     });
     try {
       const result = await retryStoreItemAction(item.id);
-      if (result.executionMode === "direct" && run) queueDirectExecution(run.id);
+      if (result.operation === "generation" && result.executionMode === "direct" && run) {
+        queueDirectExecution(run.id);
+      }
       if (run) await loadRun(run.id);
+      if (result.operation === "publishing") {
+        setNotice(result.failedCount > 0
+          ? { tone: "error", text: `${item.productName} still could not be published. Review the updated error below.` }
+          : result.executionMode === "direct"
+            ? { tone: "success", text: `${item.productName} was published to Apindex.` }
+            : { tone: "info", text: `${item.productName} is retrying publication in the background.` });
+      }
     } catch (error) {
       setRunItemsStatus([item.id], "failed");
+      if (run) await loadRun(run.id).catch(() => undefined);
       setNotice({ tone: "error", text: error instanceof Error ? error.message : "This item could not be retried." });
     } finally {
       setItemPending(item.id, false);

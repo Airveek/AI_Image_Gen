@@ -1,15 +1,19 @@
 import "server-only";
 
+import { NonRetriableError } from "inngest";
+
 import { inngest } from "@/features/store-images/server/inngest-client";
 import {
   createRunItems,
   getItemForWorker,
   getRunForWorker,
   loadRunProducts,
+  markStoreItemPublishFailed,
   publishStoreItemForWorker,
   setItemStatus,
   setRunStatus,
 } from "@/features/store-images/server/runs";
+import { isPermanentStoreClientError } from "@/features/store-images/server/store-client";
 import { generateStoreProductImage } from "@/features/store-images/server/store-generation";
 
 type RunEvent = { runId: string; userId: string };
@@ -141,20 +145,36 @@ export const publishStoreItem = inngest.createFunction(
     id: "store-images-publish-item",
     triggers: [{ event: "store/item.publish.requested" }],
     retries: 3,
-    concurrency: { limit: 3 },
+    concurrency: { limit: 10 },
     onFailure: async ({ event, step }) => {
       const payload = event.data.event.data as unknown as ItemEvent;
-      await step.run("mark-publish-failed", () => setItemStatus({
-        itemId: payload.itemId,
-        userId: payload.userId,
-        status: "failed",
-        errorMessage: "Publishing failed after several retries.",
-      }));
+      await step.run("mark-publish-failed", () => markStoreItemPublishFailed(
+        payload.itemId,
+        payload.userId,
+        "Publishing failed after several retries.",
+      ));
     },
   },
   async ({ event, step }) => {
     const payload = event.data as unknown as ItemEvent;
-    await step.run("publish-item", () => publishStoreItemForWorker(payload.itemId, payload.userId));
+    try {
+      await step.run("publish-item", async () => {
+        try {
+          await publishStoreItemForWorker(payload.itemId, payload.userId, { markFailedOnError: false });
+        } catch (error) {
+          if (isPermanentStoreClientError(error)) {
+            throw new NonRetriableError(error.message);
+          }
+          throw error;
+        }
+      });
+    } catch (error) {
+      await step.run("record-publish-error", () => markStoreItemPublishFailed(
+        payload.itemId,
+        payload.userId,
+        error instanceof Error ? error.message : "Publishing failed after several retries.",
+      ));
+    }
   },
 );
 

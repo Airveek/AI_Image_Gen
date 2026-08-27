@@ -8,6 +8,7 @@ import type { CreatorAsset } from "@/features/creator/types";
 import type { StoreBulkRun, StoreProductPage } from "@/features/store-images/types";
 
 export const metadata: Metadata = { title: "Store images" };
+export const maxDuration = 120;
 
 export default async function StoreImagesPage() {
   let products: StoreProductPage = { products: [], nextCursor: null, total: 0 };

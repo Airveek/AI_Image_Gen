@@ -201,10 +201,15 @@ function readStringArray(record: Record<string, unknown>, key: string): string[]
 function readError(value: unknown, fallback: string): string {
   try {
     const record = readRecord(value);
-    return readString(record, "error") ?? fallback;
+    return readString(record, "error") ?? readString(record, "message") ?? fallback;
   } catch {
     return fallback;
   }
+}
+
+export function isPermanentStoreClientError(error: unknown): error is StoreClientError {
+  return error instanceof StoreClientError
+    && [400, 401, 403, 404, 409, 413, 415, 422, 428].includes(error.status);
 }
 
 function requiredEnvironment(name: string): string {
