@@ -145,7 +145,7 @@ export const publishStoreItem = inngest.createFunction(
     id: "store-images-publish-item",
     triggers: [{ event: "store/item.publish.requested" }],
     retries: 3,
-    concurrency: { limit: 10 },
+    concurrency: { limit: 5 },
     onFailure: async ({ event, step }) => {
       const payload = event.data.event.data as unknown as ItemEvent;
       await step.run("mark-publish-failed", () => markStoreItemPublishFailed(
