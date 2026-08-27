@@ -54,6 +54,7 @@ type ItemRow = {
 };
 
 export const SMALL_RUN_LIMIT = 5;
+const STALE_PUBLISHING_MS = 8 * 60 * 1000;
 
 type RunProduct = {
   id: string;
@@ -429,7 +430,12 @@ export async function markStoreItemPublishFailed(itemId: string, userId: string,
 async function getStoreBulkRunForUser(runId: string, userId: string): Promise<StoreBulkRun | null> {
   const run = await getRunForWorker(runId, userId);
   if (!run) return null;
-  const items = await listItemsForRun(runId, userId);
+  let items = await listItemsForRun(runId, userId);
+  const staleBefore = Date.now() - STALE_PUBLISHING_MS;
+  if (items.some((item) => item.status === "publishing" && Date.parse(item.updated_at) < staleBefore)) {
+    await recoverStalePublishingItems(runId, userId, new Date(staleBefore).toISOString());
+    items = await listItemsForRun(runId, userId);
+  }
   return {
     id: run.id,
     prompt: run.prompt,
@@ -668,6 +674,22 @@ async function restorePublishingItems(input: {
     .eq("status", "publishing");
   if (error) throw new Error(error.message);
   await refreshRunProgress(input.runId, input.userId);
+}
+
+async function recoverStalePublishingItems(runId: string, userId: string, staleBefore: string): Promise<void> {
+  const { error } = await createSupabaseAdminClient()
+    .from("store_bulk_items")
+    .update({
+      status: "failed",
+      error_message: "Publishing was interrupted before it finished. Retry this image safely.",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("run_id", runId)
+    .eq("user_id", userId)
+    .eq("status", "publishing")
+    .lt("updated_at", staleBefore);
+  if (error) throw new Error(error.message);
+  await refreshRunProgress(runId, userId);
 }
 
 async function dispatchStorePublishes(input: {
