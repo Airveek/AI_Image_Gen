@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-08-26",
+  "purpose": "Offline visual and capture review for the first five one-image ecommerce tests. This is an implementation gate, not audience-performance evidence.",
+  "reviewRule": "Pass image quality only when the product is identifiable, category-relevant, commercially lit, not plain-background-only, and buyer-critical details remain visible. Pass capture only when the raw recording and timeline are valid.",
+  "tests": [
+    {"id":"ECO01","category":"skincare serum","image":"content-kits/ECO01/2026-08-26T06-11-47-814Z/result-1.jpg","capture":"content-kits/ECO01/2026-08-26T06-11-47-814Z","imageStatus":"pass","captureStatus":"pass","diagnosis":"Amber bottle, black dropper, blank label, warm stone/water/leaf setting; product remains the hero.","nextTest":"Use the same product-truth check after valid narration is available."},
+    {"id":"ECO02","category":"coffee maker","image":"content-kits/ECO02/2026-08-26T06-55-57-811Z/result-1.jpg","capture":"content-kits/ECO02/2026-08-26T06-55-57-811Z","imageStatus":"pass","captureStatus":"pass","diagnosis":"Whole machine, carafe, coffee, cup, and controls are visible in a believable kitchen scene.","nextTest":"Verify zoom does not cut the carafe or controls during the narrated proof."},
+    {"id":"ECO03","category":"running shoes","image":"content-kits/ECO03/2026-08-26T06-59-52-237Z/result-1.jpg","capture":"content-kits/ECO03/2026-08-26T06-59-52-237Z","imageStatus":"pass","captureStatus":"pass","diagnosis":"Shoe is shown in use with the side shape, upper, heel, sole edge, and true light color readable.","nextTest":"Keep the sole and heel inside the center-safe crop at every keyframe."},
+    {"id":"ECO04","category":"leather handbag","image":"content-kits/ECO04/2026-08-26T07-06-11-389Z/result-1.jpg","capture":"content-kits/ECO04/2026-08-26T07-06-11-389Z","imageStatus":"pass","captureStatus":"pass","diagnosis":"Bag silhouette, strap, material, scale, and warm room context are clear without clutter.","nextTest":"Add a proof beat for opening or interior only if the real recording makes it visible."},
+    {"id":"ECO05","category":"analog watch","image":"content-kits/ECO05/2026-08-26T07-16-36-101Z/result-1.jpg","capture":"content-kits/ECO05/2026-08-26T07-16-36-101Z","imageStatus":"pass","captureStatus":"fail","diagnosis":"Watch face, hands, case, crown, bracelet, and controlled highlights are clear; the image passed, but Chromium did not finalize raw-demo.webm.","nextTest":"Fix or retry capture finalization before narration/rendering; do not use this kit for a video."}
+  ],
+  "aggregateDecision": "The one-image category direction is viable for visual testing across the first five. Production videos remain gated by valid raw capture, valid ElevenLabs authentication, non-overlapping narration, and rendered-video QA."
+}

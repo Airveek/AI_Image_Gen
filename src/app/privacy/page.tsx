@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { LegalPage, type LegalSection } from "@/components/airveek/legal-page";
+import { canonicalMetadata } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "How Airveek collects, uses, shares, and protects personal information.",
+  ...canonicalMetadata("/privacy"),
 };
 
 const sections: LegalSection[] = [
@@ -42,7 +44,7 @@ const sections: LegalSection[] = [
     id: "cookies",
     title: "Cookies and similar technologies",
     paragraphs: [
-      <>Airveek may use cookies, local storage, pixels, and similar technologies for authentication, security, preferences, checkout, analytics, and performance measurement.</>,
+      <>Airveek may use essential cookies for authentication, security, preferences, and checkout. With your permission, we also use optional analytics and a signed first-party acquisition cookie to understand which public guides lead to product use and purchases.</>,
       <>You can control cookies through your browser. Blocking essential cookies may prevent account, checkout, or other Service features from working correctly.</>,
     ],
   },

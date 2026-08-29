@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 
 import { CheckoutComplete } from "@/components/checkout/checkout-complete";
+import { noIndexMetadata } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
   title: "Checkout complete",
   description: "Your Airveek checkout status.",
+  ...noIndexMetadata,
 };
 
 type CheckoutCompletePageProps = {

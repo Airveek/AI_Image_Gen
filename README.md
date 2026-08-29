@@ -30,8 +30,11 @@ If PowerShell blocks the pnpm script shim on Windows, use `pnpm.cmd` for the sam
 | `pnpm build` | Create a production build |
 | `pnpm start` | Start the production server after building |
 | `pnpm test:e2e` | Run Playwright creator and checkout checks |
+| `pnpm test:seo` | Run robots, sitemap, noindex, and public-route smoke checks |
 
 The required quality gates are `lint`, `typecheck`, `build`, and the focused Playwright checks.
+
+The SEO control-plane setup and operating sequence are documented in [the SEO autopilot runbook](docs/seo/airveek-seo-autopilot-runbook.md). It is disabled by default until the Supabase migrations and production provider credentials are verified.
 
 ## Project structure
 
@@ -85,6 +88,15 @@ WHOP_COMMERCIAL_PLAN_ID=
 WHOP_PREMIUM_PLAN_ID=
 WHOP_WEBHOOK_SECRET=
 WHOP_SANDBOX=false
+# SEO measurement and publishing (see .env.example for the complete list)
+NEXT_PUBLIC_SITE_URL=https://airveek.com
+GSC_SITE_URL=sc-domain:airveek.com
+GA4_PROPERTY_ID=
+GOOGLE_SEO_SERVICE_ACCOUNT_JSON_BASE64=
+INDEXNOW_KEY=
+INDEXNOW_KEY_LOCATION=
+SEO_ATTRIBUTION_SIGNING_SECRET=
+SEO_AUTOMATION_ENABLED=false
 ```
 
 Apply the Supabase migrations in `supabase/migrations` before opening the creator or integration settings. The Whop webhook endpoint is:

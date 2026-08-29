@@ -4,9 +4,9 @@
   "input": "public/images/airveek/features/ai-product-photographer.png",
   "variations": 3,
   "fields": [
-    { "label": "Product only", "action": "select", "value": "Product only" },
-    { "label": "Studio", "action": "select", "value": "Studio" },
-    { "label": "Shop listing", "action": "select", "value": "Shop listing" },
+    { "label": "Mode", "action": "select", "value": "product-scene" },
+    { "label": "Scene", "action": "select", "value": "studio" },
+    { "label": "Goal", "action": "select", "value": "store-listing" },
     { "label": "Describe the image you want", "action": "fill", "value": "Create a quiet luxury studio product photograph on a warm stone surface with soft directional light. Keep the exact product design and create a clean premium campaign image." }
   ]
 }

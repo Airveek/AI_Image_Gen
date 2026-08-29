@@ -1,0 +1,151 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-08-26",
+  "purpose": "Self-review log for the first-five ecommerce video iteration loop.",
+  "rule": "A video is not approved from ffprobe alone. Review representative frames, narration timing, product proof, logo safety, dead time, and the promised viewer lesson.",
+  "videos": [
+    {
+      "id": "ECO01",
+      "category": "skincare serum",
+      "kit": "content-kits/ECO01/2026-08-26T06-11-47-814Z",
+      "output": "content-kits/ECO01/2026-08-26T06-11-47-814Z/tutorial-16x9.mp4",
+      "versionLabel": "center-safe-crop-and-smooth-motion-v3",
+      "technical": {"status":"pass","audioStreams":1,"overlapCount":0,"maxAudioGapMs":4421,"fullDecode":true,"resolution":"1920x1080"},
+      "visualReview": {
+        "status": "pass",
+        "framesChecked": ["opening cold proof", "settings selection", "generation wait", "prompt screen", "final result"],
+        "findings": [
+          "The finished serum image appears immediately as the cold proof.",
+          "The left-of-viewport center-safe movement removes the persistent right rail while keeping the narrated workspace and final image visible; no abrupt zoom jump was observed in the sampled frames.",
+          "The Airveek logo remains readable at the top-right without covering the product or app controls.",
+          "The final result is a category-relevant lifestyle image rather than a plain empty background.",
+          "The shorter cold open and real wait checks reduce the maximum gap to 4.42 seconds; the remaining gap is a real upload/selection interval."
+        ]
+      },
+      "decision": "approve-as-first-implementation-test",
+      "nextChange": "Carry the same crop, logo, and no-overlap gate into ECO02; keep one product-specific proof per segment."
+    },
+    {
+      "id": "ECO02",
+      "category": "coffee maker",
+      "kit": "content-kits/ECO02/2026-08-26T06-55-57-811Z",
+      "output": "content-kits/ECO02/2026-08-26T06-55-57-811Z/tutorial-16x9.mp4",
+      "versionLabel": "center-safe-crop-and-smooth-motion-v2",
+      "technical": {"status":"pass","audioStreams":1,"overlapCount":0,"maxAudioGapMs":4539,"fullDecode":true,"resolution":"1920x1080"},
+      "visualReview": {
+        "status": "pass",
+        "framesChecked": ["opening cold proof", "settings selection", "generation wait", "prompt screen", "final result"],
+        "findings": [
+          "The coffee maker appears immediately as the opening proof and again as the final result.",
+          "The whole machine, carafe, cup, coffee, and front controls remain visible in the category image.",
+          "The Airveek logo stays readable at the top-right without covering the product or the app's controls.",
+          "The scene is a bright kitchen use case, not a plain empty product background.",
+          "The shorter cold open and wait tips keep the narration aligned to the real generation window; the maximum gap is now 4.54 seconds."
+        ]
+      },
+      "decision": "approve-as-second-implementation-test",
+      "nextChange": "For ECO03, preserve the same motion and make the proof line explicitly protect the sole and heel during the center-safe crop."
+    },
+    {
+      "id": "ECO03",
+      "category": "running shoes",
+      "kit": "content-kits/ECO03/2026-08-26T06-59-52-237Z",
+      "output": "content-kits/ECO03/2026-08-26T06-59-52-237Z/tutorial-16x9.mp4",
+      "versionLabel": "center-safe-crop-and-final-wait-tip-v4",
+      "technical": {
+        "status": "pass",
+        "audioStreams": 1,
+        "overlapCount": 0,
+        "maxAudioGapMs": 5206,
+        "fullDecode": true,
+        "resolution": "1920x1080"
+      },
+      "visualReview": {
+        "status": "pass",
+        "framesChecked": [
+          "opening cold proof",
+          "settings selection",
+          "generation wait",
+          "prompt screen",
+          "final result"
+        ],
+        "findings": [
+          "The running-shoe source appears as the opening proof and the finished outdoor image is shown at the end.",
+          "The category result keeps the shoe, sole, heel, and ground contact readable in the sampled frame; the left-of-viewport center-safe framing removes the persistent right rail.",
+          "The Airveek logo remains readable at the top-right without covering the product or app controls.",
+          "The result uses an outdoor running context with useful ground texture rather than a plain empty background.",
+          "The extra end-of-wait thumbnail check removed the earlier long final gap; the remaining 5.21-second gap is the real upload/selection interval before the mode control appears."
+        ]
+      },
+      "decision": "approve-as-third-implementation-test",
+      "nextChange": "Carry the no-overlap timing gate into ECO04 and keep the handbag strap, handle, and body inside the center-safe crop."
+    },
+    {
+      "id": "ECO04",
+      "category": "leather handbag",
+      "kit": "content-kits/ECO04/2026-08-26T07-06-11-389Z",
+      "output": "content-kits/ECO04/2026-08-26T07-06-11-389Z/tutorial-16x9.mp4",
+      "versionLabel": "center-safe-crop-and-smooth-motion-v2",
+      "technical": {
+        "status": "pass",
+        "audioStreams": 1,
+        "overlapCount": 0,
+        "maxAudioGapMs": 5085,
+        "fullDecode": true,
+        "resolution": "1920x1080"
+      },
+      "visualReview": {
+        "status": "pass",
+        "framesChecked": [
+          "opening cold proof",
+          "settings selection",
+          "generation wait",
+          "prompt screen",
+          "final result"
+        ],
+        "findings": [
+          "The handbag appears as the opening proof and again as the finished result.",
+          "The center-safe result keeps the full bag body, strap, handle, and silhouette readable while removing the persistent right rail.",
+          "The Airveek logo stays readable at the top-right without covering the product or app controls.",
+          "The warm interior scene adds a believable use context instead of a plain empty background.",
+          "The render has one narration stream and no overlapping speech; the maximum gap is now 5.09 seconds and occurs during a real upload/selection transition."
+        ]
+      },
+      "decision": "approve-as-fourth-implementation-test",
+      "nextChange": "Use the same hard sync gate for ECO05; if a fresh capture is unavailable, label the reused-capture fallback explicitly."
+    },
+    {
+      "id": "ECO05",
+      "category": "analog watch",
+      "kit": "content-kits/ECO05/2026-08-26T17-30-00-000Z",
+      "output": "content-kits/ECO05/2026-08-26T17-30-00-000Z/tutorial-16x9.mp4",
+      "versionLabel": "reused-capture-fallback-v1",
+      "technical": {
+        "status": "pass",
+        "audioStreams": 1,
+        "overlapCount": 0,
+        "maxAudioGapMs": 6883,
+        "fullDecode": true,
+        "resolution": "1920x1080"
+      },
+      "visualReview": {
+        "status": "conditional",
+        "framesChecked": [
+          "opening cold proof",
+          "settings selection",
+          "generation wait",
+          "prompt screen",
+          "watch result"
+        ],
+        "findings": [
+          "The existing watch capture and readable result were reused because the Airveek image provider returned daily_limit for the fresh ECO05 attempt.",
+          "The watch dial, case, crown, bracelet, and controlled reflections are readable in the validated result.",
+          "The output has one narration stream, zero overlaps, full decode, and a 1920x1080 frame.",
+          "The raw recording contains the earlier multi-result interaction, so this kit is a synchronization fallback and is not a fresh one-image capture proof."
+        ]
+      },
+      "decision": "conditional-fallback-do-not-count-as-fresh-capture",
+      "nextChange": "When the Airveek image-generation limit resets, recapture ECO05 with one variation and rerun the same script/audio/video QA before publishing."
+    }
+  ]
+}

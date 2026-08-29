@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
@@ -25,9 +25,13 @@ const baseUrl = process.env.RECORDING_BASE_URL ?? "http://127.0.0.1:3001";
 const fieldPauseMs = positiveInteger(process.env.RECORDING_FIELD_PAUSE_MS, 1_800);
 const menuPauseMs = positiveInteger(process.env.RECORDING_MENU_PAUSE_MS, 700);
 const resultPauseMs = positiveInteger(process.env.RECORDING_RESULT_PAUSE_MS, 2_500);
+const generationTimeoutMs = positiveInteger(process.env.RECORDING_GENERATION_TIMEOUT_MS, 300_000);
+const captureOnly = process.env.RECORDING_CAPTURE_ONLY === "1";
 const runId = new Date().toISOString().replaceAll(":", "-").replace(".", "-");
 const outputDirectory = path.join(projectRoot, "content-kits", config.id, runId);
 await mkdir(outputDirectory, { recursive: true });
+const recordingDirectory = path.join(outputDirectory, ".recordings");
+await mkdir(recordingDirectory, { recursive: true });
 const timelineStartedAt = new Date().toISOString();
 const timelineStart = performance.now();
 const timelineEvents = [];
@@ -44,7 +48,7 @@ const browser = await chromium.launch({ headless: process.env.RECORDING_HEADED !
 const context = await browser.newContext({
   storageState: authPath,
   viewport: { width: 1440, height: 900 },
-  recordVideo: { dir: outputDirectory, size: { width: 1440, height: 900 } },
+  ...(captureOnly ? {} : { recordVideo: { dir: recordingDirectory, size: { width: 1440, height: 900 } } }),
 });
 const page = await context.newPage();
 const video = page.video();
@@ -74,9 +78,21 @@ try {
     await page.waitForTimeout(fieldPauseMs);
   }
 
+  const settingsDialog = config.fields.some((field) => ["Mode", "Scene", "Goal"].includes(field.label))
+    ? page.getByRole("dialog", { name: "Image settings" })
+    : null;
+  if (settingsDialog) {
+    await page.getByTestId("image-settings-button").click();
+    await settingsDialog.waitFor({ state: "visible" });
+  }
+
   for (const field of config.fields) {
     markTimelineEvent("field_started", { label: field.label, action: field.action });
-    const locator = page.getByLabel(field.label, { exact: true });
+    const locator = field.action === "fill" && field.label === "Describe the image you want"
+      ? page.getByTestId("creation-prompt")
+      : settingsDialog && field.action === "select"
+        ? settingsDialog.locator("select").nth(["Mode", "Scene", "Goal", "Lighting"].indexOf(field.label))
+        : page.getByLabel(field.label, { exact: true });
     if (field.action === "select") {
       const tagName = await locator.evaluate((element) => element.tagName);
       if (tagName === "SELECT") {
@@ -108,6 +124,7 @@ try {
       {
         ...config,
         baseUrl,
+        captureMode: captureOnly ? "image-preview" : "recorded-workflow",
         recordedAt: new Date().toISOString(),
         timelineFile: "timeline.json",
         results: resultFiles,
@@ -118,10 +135,30 @@ try {
   );
 } finally {
   markTimelineEvent("browser_closing");
-  await context.close();
+  // Let the context own page/video finalization. Closing the page first can
+  // leave Chromium's encoder at zero bytes on otherwise successful captures.
+  try {
+    await context.close();
+  } catch {
+    // Browser cleanup below remains the final cleanup path.
+  }
   if (video) {
-    await video.saveAs(path.join(outputDirectory, "raw-demo.webm"));
-    await video.delete();
+    const rawVideoPath = path.join(outputDirectory, "raw-demo.webm");
+    const recordedVideoPath = await video.path();
+    await copyRecordingWhenReady(recordedVideoPath, rawVideoPath);
+    if (!existsSync(rawVideoPath) || (await stat(rawVideoPath)).size === 0) {
+      try {
+        const recordedSize = (await stat(recordedVideoPath)).size;
+        if (recordedSize > 0) await video.saveAs(rawVideoPath);
+      } catch {
+        // Keep the failed capture diagnosable without manufacturing an empty raw file.
+      }
+    }
+    if (existsSync(rawVideoPath) && (await stat(rawVideoPath)).size > 0) {
+      await video.delete();
+    } else {
+      console.error(`Warning: raw recording did not finalize; preserving ${recordedVideoPath}`);
+    }
   }
   await browser.close();
   await writeFile(
@@ -139,6 +176,23 @@ try {
   );
 }
 
+async function copyRecordingWhenReady(sourcePath, destinationPath) {
+  let previousSize = 0;
+  for (let attempt = 0; attempt < 120; attempt += 1) {
+    try {
+      const currentSize = (await stat(sourcePath)).size;
+      if (currentSize > 0 && currentSize === previousSize) {
+        await copyFile(sourcePath, destinationPath);
+        return;
+      }
+      previousSize = currentSize;
+    } catch {
+      // Playwright may still be closing its encoder.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+}
+
 console.log(`Content kit saved to ${outputDirectory}`);
 
 function positiveInteger(value, fallback) {
@@ -154,8 +208,8 @@ async function recordGenerations(page, context, baseUrl, variations, outputDirec
   if (variations === 1) {
     markTimelineEvent("generation_started", { index: 1 });
     await page.getByTestId("generation-loading").waitFor({ state: "visible", timeout: 15_000 });
-    const resultImage = page.getByTestId("generation-result-image");
-    await resultImage.waitFor({ state: "visible", timeout: 300_000 });
+    const resultImage = page.getByTestId("generation-result-image").locator("img").first();
+    await resultImage.waitFor({ state: "visible", timeout: generationTimeoutMs });
     await waitForImage(resultImage);
     markTimelineEvent("generation_ready", { index: 1 });
     await page.waitForTimeout(resultPauseMs);
@@ -169,7 +223,14 @@ async function recordGenerations(page, context, baseUrl, variations, outputDirec
     markTimelineEvent("generation_started", { index });
     const card = page.getByTestId(`generation-item-${index}`);
     await card.waitFor({ state: "visible", timeout: 15_000 });
-    await card.getByText("Saved to your library", { exact: true }).waitFor({ state: "visible", timeout: 300_000 });
+    try {
+      await waitForBatchItem(card, index);
+    } catch (error) {
+      if (index !== variations) throw error;
+      markTimelineEvent("generation_retry_started", { index, mode: "single", reason: "batch-item-failed" });
+      await retrySingleGeneration(page, context, baseUrl, outputDirectory, resultFiles, index);
+      continue;
+    }
     const resultImage = card.locator("img").first();
     await resultImage.waitFor({ state: "visible", timeout: 15_000 });
     await waitForImage(resultImage);
@@ -177,6 +238,34 @@ async function recordGenerations(page, context, baseUrl, variations, outputDirec
     await page.waitForTimeout(resultPauseMs);
     await saveResultImage(resultImage, context, baseUrl, outputDirectory, resultFiles, index);
     markTimelineEvent("result_saved", { index });
+  }
+}
+
+async function retrySingleGeneration(page, context, baseUrl, outputDirectory, resultFiles, index) {
+  await page.getByTestId("generation-count-button").click();
+  await page.getByRole("menuitemradio", { name: "1x", exact: true }).click();
+  await page.getByTestId("generate-button").click();
+  markTimelineEvent("generation_started", { index });
+  await page.getByTestId("generation-loading").waitFor({ state: "visible", timeout: 15_000 });
+  const resultImage = page.getByTestId("generation-result-image");
+  await resultImage.waitFor({ state: "visible", timeout: generationTimeoutMs });
+  await waitForImage(resultImage);
+  markTimelineEvent("generation_ready", { index });
+  await page.waitForTimeout(resultPauseMs);
+  await saveResultImage(resultImage, context, baseUrl, outputDirectory, resultFiles, index);
+  markTimelineEvent("result_saved", { index });
+}
+
+async function waitForBatchItem(card, index) {
+  const ready = card.getByText("Saved to your library", { exact: true });
+  const failed = card.getByText(/could not be created|used today|try again|failed/i).first();
+  const outcome = await Promise.race([
+    ready.waitFor({ state: "visible", timeout: generationTimeoutMs }).then(() => "ready"),
+    failed.waitFor({ state: "visible", timeout: generationTimeoutMs }).then(() => "failed"),
+  ]);
+  if (outcome === "failed") {
+    const message = (await card.locator("p").allTextContents()).filter(Boolean).join(" ");
+    throw new Error(`Generation item ${index} failed: ${message || "The image could not be created."}`);
   }
 }
 

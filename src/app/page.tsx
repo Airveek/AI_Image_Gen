@@ -16,10 +16,12 @@ import {
   UseCasesSection,
 } from "@/components/airveek/landing-sections";
 import { FaqSection } from "@/components/airveek/faq-section";
+import { HomeSchema } from "@/components/airveek/home-schema";
 
 export default function Home() {
   return (
     <div id="top" className="min-h-screen overflow-hidden bg-[#040404]">
+      <HomeSchema />
       <PromoBar />
       <SiteHeader />
       <main className="brand-glow">

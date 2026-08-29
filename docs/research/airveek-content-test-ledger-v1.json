@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "brand": "Airveek",
+  "researchPillar": "ecommerce-product-photo",
+  "updatedAt": "2026-08-26",
+  "testRule": "The first five topic videos are implementation tests, not proof of audience performance. Do not turn offline QA into a retention claim until videos are published and platform data is available.",
+  "videos": [
+    {
+      "opportunityId": "ECO01",
+      "category": "skincare serum",
+      "kit": "content-kits/ECO01/2026-08-25T20-37-12-534Z",
+      "output": "content-kits/ECO01/2026-08-25T20-37-12-534Z/tutorial-16x9.mp4",
+      "qa": "content-kits/ECO01/2026-08-25T20-37-12-534Z/qa-report.json",
+      "status": "offline-qa-pass",
+      "learning": "The product-specific opening can stay in plain English while still teaching three different image jobs; the final sync pass reduced the largest voice gap to 5.59 seconds."
+    },
+    {
+      "opportunityId": "ECO02",
+      "category": "coffee maker",
+      "kit": "content-kits/ECO02/2026-08-25T20-44-32-557Z",
+      "output": "content-kits/ECO02/2026-08-25T20-44-32-557Z/tutorial-16x9.mp4",
+      "qa": "content-kits/ECO02/2026-08-25T20-44-32-557Z/qa-report.json",
+      "status": "offline-qa-pass",
+      "learning": "The same scorecard works when the proof changes from appearance to controls and use; the category-specific button check is clearer than generic image advice."
+    },
+    {
+      "opportunityId": "ECO03",
+      "category": "running shoes",
+      "kit": "content-kits/ECO03/2026-08-25T20-46-19-846Z",
+      "output": "content-kits/ECO03/2026-08-25T20-46-19-846Z/tutorial-16x9.mp4",
+      "qa": "content-kits/ECO03/2026-08-25T20-46-19-846Z/qa-report.json",
+      "status": "offline-qa-pass",
+      "learning": "The category's real buyer question—fit, sole, heel, and true color—can be stated without technical photography language."
+    },
+    {
+      "opportunityId": "ECO04",
+      "category": "leather handbag",
+      "kit": "content-kits/ECO04/2026-08-25T20-48-13-401Z",
+      "output": "content-kits/ECO04/2026-08-25T20-48-13-401Z/tutorial-16x9.mp4",
+      "qa": "content-kits/ECO04/2026-08-25T20-48-13-401Z/qa-report.json",
+      "status": "offline-qa-pass",
+      "learning": "Scale, strap, opening, and inside space are stronger story beats than generic luxury language."
+    },
+    {
+      "opportunityId": "ECO05",
+      "category": "analog watch",
+      "kit": "content-kits/ECO05/2026-08-25T20-49-52-671Z",
+      "output": "content-kits/ECO05/2026-08-25T20-49-52-671Z/tutorial-16x9.mp4",
+      "qa": "content-kits/ECO05/2026-08-25T20-49-52-671Z/qa-report.json",
+      "status": "offline-qa-pass",
+      "learning": "A concrete visual risk—glare hiding the hands, numbers, or crown—is more useful than saying the image should feel premium."
+    }
+  ],
+  "repeatedImplementationFindings": [
+    "The actual recorder timeline must be the source of truth; sourceStartMs prevents voice lines from drifting from UI action.",
+    "Wait narration must be generated from each run's real generation_started-to-generation_ready duration; fixed wait tips created a 70-second silent hole in ECO08.",
+    "The sync QA gate now fails a kit when any spoken-audio gap exceeds 10 seconds; the repaired first five pass with maximum gaps from 3.96 to 6.29 seconds.",
+    "The horizontal renderer can use safe center keyframes and modest zoom without cutting the central action.",
+    "The top-right Airveek logo is readable without covering the app's own top-left logo.",
+    "Segment count should follow the real generation wait rather than a fixed 21-segment template; short waits stay short and long waits receive useful, category-specific checks.",
+    "The failed first ECO01 attempt showed that generation and browser-video finalization need separate QA checks."
+  ],
+  "publishingMetricsToAdd": [
+    "first-30-second retention",
+    "retention dips and spikes",
+    "rewatch/share/save comments",
+    "qualified clicks or product activation",
+    "whether viewers ask for the next product category"
+  ]
+}

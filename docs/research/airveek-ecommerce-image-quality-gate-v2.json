@@ -1,0 +1,72 @@
+{
+  "version": 2,
+  "createdAt": "2026-08-26",
+  "purpose": "Release gate for one category-specific ecommerce lifestyle image before Airveek recording.",
+  "researchBasis": {
+    "mainVsLifestyle": "The marketplace main image proves exactly what is sold; the lifestyle image adds use, scale, texture, or atmosphere. This batch produces one lifestyle image per category and keeps the unmodified product reference as the identity source.",
+    "minimumTechnical": {
+      "minimumPixels": "600x600 for lifestyle assets; prefer the largest native image",
+      "productOccupancy": "roughly 75-90% when the image job is a product-first listing view",
+      "format": "JPEG or PNG, no upscaled thumbnail",
+      "singleProduct": true
+    },
+    "sources": [
+      {"url":"https://support.google.com/merchants/answer/6324350?hl=en","signal":"Main product imagery must accurately show the whole product; staged imagery is acceptable when the product remains clear."},
+      {"url":"https://support.google.com/merchants/answer/9103186?hl=en","signal":"Lifestyle imagery should show the product in a real-world context and be distinctive, colorful, beautiful, and product-focused rather than a white-background-only shot."},
+      {"url":"https://support.google.com/merchants/answer/6324370?hl=en-GB","signal":"Additional imagery can add staging, use, and detail views beyond the main image."},
+      {"url":"https://support.google.com/merchants/answer/14779112?hl=en","signal":"Use a stable, high-resolution full-size product image; avoid promotional overlays and merchant logos."},
+      {"url":"https://www.etsy.com/seller-handbook/article/152858121769","signal":"A useful product set includes a clear product view and detail imagery that can survive different listing ratios."},
+      {"url":"https://www.etsy.com/seller-handbook/article/144851078612","signal":"Props, models, and backdrops should help buyers understand the product and its size without obscuring it."},
+      {"url":"https://www.shopify.com/blog/12206313-the-ultimate-diy-guide-to-beautiful-product-photography","signal":"Strong product pages combine primary, lifestyle, close-up, and scale jobs; props should tell the product story without overshadowing it."},
+      {"url":"https://www.shopify.com/blog/jewelry-photography","signal":"Jewelry benefits from close detail plus lifestyle scale, with realistic exposure and white balance."},
+      {"url":"https://www.shopify.com/blog/76702789-shoot-reflective-products-like-a-pro-with-these-diy-lighting-setups","signal":"Reflective products need diffused light and controlled reflections; creative backgrounds are secondary to product readability."},
+      {"url":"https://in.pinterest.com/pin/1135540493561502146/","signal":"The supplied prompt-card reference is used only for scene grammar: one hero, deliberate light, restrained props, and explicit negative constraints."}
+    ],
+    "inferenceBoundary": "Platform guidance and category examples support the image jobs and constraints. They do not prove conversion or retention for Airveek; those claims require published tests."
+  },
+  "oneImageContract": {
+    "assetRole": "secondary-lifestyle-or-campaign-image",
+    "mustHave": ["one product hero", "category-specific real-world setting", "one clear buyer detail", "controlled commercial light", "believable contact or scale", "crop-safe composition"],
+    "mustNotHave": ["plain empty background as the only creative", "invented readable text", "new claims, awards, or logos", "duplicate products", "extra products not sold together", "hidden buyer-critical detail", "uncontrolled glare", "warped product geometry", "AI-looking hands or physical contact"],
+    "approvalRule": "Inspect the original-size image and a small thumbnail. Approve only when the product is unmistakable in both, the category detail is readable, and the scene earns its place."
+  },
+  "categories": [
+    {"id":"ECO01","category":"skincare serum","imageJob":"ritual mood without medical claims","scene":"warm ivory stone, clear water, one soft botanical leaf, gentle window light","proof":"bottle, dropper, amber glass, label area","reject":"covered label, invented claims or ingredients, floating bottle"},
+    {"id":"ECO02","category":"coffee maker","imageJob":"morning use and control clarity","scene":"bright kitchen counter, fresh cup, a few beans, soft morning light","proof":"whole machine, carafe, water level, control panel","reject":"hidden controls, extra machine, unreadable carafe"},
+    {"id":"ECO03","category":"running shoes","imageJob":"fit and ground-contact context","scene":"urban morning path, textured ground, low directional light","proof":"side shape, heel, sole edge, true color","reject":"cropped sole, changed tread, second unrelated shoe"},
+    {"id":"ECO04","category":"leather handbag","imageJob":"shape, scale, and carry use","scene":"warm entryway console, folded neutral scarf, soft daylight","proof":"body, strap, handle, opening, believable scale","reject":"hidden opening, distorted strap, fashion props covering bag"},
+    {"id":"ECO05","category":"analog watch","imageJob":"premium mood with readable hardware","scene":"dark walnut or charcoal stone, one soft highlight, quiet daylight","proof":"dial, hands, case edge, crown, bracelet finish","reject":"glare over dial, changed hands, triptych or multiple watches"},
+    {"id":"ECO06","category":"sunglasses","imageJob":"frame shape and lens honesty","scene":"bright terrace, pale stone, restrained sky reflection","proof":"full frame, bridge, lens color, hinge edge","reject":"mirror glare, bent frame, duplicate pair"},
+    {"id":"ECO07","category":"insulated tumbler","imageJob":"size and touch points","scene":"tidy work desk, notebook, drink nearby, warm natural light","proof":"body, lid, handle, drinking opening","reject":"covered lid, unexplained scale, leaking or impossible liquid"},
+    {"id":"ECO08","category":"wireless earbuds","imageJob":"what is included and how the case is used","scene":"minimal travel desk or charging station, soft cool highlight","proof":"case, both earbuds, fit shape, controls","reject":"missing earbud, extra pair, tiny unreadable product"},
+    {"id":"ECO09","category":"smartphone case","imageJob":"fit and cutout proof","scene":"clean window-side desk, phone installed, one scale object","proof":"camera cutout, buttons, ports, edge thickness","reject":"wrong phone model, covered ports, invented branding"},
+    {"id":"ECO10","category":"desk lamp","imageJob":"light direction and desk use","scene":"calm late-afternoon desk with a believable pool of light","proof":"base, stem, hinge, shade, control","reject":"light source hiding the lamp, impossible shadow, altered switch"},
+    {"id":"ECO11","category":"nonstick frying pan","imageJob":"cooking surface and size","scene":"bright home stovetop, simple meal, controlled steam, few props","proof":"inside surface, rim, handle, scale","reject":"food hiding coating, unsafe invented claim, warped handle"},
+    {"id":"ECO12","category":"scented candle","imageJob":"mood while preserving label and jar","scene":"warm bedside or living room, one lit candle, soft evening light","proof":"jar, label area, wax level, wick","reject":"unreadable label, multiple candles, unsafe flame behavior"},
+    {"id":"ECO13","category":"throw blanket","imageJob":"texture, true color, and room scale","scene":"modern sofa, natural fold and drape, warm daylight","proof":"weave, edge, color, size in room","reject":"flat color block, false pattern, hidden fabric edge"},
+    {"id":"ECO14","category":"dog harness","imageJob":"fit points and real wear","scene":"green park path, friendly dog standing naturally, soft daylight","proof":"straps, clip, adjustment points, fit","reject":"bad animal anatomy, hidden clips, unsupported universal-fit claim"},
+    {"id":"ECO15","category":"baby bottle","imageJob":"parts, size, and grip clarity","scene":"bright kitchen table, bottle beside cap and nipple parts","proof":"bottle, cap, nipple, included parts, hand scale","reject":"health or safety claims, missing parts, unsafe baby depiction"},
+    {"id":"ECO16","category":"yoga mat","imageJob":"surface, thickness, and roll-up size","scene":"sunlit quiet studio floor, partly unrolled, one soft exercise cue","proof":"full length, texture, thickness edge, roll size","reject":"edge hidden, extreme pose obscuring mat, changed markings"},
+    {"id":"ECO17","category":"carry-on luggage","imageJob":"travel scale and functional access","scene":"bright airport lounge, suitcase upright on clean floor","proof":"shell, wheels, handle, opening, scale","reject":"cropped wheels, impossible handle, extra luggage"},
+    {"id":"ECO18","category":"wall art print","imageJob":"wall scale and color in a room","scene":"modern living-room wall above simple furniture, natural side light","proof":"art, border, paper edge, wall scale","reject":"invented artwork text, warped frame, misleading size"},
+    {"id":"ECO19","category":"food storage container","imageJob":"capacity and lid fit","scene":"organized pantry counter, container open beside lid and dry food","proof":"empty shape, lid seal, stack height, contents","reject":"floating lid, hidden seal, impossible capacity"},
+    {"id":"ECO20","category":"necklace jewelry","imageJob":"worn scale plus pendant detail","scene":"close neutral neckline or elegant display, soft clean light","proof":"pendant, chain, clasp, worn scale","reject":"broken chain, unreadable detail, duplicate necklace"}
+  ],
+  "releaseGate": [
+    "The input reference and result show the same product identity.",
+    "Exactly one result image is selected for the test.",
+    "The result is a category-specific lifestyle scene, not an empty studio or gradient.",
+    "The product-specific proof detail is visible at full size and thumbnail size.",
+    "No invented text, claims, logos, duplicate products, or hidden buyer-critical details.",
+    "The result passes human visual review before recording begins."
+  ],
+  "benchmark": {
+    "path": "public/images/airveek/quality-gate/watch-lifestyle-benchmark-v1.png",
+    "category": "analog watch",
+    "role": "visual quality benchmark only; not an Airveek-generated result",
+    "passes": ["single watch hero", "readable dial and crown", "controlled reflection", "real walnut and stone setting", "commercial soft light", "no plain empty background", "usable crop margin"],
+    "sourceReference": "public/images/airveek/content-reference/generic-watch.png",
+    "generationMethod": "built-in image-generation edit of the real watch reference; kept separate from Airveek recording evidence"
+  },
+  "status": "recording-blocked-until-image-pass"
+}

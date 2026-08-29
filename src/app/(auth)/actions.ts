@@ -7,6 +7,10 @@ import { getSafeRedirectPath } from "@/lib/auth/redirect-path";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { recordUserEvent } from "@/lib/analytics/user-events";
 import { saveInitialAttribution } from "@/features/account/server/profile";
+import { cookies } from "next/headers";
+import { linkSeoAttributionToUser } from "@/features/seo/server/attribution";
+import { getSeoAttributionSigningSecret, parseSeoAttributionCookie, SEO_ATTRIBUTION_COOKIE_NAME } from "@/lib/analytics/seo-attribution";
+import { SITE_URL } from "@/lib/seo/site";
 
 export async function signInAction(
   _previousState: AuthActionState,
@@ -72,6 +76,12 @@ export async function registerAction(
       medium: readLimitedField(formData, "firstTouchMedium", 120),
       campaign: readLimitedField(formData, "firstTouchCampaign", 160),
     });
+    const attributionCookie = (await cookies()).get(SEO_ATTRIBUTION_COOKIE_NAME)?.value;
+    const signingSecret = getSeoAttributionSigningSecret();
+    if (attributionCookie && signingSecret) {
+      const attribution = parseSeoAttributionCookie(attributionCookie, signingSecret);
+      if (attribution) await linkSeoAttributionToUser({ userId: data.user.id, attribution });
+    }
   }
 
   if (data.session) {
@@ -94,5 +104,5 @@ function readLimitedField(formData: FormData, name: string, maxLength: number): 
 }
 
 function getSiteUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001";
+  return process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? SITE_URL;
 }

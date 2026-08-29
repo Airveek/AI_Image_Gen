@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { LegalPage, type LegalSection } from "@/components/airveek/legal-page";
+import { canonicalMetadata } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
   title: "Disclaimer",
   description: "Important limitations and user responsibilities for Airveek AI-generated images and designs.",
+  ...canonicalMetadata("/disclaimer"),
 };
 
 const sections: LegalSection[] = [

@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import { CalendarOff, CheckCircle2, Clock3, Mail, MessageSquareText, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { InteriorHero, InteriorPageShell } from "@/components/airveek/interior-page-shell";
+import { canonicalMetadata } from "@/lib/seo/site";
 
 export const metadata: Metadata = {
   title: "Contact Support",
   description: "Contact the Airveek support team for account, billing, access, or creative workflow help.",
+  ...canonicalMetadata("/support"),
 };
 
 const requestChecklist = [

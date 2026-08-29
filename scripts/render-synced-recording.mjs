@@ -39,6 +39,7 @@ const mainStartSeconds = normalizeMainStart(framingPlan, durationSeconds);
 const mainStartMs = Math.round(mainStartSeconds * 1000);
 const coldOpen = normalizeColdOpen(framingPlan, durationSeconds);
 const coldOpenDurationMs = Math.round((coldOpen?.durationSeconds ?? 0) * 1000);
+const branding = await normalizeBranding(framingPlan, kitDirectory);
 const segments = [];
 
 for (const [index, spec] of segmentSpecs.entries()) {
@@ -85,6 +86,17 @@ for (const segment of segments) {
     segment.startMs = Math.max(0, segment.timelineStartMs - mainStartMs);
   }
 }
+const audioOverlaps = findAudioOverlaps(segments);
+if (audioOverlaps.length > 0) {
+  const details = audioOverlaps
+    .slice(0, 6)
+    .map(({ first, second, overlapMs }) => `${first + 1}/${second + 1} (${overlapMs}ms)`)
+    .join(", ");
+  throw new Error(
+    `Narration clips overlap; refusing to render double speech (${details}). ` +
+    "Shorten or re-time the narration segments before rendering.",
+  );
+}
 const timelineDurationSeconds = Math.max(0.1, durationSeconds - mainStartSeconds);
 const timelineRenderDurationSeconds = Math.max(
   timelineDurationSeconds,
@@ -108,6 +120,7 @@ for (const format of formats) {
     timelineRenderDurationSeconds,
     renderDurationSeconds,
     coldOpen,
+    branding,
     format,
     outputPath,
     segments,
@@ -154,6 +167,7 @@ async function renderFormat({
   timelineRenderDurationSeconds,
   renderDurationSeconds,
   coldOpen,
+  branding,
   format,
   outputPath,
   segments,
@@ -161,7 +175,9 @@ async function renderFormat({
 }) {
   const args = ["-y", "-i", rawVideoPath];
   for (const segment of segments) args.push("-i", segment.path);
-  const musicInputIndex = 1 + segments.length;
+  const logoInputIndex = 1 + segments.length;
+  if (branding) args.push("-loop", "1", "-i", branding.path);
+  const musicInputIndex = logoInputIndex + (branding ? 1 : 0);
   const hasMusic = await fileExists(musicPath);
   if (hasMusic) args.push("-stream_loop", "-1", "-i", musicPath);
 
@@ -201,12 +217,15 @@ async function renderFormat({
     timelineRenderDurationSeconds,
     coldOpen,
   });
+  const videoMapLabel = branding
+    ? addBrandOverlay(videoLabels, branding, logoInputIndex)
+    : "[vout]";
 
   args.push(
     "-filter_complex",
     [...videoLabels, ...audioLabels].join(";"),
     "-map",
-    "[vout]",
+    videoMapLabel,
     "-map",
     "[aout]",
     "-t",
@@ -231,6 +250,15 @@ async function renderFormat({
   await execFileAsync("ffmpeg", args, { maxBuffer: 10 * 1024 * 1024 });
 }
 
+function addBrandOverlay(videoLabels, branding, logoInputIndex) {
+  const logoLabel = "[brandlogo]";
+  videoLabels.push(
+    `[${logoInputIndex}:v]format=rgba,scale=w=${branding.width}:h=-1:force_original_aspect_ratio=decrease,colorchannelmixer=aa=${formatNumber(branding.opacity)}${logoLabel}`,
+    `[vout]${logoLabel}overlay=x=${branding.x}:y=${branding.y}:eof_action=repeat[vbranded]`,
+  );
+  return "[vbranded]";
+}
+
 function buildVideoGraph({
   format,
   framingPlan,
@@ -245,6 +273,7 @@ function buildVideoGraph({
     format,
     framingPlan,
     freezeDurationSeconds: mainFreezeDuration,
+    keyframeTimeOffsetMs: Math.round(mainStartSeconds * 1000),
   });
 
   if (!coldOpen) return [`[0:v]${mainFilter}[vout]`];
@@ -259,6 +288,7 @@ function buildVideoGraph({
     format,
     framingPlan: null,
     freezeDurationSeconds: coldOpenFreezeDuration,
+    keyframeTimeOffsetMs: 0,
   });
 
   return [
@@ -291,12 +321,36 @@ function normalizeMainStart(framingPlan, sourceDurationSeconds) {
   return mainStartSeconds;
 }
 
-function buildVideoFilter({ format, framingPlan, freezeDurationSeconds }) {
+async function normalizeBranding(framingPlan, kitDirectory) {
+  const config = framingPlan?.branding;
+  if (!config) return null;
+  if (!isRecord(config) || typeof config.logoPath !== "string" || !config.logoPath.trim()) {
+    throw new Error("framing-plan.json branding.logoPath is required when branding is enabled.");
+  }
+  const logoPath = path.resolve(kitDirectory, config.logoPath);
+  await assertFile(logoPath);
+  const width = Number(config.width ?? 220);
+  const opacity = Number(config.opacity ?? 0.9);
+  const x = Number(config.x ?? 48);
+  const y = Number(config.y ?? 32);
+  if (!Number.isFinite(width) || width < 80 || width > 600) {
+    throw new Error("framing-plan.json branding.width must be between 80 and 600.");
+  }
+  if (!Number.isFinite(opacity) || opacity <= 0 || opacity > 1) {
+    throw new Error("framing-plan.json branding.opacity must be between 0 and 1.");
+  }
+  if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || y < 0) {
+    throw new Error("framing-plan.json branding.x and branding.y must be non-negative numbers.");
+  }
+  return { path: logoPath, width: Math.round(width), opacity, x: Math.round(x), y: Math.round(y) };
+}
+
+function buildVideoFilter({ format, framingPlan, freezeDurationSeconds, keyframeTimeOffsetMs = 0 }) {
   const formatPlan = framingPlan?.formats?.[format.name];
-  if (formatPlan && format.name === "9x16") {
+  if (formatPlan && Array.isArray(formatPlan.keyframes)) {
     const source = framingPlan.source ?? { width: 1440, height: 900 };
-    const keyframes = normalizeKeyframes(formatPlan.keyframes, source);
-    const scaleBase = format.height / source.height;
+    const keyframes = normalizeKeyframes(formatPlan.keyframes, source, keyframeTimeOffsetMs);
+    const scaleBase = Math.max(format.width / source.width, format.height / source.height);
     const zoomExpression = piecewiseExpression(keyframes, "zoom");
     const focusXExpression = piecewiseExpression(keyframes, "focusX");
     const focusYExpression = piecewiseExpression(keyframes, "focusY");
@@ -313,6 +367,7 @@ function buildVideoFilter({ format, framingPlan, freezeDurationSeconds }) {
     const filters = [
       `scale=w='ceil(iw*${scaledZoom}/2)*2':h='ceil(ih*${scaledZoom}/2)*2':eval=frame`,
       `crop=${format.width}:${format.height}:x='${cropX}':y='${cropY}'`,
+      "setsar=1",
     ];
     if (freezeDurationSeconds > 0.01) {
       filters.push(`tpad=stop_mode=clone:stop_duration=${formatNumber(freezeDurationSeconds)}`);
@@ -323,6 +378,7 @@ function buildVideoFilter({ format, framingPlan, freezeDurationSeconds }) {
   const filters = [
     `scale=${format.width}:${format.height}:force_original_aspect_ratio=increase`,
     `crop=${format.width}:${format.height}`,
+    "setsar=1",
   ];
   if (freezeDurationSeconds > 0.01) {
     filters.push(`tpad=stop_mode=clone:stop_duration=${formatNumber(freezeDurationSeconds)}`);
@@ -330,12 +386,12 @@ function buildVideoFilter({ format, framingPlan, freezeDurationSeconds }) {
   return filters.join(",");
 }
 
-function normalizeKeyframes(keyframes, source) {
+function normalizeKeyframes(keyframes, source, timeOffsetMs = 0) {
   if (!Array.isArray(keyframes) || keyframes.length === 0) {
     throw new Error("framing-plan.json must contain at least one keyframe.");
   }
 
-  return keyframes
+  const sorted = keyframes
     .map((keyframe, index) => {
       if (!isRecord(keyframe)) throw new Error(`Framing keyframe ${index + 1} must be an object.`);
       const atMs = Number(keyframe.atMs);
@@ -351,9 +407,28 @@ function normalizeKeyframes(keyframes, source) {
       if (!Number.isFinite(zoom) || zoom < 1 || zoom > 1.5) {
         throw new Error(`Framing keyframe ${index + 1} zoom must be between 1 and 1.5.`);
       }
-      return { atMs, focusX: focusX * source.width, focusY: focusY * source.height, zoom };
+      return {
+        atMs: Math.max(0, atMs - timeOffsetMs),
+        focusX: focusX * source.width,
+        focusY: focusY * source.height,
+        zoom,
+      };
     })
     .sort((left, right) => left.atMs - right.atMs);
+
+  // A result can become ready only a few milliseconds after a generation-start
+  // event. Treat those as one visual state so the crop never jumps between two
+  // nearly identical frames.
+  const coalesced = [];
+  for (const keyframe of sorted) {
+    const previous = coalesced.at(-1);
+    if (previous && keyframe.atMs - previous.atMs < 500) {
+      coalesced[coalesced.length - 1] = keyframe;
+    } else {
+      coalesced.push(keyframe);
+    }
+  }
+  return coalesced;
 }
 
 function piecewiseExpression(keyframes, property) {
@@ -364,8 +439,10 @@ function piecewiseExpression(keyframes, property) {
     const current = keyframes[index];
     const next = keyframes[index + 1];
     const durationSeconds = Math.max(0.001, (next.atMs - current.atMs) / 1000);
-    const progress = `(t-${formatNumber(current.atMs / 1000)})/${formatNumber(durationSeconds)}`;
-    const interpolated = `${formatNumber(values[index])}+(${formatNumber(values[index + 1])}-${formatNumber(values[index])})*${progress}`;
+    const rawProgress = `(t-${formatNumber(current.atMs / 1000)})/${formatNumber(durationSeconds)}`;
+    const progress = `max(0\\,min(1\\,${rawProgress}))`;
+    const easedProgress = `(0.5-0.5*cos(PI*${progress}))`;
+    const interpolated = `${formatNumber(values[index])}+(${formatNumber(values[index + 1])}-${formatNumber(values[index])})*${easedProgress}`;
     expression = `if(lt(t\\,${formatNumber(next.atMs / 1000)})\\,${interpolated}\\,${expression})`;
   }
 
@@ -437,4 +514,17 @@ function requiredString(value, label) {
 
 function integerOrDefault(value, fallback) {
   return Number.isInteger(value) ? value : fallback;
+}
+
+function findAudioOverlaps(segments, minimumAllowedGapMs = 80) {
+  const overlaps = [];
+  for (let first = 0; first < segments.length; first += 1) {
+    const firstEndMs = segments[first].startMs + segments[first].durationSeconds * 1000;
+    for (let second = first + 1; second < segments.length; second += 1) {
+      const overlapMs = Math.min(firstEndMs, segments[second].startMs + segments[second].durationSeconds * 1000)
+        - Math.max(segments[first].startMs, segments[second].startMs);
+      if (overlapMs > minimumAllowedGapMs) overlaps.push({ first, second, overlapMs: Math.round(overlapMs) });
+    }
+  }
+  return overlaps;
 }

@@ -1,0 +1,28 @@
+{
+  "id": "ECO09",
+  "route": "/create/product-fashion",
+  "input": "public/images/airveek/content-reference/generic-phone-case.png",
+  "variations": 1,
+  "fields": [
+    {
+      "label": "Mode",
+      "action": "select",
+      "value": "product-scene"
+    },
+    {
+      "label": "Scene",
+      "action": "select",
+      "value": "lifestyle"
+    },
+    {
+      "label": "Goal",
+      "action": "select",
+      "value": "social-post"
+    },
+    {
+      "label": "Describe the image you want",
+      "action": "fill",
+      "value": "Create one premium ecommerce lifestyle photo for this smartphone case. Keep the exact product shape, materials, color, label, and proportions unchanged. Place it in a clean desk beside a window with the phone installed in the case and one subtle everyday object for scale. Keep the exact phone fit, camera cutout, buttons, ports, and edge thickness fully visible and sharp. Make the product the main focus with realistic light, believable shadows, clean composition, and room for a crop. Do not add invented readable text, claims, extra products, watermarks, retailer logos, or a plain empty background."
+    }
+  ]
+}

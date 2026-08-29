@@ -9,8 +9,11 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
+    "test:seo": "playwright test tests/e2e/seo-foundation.spec.ts",
     "recording:auth": "node scripts/save-recording-auth.mjs",
     "record:usecase": "node scripts/record-usecase.mjs",
+    "preview:usecase": "RECORDING_CAPTURE_ONLY=1 node scripts/record-usecase.mjs",
+    "produce:ecommerce": "node scripts/run-ecommerce-batch.mjs",
     "generate:narration": "node scripts/generate-elevenlabs-segments.mjs",
     "render:recording": "node scripts/render-synced-recording.mjs"
   },

@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "brand": "Airveek",
+  "checkedAt": "2026-08-26T17:50:00+05:30",
+  "providers": {
+    "elevenlabs": {
+      "accountPreflight": "failed",
+      "textToSpeechPreflight": "not-reached",
+      "httpStatus": 401,
+      "providerStatus": "needs_authorization",
+      "latestAttempt": "The newly supplied credential was rejected by both account and voices endpoints; no narration batch was started with it.",
+      "lastKnownWorkingCheckpoint": "A previous credential passed account, voices, and real TTS preflight; it is not reused automatically after a new credential is supplied.",
+      "previousAttempt": {
+        "accountPreflight": "passed",
+        "textToSpeechPreflight": "blocked",
+        "httpStatus": 401,
+        "providerStatus": "detected_unusual_activity"
+      },
+      "policy": "Use the complete secret only through the process environment; verify both account access and one real text-to-speech request before narration. Never print or commit the secret. Stop on 401 and request a newly generated key rather than guessing or falling back silently."
+    },
+    "airveek-generation": {
+      "status": "intermittent-provider-failures-observed",
+      "currentObservations": [
+        "ECO01 through ECO04 have valid one-image captures and compiled timeline scripts.",
+        "ECO05 fresh generation is blocked by the Airveek provider daily_limit; a new single-image retry at 2026-08-26T18:05:14+05:30 timed out after five minutes without a result, and the reused-capture fallback remains conditional.",
+        "ECO06 timed out before a result image was ready.",
+        "A clean retry must create a complete kit; partial results and raw recordings must never be combined across timestamps."
+      ],
+      "policy": "Preserve each attempt and resume from the first incomplete gate; do not spend ElevenLabs quota on kits that have not passed capture QA."
+    }
+  },
+  "resumeCommand": "ELEVENLABS_API_KEY=<valid-secret> pnpm produce:ecommerce",
+  "queue": "docs/research/airveek-production-queue-v1.json"
+}

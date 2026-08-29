@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "createdAt": "2026-08-26",
+  "purpose": "Category-specific image quality gate for Airveek ecommerce photo-shoot content.",
+  "decision": "Separate marketplace-compliant main images from attention-catching secondary/lifestyle images. Never use a plain background as the only image, and never let creative styling change the product being sold.",
+  "researchSignals": [
+    {
+      "source": "Google Merchant Center image link guidance",
+      "url": "https://support.google.com/merchants/answer/6324350?hl=en",
+      "signal": "Main images should accurately show the whole product, be high resolution, and use a simple background; staged or lifestyle images can also be acceptable when the product is clearly shown."
+    },
+    {
+      "source": "Google Merchant Center lifestyle image guidance",
+      "url": "https://support.google.com/merchants/answer/9103186?hl=en",
+      "signal": "Lifestyle images are intended to show products in a real-world context and should be distinctive, colorful, beautiful, and focused on the product in use or being showcased."
+    },
+    {
+      "source": "Google Merchant Center additional image guidance",
+      "url": "https://support.google.com/merchants/answer/6324370?hl=en-GB",
+      "signal": "Additional images can show staging, use, detail views, and lifestyle context beyond the main image."
+    },
+    {
+      "source": "Amazon seller image guidance",
+      "url": "https://sellercentral.amazon.com/seller-forums/discussions/t/13af96ea-6b07-4bf9-8dbe-a13292c2e3b1",
+      "signal": "Marketplace main-image discipline is different from brand storytelling: clear, in-focus, product-dominant, white-background images are used for the primary listing view, while richer story assets belong in secondary content."
+    },
+    {
+      "source": "Shopify product photography guide",
+      "url": "https://www.shopify.com/blog/ecommerce-photography",
+      "signal": "A useful product image system combines clean listing, lifestyle, packaging, close-up, and scale/context images; lifestyle images help shoppers imagine the product in their own life."
+    },
+    {
+      "source": "Baymard product-page research",
+      "url": "https://baymard.com/research/product-page",
+      "signal": "Product pages need a diverse image set with different jobs; rich visuals supplement rather than replace clear product images."
+    },
+    {
+      "source": "TikTok Creative Center beauty guidance",
+      "url": "https://ads.tiktok.com/business/creativecenter/quicktok/online/creative-tips-for-beauty-personal-care/pc/en",
+      "signal": "Beauty creative performs as product showcase plus useful education: show texture, routine, practical tips, and a clear product-focused visual story."
+    },
+    {
+      "source": "Pinterest reference pin supplied by the user",
+      "url": "https://in.pinterest.com/pin/1135540493561502146/",
+      "signal": "The reference pattern pairs a finished commercial product image with a reusable prompt card. This is useful as a prompt-template source, but the prompt must still be checked against product truth and marketplace rules."
+    }
+  ],
+  "categoryRules": {
+    "skincare-serum": {
+      "mainListing": [
+        "Exact bottle, cap, dropper, label shape, color, and proportions must remain unchanged.",
+        "Product must be fully visible, sharp, and easy to recognize at thumbnail size.",
+        "Use a clean light background when the asset is used as a marketplace main image.",
+        "Do not invent readable claims, ingredient percentages, awards, or medical language."
+      ],
+      "secondaryLifestyle": [
+        "Use one calm, believable skincare ritual: stone, water, soft botanical cue, or a clean vanity context.",
+        "Keep styling minimal and subordinate to the bottle; no prop may hide the label or dropper.",
+        "Use controlled reflections, contact shadow, and realistic liquid/glass behavior.",
+        "Leave crop-safe negative space and avoid generic empty gradients."
+      ],
+      "qualityChecks": [
+        "Product identity match against the source image",
+        "Label and cap visible",
+        "Product remains the visual focal point",
+        "No duplicated product or generated text",
+        "No plain-background-only treatment",
+        "Commercial lighting and believable physical contact"
+      ]
+    }
+  },
+  "stagedAsset": {
+    "path": "public/images/airveek/quality-gate/serum-lifestyle-v1.png",
+    "role": "secondary-lifestyle-reference",
+    "status": "staged-for-user-review",
+    "sourceProduct": "content-kits/ECO01/2026-08-25T20-37-12-534Z/input.png",
+    "generationMethod": "built-in image generation edit with the supplied product image as edit target"
+  },
+  "hardGate": "Do not record the 20-video batch until the user approves the staged visual direction and the first synchronized ECO01 replacement passes audio, framing, branding, and human visual review."
+}

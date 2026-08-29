@@ -5,12 +5,14 @@ import { CheckoutLauncher } from "@/components/checkout/checkout-launcher";
 import { getPathWithNext, getSafeRedirectPath } from "@/lib/auth/redirect-path";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isPlanKey, type PlanKey } from "@/lib/whop/types";
+import { noIndexMetadata } from "@/lib/seo/site";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Checkout",
   description: "Complete your Airveek purchase.",
+  ...noIndexMetadata,
 };
 
 type CheckoutPageProps = {

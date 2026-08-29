@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/coreyhaines31/marketingskills",
+  "commit": "e55de886fe7580ec75cdb7ded5092b33f7d4ed58",
+  "installed_on": "2026-08-29",
+  "scope": "project",
+  "skill_count": 50,
+  "local_repairs": [
+    "Fixed ad-creative cross-skill link to ads/meta-decision-system.md",
+    "Replaced two references to the nonexistent positioning skill with product-marketing"
+  ]
+}

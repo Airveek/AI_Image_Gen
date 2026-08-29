@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { Inter, K2D } from "next/font/google";
+import { absoluteUrl, SITE_URL } from "@/lib/seo/site";
 import { ConsentAndAttribution } from "@/components/seo/consent-and-attribution";
 import "./globals.css";
 
@@ -19,12 +20,28 @@ const k2d = K2D({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Airveek: All-in-One AI Image Generator",
     template: "%s | Airveek",
   },
   description:
     "Create images, logos, and commercial artwork from a keyword with Airveek.",
+  alternates: { canonical: absoluteUrl("/") },
+  openGraph: {
+    type: "website",
+    siteName: "Airveek",
+    url: absoluteUrl("/"),
+    title: "Airveek: All-in-One AI Image Generator",
+    description: "Create images, logos, and commercial artwork from a keyword with Airveek.",
+    images: [{ url: absoluteUrl("/images/airveek/hero-premium-generated.png"), width: 1536, height: 1024, alt: "Airveek AI image creation studio" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Airveek: All-in-One AI Image Generator",
+    description: "Create images, logos, and commercial artwork from a keyword with Airveek.",
+    images: [absoluteUrl("/images/airveek/hero-premium-generated.png")],
+  },
   icons: {
     icon: "/favicon.ico",
     apple: "/images/airveek/mark-square.png",

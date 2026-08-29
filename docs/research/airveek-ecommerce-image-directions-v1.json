@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "createdAt": "2026-08-26",
+  "purpose": "Category-specific image direction derived from marketplace image jobs, real category PDPs, and the user-supplied Pinterest prompt-card pattern.",
+  "referencePattern": {
+    "url": "https://in.pinterest.com/pin/1135540493561502146/",
+    "role": "creative pattern library",
+    "observedGrammar": [
+      "finished commercial product image paired with a reusable prompt card",
+      "clear subject hierarchy with one product as the hero",
+      "specific setting and lighting instead of a generic empty background",
+      "small number of supporting props chosen to explain use or mood",
+      "prompt includes negative constraints to protect the product and composition"
+    ],
+    "boundary": "Use the visual grammar as inspiration. Do not copy the exact prompt, infer marketplace performance, or allow generated styling to change product identity."
+  },
+  "sharedImageContract": {
+    "mode": "one category-specific image per first test",
+    "productTruth": ["shape", "materials", "color", "label or markings", "proportions", "functional details"],
+    "composition": ["product is the hero", "supporting props are sparse", "center-safe crop", "commercial light", "realistic contact shadow"],
+    "reject": ["plain empty background as the only creative", "invented readable text", "claims or awards", "duplicated products", "hidden buyer-critical detail", "watermark or retailer logo"],
+    "assetRole": "secondary lifestyle or campaign image; create a separate marketplace-main-image brief when that job is requested"
+  },
+  "directions": [
+    {"id":"ECO01","category":"skincare serum","setting":"warm ivory stone beside clear water, one soft botanical leaf, gentle window light","buyerDetail":"bottle, black dropper, amber glass, and label","lesson":"show the routine mood without hiding the bottle or inventing skincare claims"},
+    {"id":"ECO02","category":"coffee maker","setting":"bright calm kitchen counter with fresh coffee, a few beans, soft morning window light","buyerDetail":"whole machine, carafe, water level, and controls","lesson":"show the daily use moment while keeping the machine shape and controls readable"},
+    {"id":"ECO03","category":"running shoes","setting":"clean urban morning running path with textured ground and low directional light","buyerDetail":"side shape, heel, true color, and sole edge","lesson":"show the shoe in motion-ready context without hiding the sole or changing its shape"},
+    {"id":"ECO04","category":"leather handbag","setting":"warm entryway console with folded neutral scarf and soft daylight","buyerDetail":"bag silhouette, strap, opening, and believable scale","lesson":"make scale and carrying use easier to judge than vague luxury language"},
+    {"id":"ECO05","category":"analog watch","setting":"dark walnut or charcoal stone surface with one soft highlight","buyerDetail":"readable dial, hands, case edge, crown, and finish without glare","lesson":"premium mood is useful only when the time face and hardware stay clear"},
+    {"id":"ECO06","category":"sunglasses","setting":"bright terrace beside pale stone with soft sky reflection and restrained shadow","buyerDetail":"full frame, lens color, bridge, and hinge edge","lesson":"use reflection as atmosphere but keep the frame and lens color honest"},
+    {"id":"ECO07","category":"insulated tumbler","setting":"tidy work desk with notebook and drink nearby, warm natural light","buyerDetail":"body size, lid, handle, and drinking opening","lesson":"a familiar desk gives scale without crowding the lid or opening"},
+    {"id":"ECO08","category":"wireless earbuds","setting":"minimal travel desk or charging station with soft cool highlight","buyerDetail":"charging case, both earbuds, fit shape, and controls","lesson":"the viewer should see what is included and how the case is used"},
+    {"id":"ECO09","category":"smartphone case","setting":"clean desk by a window with phone installed and one scale object","buyerDetail":"phone fit, camera cutout, buttons, ports, and edge thickness","lesson":"show the case on the phone so fit and protection details can be checked"},
+    {"id":"ECO10","category":"desk lamp","setting":"calm late-afternoon desk with a believable pool of light","buyerDetail":"base, stem, hinge, shade, and control","lesson":"light on the work surface proves the lamp's job better than an isolated product"},
+    {"id":"ECO11","category":"nonstick frying pan","setting":"bright home stovetop with simple meal, controlled steam, few props","buyerDetail":"cooking surface, pan size, handle, and edge","lesson":"show the cooking surface in use while keeping the handle and rim visible"},
+    {"id":"ECO12","category":"scented candle","setting":"warm evening bedside or living room with one lit candle","buyerDetail":"jar shape, label area, wax level, and wick","lesson":"warm light can sell the use moment only if the jar and label remain readable"},
+    {"id":"ECO13","category":"throw blanket","setting":"modern sofa with blanket naturally folded and draped in warm daylight","buyerDetail":"true color, weave, edge, and room scale","lesson":"show texture and size through a natural drape rather than a flat color block"},
+    {"id":"ECO14","category":"dog harness","setting":"green park path with a friendly dog standing naturally in soft daylight","buyerDetail":"straps, clip, adjustment points, and fit","lesson":"a real fit view answers more than a close product cutout"},
+    {"id":"ECO15","category":"baby bottle","setting":"bright kitchen table with bottle beside cap and nipple parts","buyerDetail":"bottle size, included parts, nipple, cap, and grip","lesson":"lay out the included parts clearly and avoid unsupported safety claims"},
+    {"id":"ECO16","category":"yoga mat","setting":"sunlit quiet studio floor with mat partly unrolled and one soft exercise cue","buyerDetail":"full length, surface texture, thickness edge, and roll-up size","lesson":"partial use shows grip surface and thickness while preserving overall size"},
+    {"id":"ECO17","category":"carry-on luggage","setting":"bright airport lounge with suitcase upright on a clean floor","buyerDetail":"full size, wheels, handle, shell, and opening","lesson":"travel context is valuable when wheels, handle, and scale stay visible"},
+    {"id":"ECO18","category":"wall art print","setting":"modern living-room wall above simple furniture with natural side light","buyerDetail":"art color, border, paper edge, and wall scale","lesson":"the wall context answers size and color questions that a flat scan cannot"},
+    {"id":"ECO19","category":"food storage container","setting":"organized pantry counter with container open beside lid and dry food inside","buyerDetail":"empty shape, lid seal, stack height, and what fits","lesson":"show both the empty container and its everyday capacity"},
+    {"id":"ECO20","category":"necklace jewelry","setting":"close elegant neckline or neutral jewelry display with soft clean light","buyerDetail":"pendant, chain, clasp, and believable worn scale","lesson":"wearing context makes scale clear while the clasp and chain remain inspectable"}
+  ]
+}

@@ -1,0 +1,1308 @@
+{
+  "version": 1,
+  "brand": "Airveek",
+  "generatedAt": "2026-08-26T02:02:01.084Z",
+  "rule": "This is a planning script. Final narration is compiled again against the actual recording timeline before ElevenLabs generation.",
+  "briefs": [
+    {
+      "opportunityId": "ECO01",
+      "category": "skincare serum",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three skincare serum pictures answer the buyer's main question: can I see the bottle, texture, and routine use without making a medical promise?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "A skincare bottle needs three pictures, not three copies of the same picture. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can I see the bottle, texture, and routine use without making a medical promise?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: clean shop picture, countertop routine, dropper/detail close-up. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Keep the bottle and label unchanged; change only the place and the job of the image. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the skincare serum a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can I see the bottle, texture, and routine use without making a medical promise?",
+        "imageJobs": [
+          "clean listing",
+          "countertop routine",
+          "dropper/detail close-up"
+        ],
+        "practicalLesson": "Keep the bottle and label unchanged; change only the place and the job of the image.",
+        "proofPlan": "Compare a clear listing image, a morning-routine scene, and a close detail.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO02",
+      "category": "coffee maker",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three coffee maker pictures answer the buyer's main question: can a shopper understand size, controls, and the morning use in one glance?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "If the coffee maker looks good but the buttons are unclear, the photo has failed. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can a shopper understand size, controls, and the morning use in one glance?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: front shop picture, kitchen counter use, control close-up. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Show the whole machine first, then show the one control people need to find. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the coffee maker a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can a shopper understand size, controls, and the morning use in one glance?",
+        "imageJobs": [
+          "front listing",
+          "kitchen counter use",
+          "control close-up"
+        ],
+        "practicalLesson": "Show the whole machine first, then show the one control people need to find.",
+        "proofPlan": "Use a clean front view, a counter scene, and a close control view.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO03",
+      "category": "running shoes",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three running shoes pictures answer the buyer's main question: can the shopper see the sole, side shape, and shoe on a person without guessing?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "A shoe photo must answer one question fast: what will I actually receive? Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper see the sole, side shape, and shoe on a person without guessing?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: side shop picture, worn lifestyle, sole/detail. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Do not let the lifestyle scene hide the sole, heel, or true color. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the running shoes a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper see the sole, side shape, and shoe on a person without guessing?",
+        "imageJobs": [
+          "side listing",
+          "worn lifestyle",
+          "sole/detail"
+        ],
+        "practicalLesson": "Do not let the lifestyle scene hide the sole, heel, or true color.",
+        "proofPlan": "Show the clean shoe, then a natural walking scene, then the tread detail.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO04",
+      "category": "leather handbag",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three leather handbag pictures answer the buyer's main question: can the shopper judge size, inside space, and how it looks carried?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "A handbag can look expensive and still hide the answer buyers need: what fits inside? Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper judge size, inside space, and how it looks carried?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: shape shop picture, carried lifestyle, inside/strap detail. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Use one picture for shape, one for scale, and one for the inside. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the leather handbag a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper judge size, inside space, and how it looks carried?",
+        "imageJobs": [
+          "shape listing",
+          "carried lifestyle",
+          "inside/strap detail"
+        ],
+        "practicalLesson": "Use one picture for shape, one for scale, and one for the inside.",
+        "proofPlan": "Keep the bag stable while changing the scene and the camera job.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO05",
+      "category": "analog watch",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three analog watch pictures answer the buyer's main question: can the shopper see dial details, wrist scale, and finish without glare?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "The shine is not the selling point if the dial cannot be read. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper see dial details, wrist scale, and finish without glare?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: dial shop picture, wrist lifestyle, finish close-up. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Control reflections before adding a dramatic background. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the analog watch a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper see dial details, wrist scale, and finish without glare?",
+        "imageJobs": [
+          "dial listing",
+          "wrist lifestyle",
+          "finish close-up"
+        ],
+        "practicalLesson": "Control reflections before adding a dramatic background.",
+        "proofPlan": "Start with the dial, add a wrist scene, then test the metal and crown detail.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO06",
+      "category": "sunglasses",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three sunglasses pictures answer the buyer's main question: can the shopper see the frame shape, lens color, and fit?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "The frame shape is the decision; the background is only support. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper see the frame shape, lens color, and fit?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: front shop picture, worn face, hinge/lens detail. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Keep the frame edge visible and do not let reflections turn the lens into a mirror. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the sunglasses a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper see the frame shape, lens color, and fit?",
+        "imageJobs": [
+          "front listing",
+          "worn face",
+          "hinge/lens detail"
+        ],
+        "practicalLesson": "Keep the frame edge visible and do not let reflections turn the lens into a mirror.",
+        "proofPlan": "Use front, worn, and detail shots with the same frame identity.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO07",
+      "category": "insulated tumbler",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three insulated tumbler pictures answer the buyer's main question: can the shopper see the size, handle, lid, and everyday use?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "A tumbler sells by the details people touch: the handle, lid, and size. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper see the size, handle, lid, and everyday use?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: clean product, desk/car use, lid/handle detail. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Give each touch point its own close view instead of adding more decoration. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the insulated tumbler a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper see the size, handle, lid, and everyday use?",
+        "imageJobs": [
+          "clean product",
+          "desk/car use",
+          "lid/handle detail"
+        ],
+        "practicalLesson": "Give each touch point its own close view instead of adding more decoration.",
+        "proofPlan": "Judge the product at small size, then show the daily setting and the lid detail.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO08",
+      "category": "wireless earbuds",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three wireless earbuds pictures answer the buyer's main question: can the shopper see the case, earbud fit, and controls?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "Tiny products need larger proof, not a busier background. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper see the case, earbud fit, and controls?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: case shop picture, in-ear lifestyle, charging/control detail. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Use a close crop for the case and a separate image for wearing them. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the wireless earbuds a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper see the case, earbud fit, and controls?",
+        "imageJobs": [
+          "case listing",
+          "in-ear lifestyle",
+          "charging/control detail"
+        ],
+        "practicalLesson": "Use a close crop for the case and a separate image for wearing them.",
+        "proofPlan": "Show case, fit, and control detail without changing the earbud shape.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO09",
+      "category": "smartphone case",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three smartphone case pictures answer the buyer's main question: can the shopper see the exact model fit, edges, ports, and grip?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "A phone case photo must prove fit before it tries to look clever. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper see the exact model fit, edges, ports, and grip?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: front/back shop picture, phone-in-hand use, edge/port close-up. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Never let a scene cover the camera cutout, buttons, or edge thickness. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the smartphone case a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper see the exact model fit, edges, ports, and grip?",
+        "imageJobs": [
+          "front/back listing",
+          "phone-in-hand use",
+          "edge/port close-up"
+        ],
+        "practicalLesson": "Never let a scene cover the camera cutout, buttons, or edge thickness.",
+        "proofPlan": "Use a clean case view, hand scale, and port detail.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO10",
+      "category": "desk lamp",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three desk lamp pictures answer the buyer's main question: can the shopper understand the lamp's size, light direction, and desk use?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "A lamp is not just a shape; buyers need to see where the light goes. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper understand the lamp's size, light direction, and desk use?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: full product, desk scene, hinge/control detail. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Show the light direction without hiding the base and controls. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the desk lamp a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper understand the lamp's size, light direction, and desk use?",
+        "imageJobs": [
+          "full product",
+          "desk scene",
+          "hinge/control detail"
+        ],
+        "practicalLesson": "Show the light direction without hiding the base and controls.",
+        "proofPlan": "Full lamp, working desk, and hinge/control detail.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO11",
+      "category": "nonstick frying pan",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three nonstick frying pan pictures answer the buyer's main question: can the shopper see the cooking surface, size, handle, and food use?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "A pan photo should make the cooking surface easy to trust. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper see the cooking surface, size, handle, and food use?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: clean pan, stovetop use, surface/handle detail. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Show the inside surface and handle before adding a styled meal. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the nonstick frying pan a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper see the cooking surface, size, handle, and food use?",
+        "imageJobs": [
+          "clean pan",
+          "stovetop use",
+          "surface/handle detail"
+        ],
+        "practicalLesson": "Show the inside surface and handle before adding a styled meal.",
+        "proofPlan": "Clean pan, simple stovetop scene, surface close-up.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO12",
+      "category": "scented candle",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three scented candle pictures answer the buyer's main question: can the shopper see the jar, label, scale, and mood without losing product identity?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "A candle needs atmosphere, but the label still has to sell it. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper see the jar, label, scale, and mood without losing product identity?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: label shop picture, home mood, wax/wick detail. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Make the scene warmer, not busier; keep the jar and label readable. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the scented candle a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper see the jar, label, scale, and mood without losing product identity?",
+        "imageJobs": [
+          "label listing",
+          "home mood",
+          "wax/wick detail"
+        ],
+        "practicalLesson": "Make the scene warmer, not busier; keep the jar and label readable.",
+        "proofPlan": "Clear label, calm room scene, wick/wax close-up.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO13",
+      "category": "throw blanket",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three throw blanket pictures answer the buyer's main question: can the shopper see the weave, true color, and size in a room?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "For fabric, one wide photo is not enough; texture is the product. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper see the weave, true color, and size in a room?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: folded shop picture, sofa lifestyle, texture/edge close-up. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Use a close view for the weave and a wide view for size. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the throw blanket a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper see the weave, true color, and size in a room?",
+        "imageJobs": [
+          "folded listing",
+          "sofa lifestyle",
+          "texture/edge close-up"
+        ],
+        "practicalLesson": "Use a close view for the weave and a wide view for size.",
+        "proofPlan": "Folded blanket, sofa use, texture detail.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO14",
+      "category": "dog harness",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three dog harness pictures answer the buyer's main question: can the buyer see the fit points, clips, and the harness on a dog?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "A harness should make fit easy to understand before the dog wears it. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the buyer see the fit points, clips, and the harness on a dog?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: flat shop picture, worn dog, clip/adjustment detail. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Show each strap and clip clearly; do not promise a fit for every dog. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the dog harness a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the buyer see the fit points, clips, and the harness on a dog?",
+        "imageJobs": [
+          "flat listing",
+          "worn dog",
+          "clip/adjustment detail"
+        ],
+        "practicalLesson": "Show each strap and clip clearly; do not promise a fit for every dog.",
+        "proofPlan": "Flat product, worn use, clip/adjustment close-up.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO15",
+      "category": "baby bottle",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three baby bottle pictures answer the buyer's main question: can the shopper see the bottle parts, size, and how it is held?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "For a baby product, the small parts are the big question. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper see the bottle parts, size, and how it is held?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: parts shop picture, caregiver use, nipple/cap detail. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Show what is included and avoid health or safety claims the image cannot prove. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the baby bottle a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper see the bottle parts, size, and how it is held?",
+        "imageJobs": [
+          "parts listing",
+          "caregiver use",
+          "nipple/cap detail"
+        ],
+        "practicalLesson": "Show what is included and avoid health or safety claims the image cannot prove.",
+        "proofPlan": "Parts, held use, and cap/nipple detail with no medical promise.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO16",
+      "category": "yoga mat",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three yoga mat pictures answer the buyer's main question: can the shopper judge thickness, roll-up size, and use on the floor?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "A yoga mat photo should show thickness before it shows the pose. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper judge thickness, roll-up size, and use on the floor?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: full mat, exercise scene, surface/edge detail. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Show the edge and surface; a distant workout scene cannot prove either. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the yoga mat a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper judge thickness, roll-up size, and use on the floor?",
+        "imageJobs": [
+          "full mat",
+          "exercise scene",
+          "surface/edge detail"
+        ],
+        "practicalLesson": "Show the edge and surface; a distant workout scene cannot prove either.",
+        "proofPlan": "Full mat, simple exercise use, edge/surface close-up.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO17",
+      "category": "carry-on luggage",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three carry-on luggage pictures answer the buyer's main question: can the shopper see size, wheels, handle, and packing space?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "Luggage photos should answer the airport questions before the trip starts. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper see size, wheels, handle, and packing space?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: full suitcase, airport use, wheel/handle/interior detail. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Show the wheels, handle, and inside space as separate proof points. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the carry-on luggage a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper see size, wheels, handle, and packing space?",
+        "imageJobs": [
+          "full suitcase",
+          "airport use",
+          "wheel/handle/interior detail"
+        ],
+        "practicalLesson": "Show the wheels, handle, and inside space as separate proof points.",
+        "proofPlan": "Full suitcase, travel setting, wheel/handle/interior details.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO18",
+      "category": "wall art print",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three wall art print pictures answer the buyer's main question: can the shopper judge print size, color, and how it looks on a wall?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "Wall art is hard to buy when the picture never shows the wall. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper judge print size, color, and how it looks on a wall?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: flat print, room wall scale, paper/edge detail. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Use one image to show the print and one to show its real size in a room. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the wall art print a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper judge print size, color, and how it looks on a wall?",
+        "imageJobs": [
+          "flat print",
+          "room wall scale",
+          "paper/edge detail"
+        ],
+        "practicalLesson": "Use one image to show the print and one to show its real size in a room.",
+        "proofPlan": "Flat print, room scale, paper/edge detail.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO19",
+      "category": "food storage container",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three food storage container pictures answer the buyer's main question: can the shopper see the lid seal, stack height, and what fits inside?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "A storage box has one job in the photo: make the space it saves obvious. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper see the lid seal, stack height, and what fits inside?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: empty container, pantry use, lid/seal/stack detail. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Show the empty shape and the filled use; never hide the lid fit. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the food storage container a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper see the lid seal, stack height, and what fits inside?",
+        "imageJobs": [
+          "empty container",
+          "pantry use",
+          "lid/seal/stack detail"
+        ],
+        "practicalLesson": "Show the empty shape and the filled use; never hide the lid fit.",
+        "proofPlan": "Empty container, pantry scene, lid/stack close-up.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    },
+    {
+      "opportunityId": "ECO20",
+      "category": "necklace jewelry",
+      "format": "16x9 horizontal product demo",
+      "audience": "A non-technical shop owner who wants a clear answer and a useful result.",
+      "viewerPromise": "By the end, you will know whether these three necklace jewelry pictures answer the buyer's main question: can the shopper see scale, clasp, chain, and how it sits when worn?",
+      "script": [
+        {
+          "beat": "hook",
+          "line": "Jewelry needs a close view and a size view; one cannot replace the other. Stay until the end and use the three-question check on your own product.",
+          "visual": "Open on the finished three-image result set; hold long enough to see the difference between the images."
+        },
+        {
+          "beat": "buyer-question",
+          "line": "Before making anything, ask: Can the shopper see scale, clasp, chain, and how it sits when worn?",
+          "visual": "Show the blank workspace and the product reference."
+        },
+        {
+          "beat": "setup",
+          "line": "We will make three pictures for three jobs: clean jewelry shop picture, worn neckline, clasp/pendant close-up. Keep the exact product the same in every picture.",
+          "visual": "Choose the product-photo mode, show the reference, and fill the category prompt."
+        },
+        {
+          "beat": "first-proof",
+          "line": "First, make the clear shop picture. The product must be easy to find in one second.",
+          "visual": "Start creation; show the product clearly when the first result appears."
+        },
+        {
+          "beat": "practical-check",
+          "line": "Keep the pendant shape sharp and use a worn shot only to show scale. If this detail is hidden, the picture is not ready yet.",
+          "visual": "During generation, keep the relevant product detail centered and visible; show it in the result."
+        },
+        {
+          "beat": "second-proof",
+          "line": "Next, give the necklace jewelry a setting that helps people picture using it. The setting should support the product, not cover it.",
+          "visual": "Show the lifestyle result and compare it with the clear shop picture."
+        },
+        {
+          "beat": "third-proof",
+          "line": "Last, make the close view answer the detail question. More decoration will not fix a detail that cannot be seen.",
+          "visual": "Show the detail result at a readable size and keep the product in the center-safe area."
+        },
+        {
+          "beat": "scorecard",
+          "line": "Now check three things: Is the product clear? Does the setting help? Does each picture have a different job?",
+          "visual": "Pause on all three results and point the viewer back to the opening question."
+        },
+        {
+          "beat": "payoff",
+          "line": "If the answer is yes, the set is ready for review. If not, change the scene—not the product—and try again.",
+          "visual": "End on the three results with the Airveek logo visible and the practical rule on screen."
+        }
+      ],
+      "researchInputs": {
+        "buyerQuestion": "Can the shopper see scale, clasp, chain, and how it sits when worn?",
+        "imageJobs": [
+          "clean jewelry listing",
+          "worn neckline",
+          "clasp/pendant close-up"
+        ],
+        "practicalLesson": "Keep the pendant shape sharp and use a worn shot only to show scale.",
+        "proofPlan": "Clean pendant, worn scale, clasp/detail close-up.",
+        "source": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json"
+      }
+    }
+  ]
+}

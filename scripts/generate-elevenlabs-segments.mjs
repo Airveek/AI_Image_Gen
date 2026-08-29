@@ -25,11 +25,15 @@ const script = await readJson(scriptPath);
 if (!Array.isArray(script) || script.length === 0) {
   throw new Error("narration-script.json must contain at least one segment.");
 }
+const requiredCharacters = script.reduce((total, segment) => total + String(segment?.text ?? "").length, 0);
+await assertAllowance(requiredCharacters);
 
 const audioDirectory = path.join(kitDirectory, "audio");
+const statusPath = path.join(kitDirectory, "narration-generation-status.json");
 await mkdir(audioDirectory, { recursive: true });
 const generatedSegments = [];
 const alignments = [];
+await writeStatus({ status: "in_progress", totalSegments: script.length, generatedSegments: 0 });
 
 for (const [index, segment] of script.entries()) {
   if (!isRecord(segment)) throw new Error(`Narration segment ${index + 1} must be an object.`);
@@ -73,7 +77,7 @@ for (const [index, segment] of script.entries()) {
     },
   );
   if (!response.ok) {
-    throw new Error(`ElevenLabs segment ${index + 1} failed with HTTP ${response.status}.`);
+    throw new Error(`ElevenLabs segment ${index + 1} failed with HTTP ${response.status}: ${await readElevenLabsError(response)}`);
   }
 
   const result = await response.json();
@@ -93,6 +97,7 @@ for (const [index, segment] of script.entries()) {
     file,
     alignment: isRecord(result.alignment) ? result.alignment : null,
   });
+  await writeStatus({ status: "in_progress", totalSegments: script.length, generatedSegments: generatedSegments.length });
   console.log(`Generated narration ${index + 1}/${script.length}: ${event}`);
 }
 
@@ -104,12 +109,48 @@ await writeFile(
   path.join(kitDirectory, "narration-alignment.json"),
   `${JSON.stringify({ voiceId, modelId, segments: alignments }, null, 2)}\n`,
 );
+await writeStatus({ status: "complete", totalSegments: script.length, generatedSegments: generatedSegments.length });
 
 console.log(`Generated ${generatedSegments.length} ElevenLabs narration segments.`);
 
 async function readJson(filePath) {
   await access(filePath);
   return JSON.parse(await readFile(filePath, "utf8"));
+}
+
+async function writeStatus(value) {
+  await writeFile(statusPath, `${JSON.stringify({ ...value, updatedAt: new Date().toISOString() }, null, 2)}\n`);
+}
+
+async function assertAllowance(requiredCharacters) {
+  const response = await fetch("https://api.elevenlabs.io/v1/user", { headers: { "xi-api-key": apiKey } });
+  if (!response.ok) throw new Error(`ElevenLabs account check failed with HTTP ${response.status}: ${await readElevenLabsError(response)}`);
+  const account = await response.json();
+  const subscription = account?.subscription;
+  const used = Number(subscription?.character_count ?? 0);
+  const limit = Number(subscription?.character_limit ?? 0);
+  const remaining = limit > 0 ? limit - used : Number.POSITIVE_INFINITY;
+  if (remaining < requiredCharacters) {
+    const reset = Number(subscription?.next_character_count_reset_unix ?? 0);
+    const resetAt = reset > 0 ? new Date(reset * 1000).toISOString() : "unknown";
+    throw new Error(`ElevenLabs character allowance is too low (${used}/${limit}, ${remaining} remaining; ${requiredCharacters} required); next reset: ${resetAt}.`);
+  }
+}
+
+async function readElevenLabsError(response) {
+  try {
+    const body = JSON.parse(await response.text());
+    const detail = body?.detail;
+    if (typeof detail === "string") return detail;
+    if (detail && typeof detail === "object") {
+      const status = typeof detail.status === "string" ? detail.status : "provider_error";
+      const message = typeof detail.message === "string" ? detail.message : "request rejected";
+      return `${status}: ${message}`;
+    }
+    return typeof body?.message === "string" ? body.message : "request rejected";
+  } catch {
+    return "request rejected";
+  }
 }
 
 function isRecord(value) {

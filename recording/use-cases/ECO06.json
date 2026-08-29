@@ -1,0 +1,28 @@
+{
+  "id": "ECO06",
+  "route": "/create/product-fashion",
+  "input": "public/images/airveek/content-reference/generic-sunglasses.png",
+  "variations": 1,
+  "fields": [
+    {
+      "label": "Mode",
+      "action": "select",
+      "value": "product-scene"
+    },
+    {
+      "label": "Scene",
+      "action": "select",
+      "value": "outdoor"
+    },
+    {
+      "label": "Goal",
+      "action": "select",
+      "value": "social-post"
+    },
+    {
+      "label": "Describe the image you want",
+      "action": "fill",
+      "value": "Create one premium ecommerce lifestyle photo for this sunglasses. Keep the exact product shape, materials, color, label, and proportions unchanged. Place it in a bright terrace beside pale stone with a soft sky reflection and one restrained shadow. Keep the full frame shape, lens color, bridge, and hinge edge fully visible and sharp. Make the product the main focus with realistic light, believable shadows, clean composition, and room for a crop. Do not add invented readable text, claims, extra products, watermarks, retailer logos, or a plain empty background."
+    }
+  ]
+}

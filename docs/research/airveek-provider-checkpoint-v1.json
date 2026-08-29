@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "brand": "Airveek",
+  "checkedAt": "2026-08-26",
+  "providers": {
+    "elevenlabs": {
+      "status": "quota-too-low-for-new-run",
+      "characterCount": 9992,
+      "characterLimit": 10000,
+      "remainingCharacters": 8,
+      "nextReset": "2026-09-14T03:03:12.000Z",
+      "policy": "Do not start a new narration run unless the preflight has enough characters for the complete script."
+    },
+    "airveek-generation": {
+      "status": "intermittent-provider-failures-observed",
+      "recentObservations": [
+        "ECO06 produced three results once, then a clean retry failed on image 2.",
+        "ECO07 produced three results and a valid recording.",
+        "ECO09 produced three results but its recording finalized as zero bytes.",
+        "ECO10 produced three results and a valid recording after page-first finalization was added.",
+        "ECO11 produced two results and failed on image 3 with Gemini Web returning no generated image.",
+        "ECO12 failed on image 3 with the same Gemini Web provider response."
+      ],
+      "policy": "Preserve the recording attempt; retry as a clean one-kit run and never combine partial results with another timestamp."
+    }
+  },
+  "resumeCommand": "node scripts/run-opportunity-production.mjs <OPPORTUNITY_ID>",
+  "queue": "docs/research/airveek-production-queue-v1.json"
+}

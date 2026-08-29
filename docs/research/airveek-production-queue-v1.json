@@ -1,0 +1,330 @@
+{
+  "version": 1,
+  "brand": "Airveek",
+  "generatedAt": "2026-08-26T18:02:13.872Z",
+  "sourceGraph": "docs/research/airveek-ecommerce-product-photo-opportunity-graph-v1.json",
+  "policy": {
+    "oneKitPerAttempt": "Never combine raw-demo.webm, timeline.json, result images, audio, or output video across timestamps.",
+    "retryOrder": [
+      "provider-available",
+      "record-real-workflow",
+      "compile-from-that-timeline",
+      "generate-ElevenLabs-audio",
+      "render-16x9",
+      "run-QA"
+    ],
+    "audioGapLimitMs": 5500,
+    "requiredOutput": "tutorial-16x9.mp4",
+    "blockedProviderHandling": "Preserve the incomplete kit, record the provider error, and resume from that kit only after the provider is available."
+  },
+  "summary": {
+    "offline-qa-pass": 4,
+    "capture-ready-generation-retry": 3,
+    "needs-render-or-qa": 1,
+    "offline-qa-pass-narration-retry-pending": 1,
+    "mismatched-attempt-re-record": 7,
+    "ready-for-narration": 4
+  },
+  "topics": [
+    {
+      "opportunityId": "ECO01",
+      "category": "skincare serum",
+      "order": 1,
+      "brief": {
+        "buyerQuestion": "Can I see the bottle, texture, and routine use without making a medical promise?",
+        "hook": "A skincare bottle needs three pictures, not three copies of the same picture.",
+        "practicalLesson": "Keep the bottle and label unchanged; change only the place and the job of the image.",
+        "assetPlan": "public/images/airveek/content-reference/generic-serum.png"
+      },
+      "status": "offline-qa-pass",
+      "latestKit": "content-kits/ECO01/2026-08-26T06-11-47-814Z",
+      "output": "content-kits/ECO01/2026-08-26T06-11-47-814Z/tutorial-16x9.mp4",
+      "nextAction": "review-output-and-log-publishing-feedback"
+    },
+    {
+      "opportunityId": "ECO02",
+      "category": "coffee maker",
+      "order": 2,
+      "brief": {
+        "buyerQuestion": "Can a shopper understand size, controls, and the morning use in one glance?",
+        "hook": "If the coffee maker looks good but the buttons are unclear, the photo has failed.",
+        "practicalLesson": "Show the whole machine first, then show the one control people need to find.",
+        "assetPlan": "public/images/airveek/content-reference/generic-coffee-maker.png"
+      },
+      "status": "offline-qa-pass",
+      "latestKit": "content-kits/ECO02/2026-08-26T06-55-57-811Z",
+      "output": "content-kits/ECO02/2026-08-26T06-55-57-811Z/tutorial-16x9.mp4",
+      "nextAction": "review-output-and-log-publishing-feedback"
+    },
+    {
+      "opportunityId": "ECO03",
+      "category": "running shoes",
+      "order": 3,
+      "brief": {
+        "buyerQuestion": "Can the shopper see the sole, side shape, and shoe on a person without guessing?",
+        "hook": "A shoe photo must answer one question fast: what will I actually receive?",
+        "practicalLesson": "Do not let the lifestyle scene hide the sole, heel, or true color.",
+        "assetPlan": "public/images/airveek/content-reference/generic-running-shoe.png"
+      },
+      "status": "offline-qa-pass",
+      "latestKit": "content-kits/ECO03/2026-08-26T06-59-52-237Z",
+      "output": "content-kits/ECO03/2026-08-26T06-59-52-237Z/tutorial-16x9.mp4",
+      "nextAction": "review-output-and-log-publishing-feedback"
+    },
+    {
+      "opportunityId": "ECO04",
+      "category": "leather handbag",
+      "order": 4,
+      "brief": {
+        "buyerQuestion": "Can the shopper judge size, inside space, and how it looks carried?",
+        "hook": "A handbag can look expensive and still hide the answer buyers need: what fits inside?",
+        "practicalLesson": "Use one picture for shape, one for scale, and one for the inside.",
+        "assetPlan": "public/images/airveek/content-reference/generic-handbag.png"
+      },
+      "status": "offline-qa-pass",
+      "latestKit": "content-kits/ECO04/2026-08-26T07-06-11-389Z",
+      "output": "content-kits/ECO04/2026-08-26T07-06-11-389Z/tutorial-16x9.mp4",
+      "nextAction": "review-output-and-log-publishing-feedback"
+    },
+    {
+      "opportunityId": "ECO05",
+      "category": "analog watch",
+      "order": 5,
+      "brief": {
+        "buyerQuestion": "Can the shopper see dial details, wrist scale, and finish without glare?",
+        "hook": "The shine is not the selling point if the dial cannot be read.",
+        "practicalLesson": "Control reflections before adding a dramatic background.",
+        "assetPlan": "public/images/airveek/content-reference/generic-watch.png"
+      },
+      "status": "capture-ready-generation-retry",
+      "latestKit": "content-kits/ECO05/2026-08-26T17-30-12-637Z",
+      "output": null,
+      "nextAction": "retry-the-clean-recording-after-provider-is-stable"
+    },
+    {
+      "opportunityId": "ECO06",
+      "category": "sunglasses",
+      "order": 6,
+      "brief": {
+        "buyerQuestion": "Can the shopper see the frame shape, lens color, and fit?",
+        "hook": "The frame shape is the decision; the background is only support.",
+        "practicalLesson": "Keep the frame edge visible and do not let reflections turn the lens into a mirror.",
+        "assetPlan": "generated-sunglasses.png"
+      },
+      "status": "capture-ready-generation-retry",
+      "latestKit": "content-kits/ECO06/2026-08-26T07-31-34-309Z",
+      "output": null,
+      "nextAction": "retry-the-clean-recording-after-provider-is-stable"
+    },
+    {
+      "opportunityId": "ECO07",
+      "category": "insulated tumbler",
+      "order": 7,
+      "brief": {
+        "buyerQuestion": "Can the shopper see the size, handle, lid, and everyday use?",
+        "hook": "A tumbler sells by the details people touch: the handle, lid, and size.",
+        "practicalLesson": "Give each touch point its own close view instead of adding more decoration.",
+        "assetPlan": "amazon-reference-or-generated-tumbler.png"
+      },
+      "status": "needs-render-or-qa",
+      "latestKit": "content-kits/ECO07/2026-08-26T02-19-35-271Z",
+      "output": null,
+      "nextAction": "render-horizontal-output-then-run-QA"
+    },
+    {
+      "opportunityId": "ECO08",
+      "category": "wireless earbuds",
+      "order": 8,
+      "brief": {
+        "buyerQuestion": "Can the shopper see the case, earbud fit, and controls?",
+        "hook": "Tiny products need larger proof, not a busier background.",
+        "practicalLesson": "Use a close crop for the case and a separate image for wearing them.",
+        "assetPlan": "amazon-reference-or-generated-earbuds.png"
+      },
+      "status": "offline-qa-pass-narration-retry-pending",
+      "latestKit": "content-kits/ECO08/2026-08-25T21-35-46-298Z",
+      "output": "content-kits/ECO08/2026-08-25T21-35-46-298Z/tutorial-16x9.mp4",
+      "nextAction": "wait-for-ElevenLabs-then-regenerate-narration-render-and-QA"
+    },
+    {
+      "opportunityId": "ECO09",
+      "category": "smartphone case",
+      "order": 9,
+      "brief": {
+        "buyerQuestion": "Can the shopper see the exact model fit, edges, ports, and grip?",
+        "hook": "A phone case photo must prove fit before it tries to look clever.",
+        "practicalLesson": "Never let a scene cover the camera cutout, buttons, or edge thickness.",
+        "assetPlan": "generated-phone-case.png"
+      },
+      "status": "mismatched-attempt-re-record",
+      "latestKit": "content-kits/ECO09/2026-08-26T02-21-14-199Z",
+      "output": null,
+      "nextAction": "record-a-clean-attempt-and-do-not-reuse-this-kit"
+    },
+    {
+      "opportunityId": "ECO10",
+      "category": "desk lamp",
+      "order": 10,
+      "brief": {
+        "buyerQuestion": "Can the shopper understand the lamp's size, light direction, and desk use?",
+        "hook": "A lamp is not just a shape; buyers need to see where the light goes.",
+        "practicalLesson": "Show the light direction without hiding the base and controls.",
+        "assetPlan": "generated-desk-lamp.png"
+      },
+      "status": "ready-for-narration",
+      "latestKit": "content-kits/ECO10/2026-08-26T02-24-26-529Z",
+      "output": null,
+      "nextAction": "generate-ElevenLabs-narration-then-render-and-QA"
+    },
+    {
+      "opportunityId": "ECO11",
+      "category": "nonstick frying pan",
+      "order": 11,
+      "brief": {
+        "buyerQuestion": "Can the shopper see the cooking surface, size, handle, and food use?",
+        "hook": "A pan photo should make the cooking surface easy to trust.",
+        "practicalLesson": "Show the inside surface and handle before adding a styled meal.",
+        "assetPlan": "generated-frying-pan.png"
+      },
+      "status": "mismatched-attempt-re-record",
+      "latestKit": "content-kits/ECO11/2026-08-26T02-26-06-172Z",
+      "output": null,
+      "nextAction": "record-a-clean-attempt-and-do-not-reuse-this-kit"
+    },
+    {
+      "opportunityId": "ECO12",
+      "category": "scented candle",
+      "order": 12,
+      "brief": {
+        "buyerQuestion": "Can the shopper see the jar, label, scale, and mood without losing product identity?",
+        "hook": "A candle needs atmosphere, but the label still has to sell it.",
+        "practicalLesson": "Make the scene warmer, not busier; keep the jar and label readable.",
+        "assetPlan": "amazon-reference-or-generated-candle.png"
+      },
+      "status": "capture-ready-generation-retry",
+      "latestKit": "content-kits/ECO12/2026-08-26T02-30-30-108Z",
+      "output": null,
+      "nextAction": "retry-the-clean-recording-after-provider-is-stable"
+    },
+    {
+      "opportunityId": "ECO13",
+      "category": "throw blanket",
+      "order": 13,
+      "brief": {
+        "buyerQuestion": "Can the shopper see the weave, true color, and size in a room?",
+        "hook": "For fabric, one wide photo is not enough; texture is the product.",
+        "practicalLesson": "Use a close view for the weave and a wide view for size.",
+        "assetPlan": "generated-throw-blanket.png"
+      },
+      "status": "ready-for-narration",
+      "latestKit": "content-kits/ECO13/2026-08-26T02-37-36-977Z",
+      "output": null,
+      "nextAction": "generate-ElevenLabs-narration-then-render-and-QA"
+    },
+    {
+      "opportunityId": "ECO14",
+      "category": "dog harness",
+      "order": 14,
+      "brief": {
+        "buyerQuestion": "Can the buyer see the fit points, clips, and the harness on a dog?",
+        "hook": "A harness should make fit easy to understand before the dog wears it.",
+        "practicalLesson": "Show each strap and clip clearly; do not promise a fit for every dog.",
+        "assetPlan": "generated-dog-harness.png"
+      },
+      "status": "mismatched-attempt-re-record",
+      "latestKit": "content-kits/ECO14/2026-08-26T02-39-14-086Z",
+      "output": null,
+      "nextAction": "record-a-clean-attempt-and-do-not-reuse-this-kit"
+    },
+    {
+      "opportunityId": "ECO15",
+      "category": "baby bottle",
+      "order": 15,
+      "brief": {
+        "buyerQuestion": "Can the shopper see the bottle parts, size, and how it is held?",
+        "hook": "For a baby product, the small parts are the big question.",
+        "practicalLesson": "Show what is included and avoid health or safety claims the image cannot prove.",
+        "assetPlan": "amazon-reference-or-generated-baby-bottle.png"
+      },
+      "status": "mismatched-attempt-re-record",
+      "latestKit": "content-kits/ECO15/2026-08-26T02-41-40-158Z",
+      "output": null,
+      "nextAction": "record-a-clean-attempt-and-do-not-reuse-this-kit"
+    },
+    {
+      "opportunityId": "ECO16",
+      "category": "yoga mat",
+      "order": 16,
+      "brief": {
+        "buyerQuestion": "Can the shopper judge thickness, roll-up size, and use on the floor?",
+        "hook": "A yoga mat photo should show thickness before it shows the pose.",
+        "practicalLesson": "Show the edge and surface; a distant workout scene cannot prove either.",
+        "assetPlan": "amazon-reference-yoga-mat.png"
+      },
+      "status": "ready-for-narration",
+      "latestKit": "content-kits/ECO16/2026-08-26T02-47-12-108Z",
+      "output": null,
+      "nextAction": "generate-ElevenLabs-narration-then-render-and-QA"
+    },
+    {
+      "opportunityId": "ECO17",
+      "category": "carry-on luggage",
+      "order": 17,
+      "brief": {
+        "buyerQuestion": "Can the shopper see size, wheels, handle, and packing space?",
+        "hook": "Luggage photos should answer the airport questions before the trip starts.",
+        "practicalLesson": "Show the wheels, handle, and inside space as separate proof points.",
+        "assetPlan": "amazon-reference-luggage.png"
+      },
+      "status": "mismatched-attempt-re-record",
+      "latestKit": "content-kits/ECO17/2026-08-26T02-50-36-045Z",
+      "output": null,
+      "nextAction": "record-a-clean-attempt-and-do-not-reuse-this-kit"
+    },
+    {
+      "opportunityId": "ECO18",
+      "category": "wall art print",
+      "order": 18,
+      "brief": {
+        "buyerQuestion": "Can the shopper judge print size, color, and how it looks on a wall?",
+        "hook": "Wall art is hard to buy when the picture never shows the wall.",
+        "practicalLesson": "Use one image to show the print and one to show its real size in a room.",
+        "assetPlan": "amazon-reference-wall-art.png"
+      },
+      "status": "mismatched-attempt-re-record",
+      "latestKit": "content-kits/ECO18/2026-08-26T02-54-17-741Z",
+      "output": null,
+      "nextAction": "record-a-clean-attempt-and-do-not-reuse-this-kit"
+    },
+    {
+      "opportunityId": "ECO19",
+      "category": "food storage container",
+      "order": 19,
+      "brief": {
+        "buyerQuestion": "Can the shopper see the lid seal, stack height, and what fits inside?",
+        "hook": "A storage box has one job in the photo: make the space it saves obvious.",
+        "practicalLesson": "Show the empty shape and the filled use; never hide the lid fit.",
+        "assetPlan": "generated-storage-container.png"
+      },
+      "status": "mismatched-attempt-re-record",
+      "latestKit": "content-kits/ECO19/2026-08-26T02-57-19-071Z",
+      "output": null,
+      "nextAction": "record-a-clean-attempt-and-do-not-reuse-this-kit"
+    },
+    {
+      "opportunityId": "ECO20",
+      "category": "necklace jewelry",
+      "order": 20,
+      "brief": {
+        "buyerQuestion": "Can the shopper see scale, clasp, chain, and how it sits when worn?",
+        "hook": "Jewelry needs a close view and a size view; one cannot replace the other.",
+        "practicalLesson": "Keep the pendant shape sharp and use a worn shot only to show scale.",
+        "assetPlan": "generated-necklace.png"
+      },
+      "status": "ready-for-narration",
+      "latestKit": "content-kits/ECO20/2026-08-26T03-01-49-636Z",
+      "output": null,
+      "nextAction": "generate-ElevenLabs-narration-then-render-and-QA"
+    }
+  ]
+}

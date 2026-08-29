@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+
+import { noIndexMetadata } from "@/lib/seo/site";
 
 import { CreatorShell } from "@/features/creator/components/creator-shell";
 import {
@@ -7,6 +10,10 @@ import {
   requireCreatorUser,
 } from "@/features/creator/server/authorization";
 import type { CreatorIdentity } from "@/features/creator/types";
+
+export const metadata: Metadata = {
+  ...noIndexMetadata,
+};
 
 export default async function CreatorLayout({ children }: { children: ReactNode }) {
   let user: CreatorIdentity;
