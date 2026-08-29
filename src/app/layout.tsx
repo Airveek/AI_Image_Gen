@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { Inter, K2D } from "next/font/google";
+import { ConsentAndAttribution } from "@/components/seo/consent-and-attribution";
 import "./globals.css";
 
 const inter = Inter({
@@ -42,6 +43,7 @@ export default function RootLayout({
       <body className="min-h-full bg-background font-sans text-foreground">
         {children}
         <Analytics />
+        <ConsentAndAttribution />
       </body>
     </html>
   );
