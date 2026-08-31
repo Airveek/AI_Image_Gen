@@ -83,7 +83,16 @@ export async function disconnectGoogleDrive(): Promise<void> {
     : null;
 
   if (refreshToken) {
-    await createOAuthClient().revokeToken(refreshToken);
+    try {
+      await createOAuthClient().revokeToken(refreshToken);
+    } catch (error) {
+      // A revoked or expired token cannot be revoked again. Continue clearing
+      // the local connection so the administrator can connect a fresh account.
+      console.warn(
+        "[google-drive] token revocation failed during disconnect; clearing local connection state",
+        error instanceof Error ? error.message : "unknown error",
+      );
+    }
   }
 
   const { error } = await createSupabaseAdminClient()
