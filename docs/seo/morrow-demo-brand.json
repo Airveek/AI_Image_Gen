@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "brandId": "morrow-demo",
+  "name": "morrow",
+  "displayName": "morrow",
+  "status": "fictional-demo-brand",
+  "purpose": "A fictional product brand used in Airveek examples so viewers can see how a consistent brand system appears across product imagery.",
+  "logo": {
+    "primaryPath": "public/images/morrow/morrow-logo.png",
+    "vectorPath": "public/images/morrow/morrow-logo.svg",
+    "alt": "morrow fictional demo brand logo with two sparkle stars",
+    "wordmark": "morrow",
+    "starCount": 2,
+    "background": "transparent",
+    "placement": "Apply the supplied mark naturally to a product label, package, or product surface; never use it as an Airveek watermark."
+  },
+  "visualSystem": {
+    "wordmarkStyle": "rounded geometric lowercase",
+    "accent": "two four-point sparkle stars",
+    "primaryColor": "#FFFFFF",
+    "supportingColors": ["#111111", "#E8E2D8", "#8FAF7A"],
+    "tone": "optimistic, modern, calm, premium"
+  },
+  "usageRules": [
+    "MORROW is fictional and must never be presented as a real customer, retailer, or trademarked product.",
+    "Use only the supplied logo asset as the brand reference; do not redraw or invent alternate marks.",
+    "Keep the exact lowercase wordmark morrow and both sparkle stars when the model renders a product label.",
+    "Do not add other readable copy, claims, competing brands, watermarks, or retailer logos.",
+    "Marketplace-safe variants may omit the mark only when a platform policy requires an unbranded main image; the demo brand variant remains available for owned-site examples."
+  ]
+}

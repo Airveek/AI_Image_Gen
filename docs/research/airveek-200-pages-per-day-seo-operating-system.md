@@ -54,21 +54,33 @@ The codebase and research artifacts already contain the beginnings of a defensib
 
 This is stronger than a generic writer network because the team can publish first-hand evidence from the product instead of summarizing other websites.
 
-### Current technical gap
+### Current technical gap and implementation status
 
-The repository audit found no scalable content system yet:
+The repository audit on 2026-08-29 found no scalable content system. That was
+the starting point for this playbook, not a permanent design constraint. The
+foundation is now implemented and verified on 2026-08-30:
 
-- no dynamic SEO use-case route;
-- no content database/model;
-- no `sitemap.ts` or equivalent generated sitemap;
-- no `robots.ts` or public `robots.txt` implementation in the repository;
-- the live `/robots.txt` and `/sitemap.xml` endpoints both returned HTTP 404 during the 2026-08-29 audit;
-- no per-tutorial landing pages; the videos are cards on one client-rendered page;
-- no automated canonical, Article, Breadcrumb, image, or VideoObject output for a content library;
-- no content-to-creator preset handoff;
-- no `contentId`, landing page, query family, or cohort attribution in the authenticated event model.
+- dynamic server-rendered SEO hubs and product/job/tutorial/feature routes;
+- Supabase content, evidence, assignment, review, generation, asset, link,
+  redirect, publish-batch, URL-state, crawl, import-watermark, and audit tables;
+- DB-driven `/sitemap.xml`, family/month sitemap shards, and `/robots.txt`;
+- self-canonicals, metadata, supported JSON-LD, private-route noindex, and
+  permanent canonical-host redirects;
+- structured content-to-creator preset handoff and anonymous first-party
+  acquisition attribution;
+- GSC, GA4/BigQuery fallback, Bing/IndexNow, crawler/probe, Core Web Vitals,
+  cohort, and admin aggregate measurement paths;
+- signed external-agent callbacks plus an attended local Codex bridge, both
+  constrained to non-live drafts and immutable audit evidence.
 
-The correct sequence is to build this foundation once, fill a launch queue while it is being built, and then begin at the full 200-page daily rate.
+The remaining gap is operational evidence, not URL plumbing: the first
+rights-cleared product pack still needs three independent Airveek jobs, real
+workflow screenshots, durable public media, and named author/reviewer records.
+The production verifier, focused SEO tests, Playwright checks, and Node 24
+build pass while the publish/automation kill switches remain off. The correct
+sequence is therefore to complete one reviewed pilot pack, observe its crawl
+and conversion signals, and only then scale the approved buffer toward the
+200-page daily ceiling.
 
 ## The 200-page daily inventory model
 

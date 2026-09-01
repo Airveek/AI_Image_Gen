@@ -3,6 +3,16 @@ import path from "node:path";
 
 const root = process.cwd();
 const useCaseDirectory = path.join(root, "recording", "use-cases");
+const MORROW_LOGO_PATH = "public/images/morrow/morrow-logo.png";
+const MORROW_BRAND = {
+  name: "morrow",
+  logoAssetPath: MORROW_LOGO_PATH,
+  logoPolicy: "inherent_product_branding",
+  logoRightsStatus: "approved",
+  requiresLogo: true,
+  purpose: "Fictional demo brand used to show how a consistent product brand appears across Airveek examples.",
+};
+const MORROW_PROMPT = "Use the supplied fictional MORROW logo reference (second input) as the product's only brand mark. Apply the exact lowercase wordmark \"morrow\" with its two sparkle stars naturally to the product label, package, or product surface; preserve the mark without inventing other words.";
 const items = [
   ["ECO01", "generic-serum.png", "skincare serum", "a clear shop listing, a calm bathroom routine scene, and a close view of the bottle and dropper", "the exact bottle shape, cap, label, and amber glass"],
   ["ECO02", "generic-coffee-maker.png", "coffee maker", "a clear front listing, a simple kitchen counter scene, and a close view of the buttons and carafe", "the exact machine shape, buttons, carafe, and finish"],
@@ -28,17 +38,32 @@ const items = [
 
 await mkdir(useCaseDirectory, { recursive: true });
 for (const [id, image, product, jobs, invariants] of items) {
+  const makeFields = (scene, goal, prompt) => [
+    { label: "Mode", action: "select", value: "product-scene" },
+    { label: "Scene", action: "select", value: scene },
+    { label: "Goal", action: "select", value: goal },
+    { label: "Describe the image you want", action: "fill", value: prompt },
+  ];
+  const listingPrompt = `Create one clean marketplace-safe listing photo for one ${product}. ${MORROW_PROMPT} Keep ${invariants} unchanged. Use a neutral commercial studio background, make the complete product the clear hero, and keep all buyer-visible shape and material details sharp. Do not add any other readable text, invented claims, extra products, watermarks, retailer logos, or promotional overlays.`;
+  const lifestylePrompt = `Create one premium ecommerce lifestyle photo for one ${product}. ${MORROW_PROMPT} Keep ${invariants} unchanged. Place it in a believable real-world scene that helps a shopper understand use and scale while keeping the product dominant, unobscured, and easy to crop for mobile. Do not add any other readable text, invented claims, extra products, watermarks, retailer logos, or a plain empty background.`;
+  const detailFocus = jobs.split(", and a close view of ").at(-1) ?? jobs;
+  const detailPrompt = `Create one close-up ecommerce detail photo for one ${product}. ${MORROW_PROMPT} Keep ${invariants} unchanged. Show the category-specific buyer detail clearly: ${detailFocus}. Use controlled commercial light and preserve the exact product geometry, color, labels, and materials. Do not invent any other readable text, dimensions, features, claims, extra products, watermarks, or retailer logos.`;
+  const listingConstraints = ["Do not alter the supplied product identity, geometry, label, or color.", "Use only the supplied fictional MORROW logo; do not add other readable text, claims, watermarks, retailer logos, or promotional overlays."];
+  const lifestyleConstraints = ["Do not alter the supplied product identity, geometry, label, or color.", "Use only the supplied fictional MORROW logo; do not add other readable text, invented product claims, watermarks, retailer logos, or a competing hero product."];
+  const detailConstraints = ["Use only the supplied fictional MORROW logo; do not invent other readable text, dimensions, features, or claims.", "Do not alter the supplied product identity, geometry, label, materials, or color."];
   const config = {
     id,
     route: "/create/product-fashion",
     input: `public/images/airveek/content-reference/${image}`,
+    additionalInputs: [MORROW_LOGO_PATH],
+    brand: MORROW_BRAND,
     variations: 3,
-    fields: [
-      { label: "Mode", action: "select", value: "product-scene" },
-      { label: "Scene", action: "select", value: "studio" },
-      { label: "Goal", action: "select", value: "store-listing" },
-      { label: "Describe the image you want", action: "fill", value: `Create three useful product photos for one ${product}: ${jobs}. Keep ${invariants} unchanged. Do not add readable text or claims.` },
-    ],
+    fields: makeFields("studio", "store-listing", listingPrompt),
+    jobs: {
+      listing: { variations: 1, fields: makeFields("studio", "store-listing", listingPrompt), negativeConstraints: listingConstraints },
+      lifestyle: { variations: 1, fields: makeFields("lifestyle", "social-post", lifestylePrompt), negativeConstraints: lifestyleConstraints },
+      detail: { variations: 1, fields: makeFields("studio", "store-listing", detailPrompt), negativeConstraints: detailConstraints },
+    },
   };
   await writeFile(path.join(useCaseDirectory, `${id}.json`), `${JSON.stringify(config, null, 2)}\n`);
 }

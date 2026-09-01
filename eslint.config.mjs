@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Playwright creates and removes these directories while browser tests run.
+    // Keep concurrent local/CI checks from racing ESLint's directory walker.
+    "playwright-report/**",
+    "test-results/**",
   ]),
 ]);
 

@@ -39,6 +39,7 @@ import type {
 } from "@/features/creator/types";
 import { studioRecipeIdForScene } from "@/features/creator/quality";
 import { cn } from "@/lib/utils";
+import { trackGa4Event } from "@/lib/analytics/browser";
 
 type AssetResult = CreatorResult<CreatorAsset>;
 type UploadKind = Exclude<CreatorAssetKind, "generation">;
@@ -114,6 +115,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
     event?.preventDefault();
     if (isBusy || !validateForGeneration()) return;
     const request = buildRequest();
+    trackGa4Event("generation_requested", { arena_id: arenaId, reference_count: request.references.length, generation_count: generationCount });
     const items = createBatchItems(request, generationCount);
     setBatchItems(items);
     setBatchStatus("generating");
@@ -137,6 +139,11 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
       }
     });
     const hasFailure = settled.some((outcome) => outcome.status === "rejected" || (outcome.status === "fulfilled" && !outcome.value.ok));
+    const hasSuccess = settled.some((outcome) => outcome.status === "fulfilled" && outcome.value.ok);
+    if (hasSuccess && typeof window !== "undefined" && !window.sessionStorage.getItem("airveek_first_generation_tracked")) {
+      window.sessionStorage.setItem("airveek_first_generation_tracked", "1");
+      trackGa4Event("first_generation", { arena_id: arenaId, reference_count: request.references.length });
+    }
     setBatchStatus(hasFailure ? "completed-with-errors" : "completed");
     setMessage(hasFailure ? "Some images are ready. Retry any failed image below." : `${generationCount === 1 ? "Your image is" : "Your images are"} ready and saved to the library.`);
     router.refresh();

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import {
   type AuthAction,
 } from "@/features/auth/types";
 import type { FirstTouchAttribution } from "@/features/account/types";
+import { trackGa4Event } from "@/lib/analytics/browser";
 
 type AuthFormProps = {
   mode: "login" | "register";
@@ -31,6 +32,10 @@ export function AuthForm({
     message: initialMessage,
   });
   const isRegister = mode === "register";
+
+  useEffect(() => {
+    if (isRegister && state.ok) trackGa4Event("sign_up");
+  }, [isRegister, state.ok]);
 
   return (
     <div className="w-full max-w-md rounded-3xl border border-white/10 bg-brand-panel/90 p-6 shadow-2xl shadow-black/30 sm:p-8">

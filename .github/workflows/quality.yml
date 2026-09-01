@@ -39,8 +39,14 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Production header smoke test
+        run: pnpm seo:verify-local-build
+
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
 
       - name: SEO route smoke tests
         run: pnpm test:seo
+
+      - name: Full browser regression suite
+        run: pnpm test:e2e

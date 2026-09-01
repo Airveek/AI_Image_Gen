@@ -1,6 +1,7 @@
 "use client";
 
 import { Play, Search, Sparkles } from "lucide-react";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { InteriorHero, InteriorPageShell } from "./interior-page-shell";
 
@@ -70,11 +71,12 @@ const tutorials: Tutorial[] = [
 const categories = ["All tutorials", ...Array.from(new Set(tutorials.map((tutorial) => tutorial.category)))];
 
 function VideoCard({ tutorial }: { tutorial: Tutorial }) {
+  const thumbnail = `https://i.ytimg.com/vi/${tutorial.videoId}/hqdefault.jpg`;
   return (
     <article className="group overflow-hidden rounded-[1.35rem] border border-white/10 bg-[#0b120b] shadow-[0_18px_50px_rgba(0,0,0,0.2)] transition duration-300 hover:-translate-y-1 hover:border-[#83ff00]/45 hover:shadow-[0_22px_60px_rgba(42,196,20,0.14)]">
       <a className="block" href={`https://www.youtube.com/watch?v=${tutorial.videoId}`} target="_blank" rel="noreferrer" aria-label={`Watch ${tutorial.title}`}>
         <div className="relative aspect-video overflow-hidden bg-[#050805]">
-          <div className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-105" style={{ backgroundImage: `url(https://i.ytimg.com/vi/${tutorial.videoId}/hqdefault.jpg)` }} aria-hidden="true" />
+          <Image src={thumbnail} alt="" fill sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover object-center transition duration-500 group-hover:scale-105" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#040404]/90 via-[#040404]/10 to-transparent" aria-hidden="true" />
           <span className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-[#83ff00]/35 bg-[#071007]/85 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-[#d9ffb8] backdrop-blur-sm">
             <Play className="h-3 w-3 fill-current text-[#83ff00]" aria-hidden="true" /> Watch
@@ -88,6 +90,21 @@ function VideoCard({ tutorial }: { tutorial: Tutorial }) {
       </div>
     </article>
   );
+}
+
+function FeaturedVideo({ videoId }: { videoId: string }) {
+  const [playing, setPlaying] = useState(false);
+  const thumbnail = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+  if (!playing) {
+    return (
+      <button type="button" className="group relative block aspect-video w-full overflow-hidden bg-black text-left" onClick={() => setPlaying(true)} aria-label="Play Airveek walkthrough">
+        <Image src={thumbnail} alt="Airveek walkthrough video poster" fill sizes="(min-width: 1280px) 1120px, 100vw" className="object-cover transition duration-500 group-hover:scale-[1.02]" priority />
+        <span className="absolute inset-0 bg-black/35 transition group-hover:bg-black/20" aria-hidden="true" />
+        <span className="absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full bg-[#83ff00] px-5 py-3 text-sm font-black text-[#040404] shadow-[0_10px_35px_rgba(131,255,0,0.3)]"><Play className="h-4 w-4 fill-current" aria-hidden="true" /> Play walkthrough</span>
+      </button>
+    );
+  }
+  return <iframe className="aspect-video w-full" src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`} title="Airveek walkthrough" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />;
 }
 
 export function TutorialsPage() {
@@ -112,7 +129,7 @@ export function TutorialsPage() {
         </div>
         <div className="overflow-hidden rounded-[1.5rem] border border-[#83ff00]/25 bg-[#071007] p-2 shadow-[0_24px_80px_rgba(42,196,20,0.12)] sm:p-3">
           <div className="overflow-hidden rounded-[1.1rem] bg-black">
-            <iframe className="aspect-video w-full" src="https://www.youtube.com/embed/_Bi5QdWhfKE?rel=0" title="Airveek walkthrough" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen loading="lazy" />
+            <FeaturedVideo videoId="_Bi5QdWhfKE" />
           </div>
         </div>
       </section>

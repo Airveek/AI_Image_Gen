@@ -3,13 +3,9 @@ import Link from "next/link";
 
 import { InteriorHero, InteriorPageShell } from "@/components/airveek/interior-page-shell";
 import { listLiveSeoPages } from "@/features/seo/server/content";
-import { canonicalMetadata } from "@/lib/seo/site";
+import { buildSeoMetadata } from "@/lib/seo/site";
 
-export const metadata: Metadata = {
-  title: "Airveek Authors",
-  description: "Meet the writers and reviewers behind Airveek’s evidence-backed image workflows.",
-  ...canonicalMetadata("/authors"),
-};
+export const metadata: Metadata = buildSeoMetadata({ title: "Airveek Authors", description: "Meet the writers and reviewers behind Airveek’s evidence-backed image workflows.", pathname: "/authors" });
 
 export const revalidate = 300;
 

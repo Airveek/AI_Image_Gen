@@ -31,10 +31,28 @@ If PowerShell blocks the pnpm script shim on Windows, use `pnpm.cmd` for the sam
 | `pnpm start` | Start the production server after building |
 | `pnpm test:e2e` | Run Playwright creator and checkout checks |
 | `pnpm test:seo` | Run robots, sitemap, noindex, and public-route smoke checks |
+| `pnpm seo:create-brief <brief.json> [--apply]` | Validate or create a research-backed SEO brief and evidence-packet handoff |
+| `pnpm seo:review-evidence -- --brief-id <uuid> --reviewer-id <uuid> --rights-evidence-id <id> --source-checksum sha256:<64-hex> [--apply]` | Dry-run-first human approval of a brief's source-asset rights packet |
+| `pnpm seo:prepare-briefs --limit 1 [--pack] [--write]` | Prepare deterministic product-pack brief candidates from the researched opportunity graph |
+| `pnpm seo:brief-intake -- --dry-run` / `--apply` | Reconcile changed opportunity research into idempotent brief handoffs (apply is kill-switch guarded; never creates pages) |
+| `pnpm seo:member -- --list-users` / `pnpm seo:member -- --user-id <uuid> --role <role> --display-name <name> --slug <slug> [--apply]` | Read-only Auth-user lookup (including existing roles) or dry-run-first upsert of an existing account into the SEO content team |
+| `pnpm seo:audit-kits [--only ECO01]` | Read-only audit of local recording kits against the SEO evidence contract (optionally bounded to selected opportunities) |
+| `pnpm seo:qa-generation <kit>` | Run job-aware human/image QA for one independent listing, lifestyle, or detail kit |
+| `pnpm seo:run-queue [--apply]` | Run the resumable, sequential evidence-recording queue (dry-run unless `--apply`) |
+| `pnpm seo:local-agent --once --dry-run` | Inspect the local Codex content-agent queue without claiming work |
+| `pnpm seo:local-agent --once` | Process one assigned brief into a review-only draft (never publishes) |
+| `pnpm seo:start-content` | Keep the attended local Codex content worker polling (requires both kill switches) |
+| `pnpm seo:autopilot -- --once --dry-run` | Verify production, then inspect one local content-agent tick without claiming work |
+| `pnpm seo:autopilot -- --watch --poll-seconds 300` | Run the attended five-minute supervisor (requires both kill switches; never publishes) |
+| `pnpm seo:verify-production` | Read-only check of production schema, scheduler/provider access, Search Console sitemap submission, automation switches, and public discovery endpoints |
+| `pnpm seo:ingest-keyword-evidence <packet.json> [--apply]` | Dry-run-first, idempotent ingest of measured or qualitative keyword/community evidence; never creates or publishes pages |
+| `pnpm seo:promote-kit <kit> <rights.json> <media-map.json> [--apply]` | Validate and optionally promote reviewed kit media to durable public URLs |
+| `pnpm seo:validate-page <draft.json>` | Validate an evidence-backed SEO page draft without publishing it |
+| `pnpm seo:ingest-draft <draft.json> [--apply]` | Validate, then atomically create a non-live SEO review record and evidence graph |
 
 The required quality gates are `lint`, `typecheck`, `build`, and the focused Playwright checks.
 
-The SEO control-plane setup and operating sequence are documented in [the SEO autopilot runbook](docs/seo/airveek-seo-autopilot-runbook.md). It is disabled by default until the Supabase migrations and production provider credentials are verified.
+The SEO control-plane setup and operating sequence are documented in [the SEO autopilot runbook](docs/seo/airveek-seo-autopilot-runbook.md). The `/admin/seo` Operations tab provides bounded assignment, review, and template-rollout controls. It is disabled by default until the Supabase migrations and production provider credentials are verified.
 
 ## Project structure
 
@@ -73,8 +91,8 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SECRET_KEY=
 ADMIN_EMAILS=admin@example.com
-NEXT_PUBLIC_SITE_URL=http://localhost:3001
-NEXT_PUBLIC_APP_URL=http://localhost:3001
+NEXT_PUBLIC_SITE_URL=http://localhost:3001 # use https://airveek.com in production
+NEXT_PUBLIC_APP_URL=http://localhost:3001 # use https://airveek.com in production
 GOOGLE_DRIVE_CLIENT_ID=
 GOOGLE_DRIVE_CLIENT_SECRET=
 R2_ACCOUNT_ID=
@@ -89,17 +107,22 @@ WHOP_PREMIUM_PLAN_ID=
 WHOP_WEBHOOK_SECRET=
 WHOP_SANDBOX=false
 # SEO measurement and publishing (see .env.example for the complete list)
-NEXT_PUBLIC_SITE_URL=https://airveek.com
 GSC_SITE_URL=sc-domain:airveek.com
+NEXT_PUBLIC_GA4_MEASUREMENT_ID=
 GA4_PROPERTY_ID=
+GA4_MEASUREMENT_PROTOCOL_SECRET=
 GOOGLE_SEO_SERVICE_ACCOUNT_JSON_BASE64=
+BING_SITE_URL=https://airveek.com
+BING_WEBMASTER_API_KEY=
+BING_WEBMASTER_STATS_ENDPOINT=https://ssl.bing.com/webmaster/api.svc/json/GetPageStats
 INDEXNOW_KEY=
 INDEXNOW_KEY_LOCATION=
+INDEXNOW_ENDPOINT=https://api.indexnow.org/indexnow
 SEO_ATTRIBUTION_SIGNING_SECRET=
 SEO_AUTOMATION_ENABLED=false
 ```
 
-Apply the Supabase migrations in `supabase/migrations` before opening the creator or integration settings. The Whop webhook endpoint is:
+Apply the Supabase migrations in `supabase/migrations` before opening the creator or integration settings. The SEO control plane migrations are the `20260829*` files followed by the ordered `202608300003` through `202608310006` files. Keep SEO automation disabled until the pilot gates pass; the full content workflow is available through `.agents/skills/airveek-seo-content-autopilot/SKILL.md`. The Whop webhook endpoint is:
 
 ```text
 https://your-domain.example/api/webhooks/whop

@@ -8,6 +8,13 @@ import {
 } from "@/lib/analytics/seo-attribution";
 import { recordSeoTouchpoint } from "@/features/seo/server/attribution";
 
+export const dynamic = "force-dynamic";
+
+const PRIVATE_HEADERS = {
+  "cache-control": "private, no-store, max-age=0",
+  "x-robots-tag": "noindex, nofollow, noarchive, nosnippet, noimageindex",
+};
+
 export async function POST(request: Request) {
   const consentHeader = request.headers.get("x-airveek-analytics-consent");
   const consent = consentHeader === "granted" || consentHeader === "denied" ? consentHeader : "unknown";
@@ -29,7 +36,7 @@ export async function POST(request: Request) {
     siteHostname: requestUrl.hostname,
   });
 
-  const response = NextResponse.json({ ok: true, action: mutation.action }, { status: 200 });
+  const response = NextResponse.json({ ok: true, action: mutation.action }, { status: 200, headers: PRIVATE_HEADERS });
   if (mutation.action === "clear") response.cookies.delete(SEO_ATTRIBUTION_COOKIE_NAME);
   if (mutation.action === "set") {
     response.cookies.set(SEO_ATTRIBUTION_COOKIE_NAME, mutation.cookieValue, seoAttributionCookieOptions());

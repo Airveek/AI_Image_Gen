@@ -1,5 +1,7 @@
 export type AdminUserStatus = "active" | "suspended";
 
+export type AdminSeoRole = "writer" | "brief_lead" | "editor" | "publisher" | "seo_admin";
+
 export type AdminUser = {
   id: string;
   email: string | null;
@@ -9,6 +11,9 @@ export type AdminUser = {
   emailConfirmedAt: string | null;
   status: AdminUserStatus;
   provider: string;
+  seoRole: AdminSeoRole | null;
+  seoMemberActive: boolean;
+  seoMemberSlug: string | null;
   generationsToday: number;
   generationRequests: number;
   failedGenerations: number;
@@ -97,5 +102,5 @@ export type AdminInsightsData = {
 };
 
 export type AdminActionResult =
-  | { ok: true }
+  | { ok: true; message?: string }
   | { ok: false; message: string };

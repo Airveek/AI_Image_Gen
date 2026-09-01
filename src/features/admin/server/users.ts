@@ -7,6 +7,7 @@ import { cleanupCreatorAssetsForUser } from "@/features/creator/server/assets";
 import { requireAdminUser } from "./authorization";
 import type {
   AdminDashboardData,
+  AdminSeoRole,
   AdminUser,
   AdminUserFilters,
   AdminUserList,
@@ -39,6 +40,12 @@ type GenerationUsageRow = {
   user_id: string;
   status: string;
   created_at: string;
+};
+
+type ContentMembership = {
+  role: AdminSeoRole;
+  is_active: boolean;
+  slug: string;
 };
 
 export async function listAdminUsers(filters: AdminUserFilters): Promise<AdminUserList> {
@@ -174,6 +181,9 @@ function mapSupabaseUser(user: User): AdminUser {
     emailConfirmedAt: user.email_confirmed_at ?? null,
     status: getStatus(user.banned_until),
     provider,
+    seoRole: null,
+    seoMemberActive: false,
+    seoMemberSlug: null,
     generationsToday: 0,
     generationRequests: 0,
     failedGenerations: 0,
@@ -187,11 +197,20 @@ function mapSupabaseUser(user: User): AdminUser {
 }
 
 async function listUsersWithGenerationUsage(): Promise<AdminUser[]> {
-  const [users, usage, metadata] = await Promise.all([listAllUsers(), listGenerationUsage(), listUserInsightMetadata()]);
+  const [users, usage, metadata, memberships] = await Promise.all([
+    listAllUsers(),
+    listGenerationUsage(),
+    listUserInsightMetadata(),
+    listContentMemberships(),
+  ]);
   return users.map((user) => {
     const mapped = mapSupabaseUser(user);
     const userUsage = usage.get(user.id);
     const userMetadata = metadata.get(user.id);
+    const membership = memberships.get(user.id);
+    const membershipFields = membership
+      ? { seoRole: membership.role, seoMemberActive: membership.is_active, seoMemberSlug: membership.slug }
+      : {};
     return userUsage
       ? {
           ...mapped,
@@ -199,10 +218,35 @@ async function listUsersWithGenerationUsage(): Promise<AdminUser[]> {
           generationRequests: userUsage.total,
           failedGenerations: userUsage.failed,
           lastGenerationAt: userUsage.lastGenerationAt,
+          ...membershipFields,
           ...(userMetadata ?? {}),
         }
-      : { ...mapped, ...(userMetadata ?? {}) };
+      : { ...mapped, ...membershipFields, ...(userMetadata ?? {}) };
   });
+}
+
+async function listContentMemberships(): Promise<Map<string, ContentMembership>> {
+  try {
+    const { data, error } = await createSupabaseAdminClient()
+      .from("content_members")
+      .select("user_id,role,is_active,slug")
+      .limit(MAX_SUPABASE_PAGES * SUPABASE_PAGE_SIZE);
+    if (error) return new Map();
+
+    const memberships = new Map<string, ContentMembership>();
+    for (const row of data ?? []) {
+      const role = row.role;
+      if (!isAdminSeoRole(role) || typeof row.user_id !== "string" || typeof row.slug !== "string") continue;
+      memberships.set(row.user_id, {
+        role,
+        is_active: row.is_active === true,
+        slug: row.slug,
+      });
+    }
+    return memberships;
+  } catch {
+    return new Map();
+  }
 }
 
 async function listUserInsightMetadata(): Promise<Map<string, UserInsightMetadata>> {
@@ -313,6 +357,10 @@ function toMetadata(value: unknown): Metadata {
 function readString(metadata: Metadata, key: string): string | undefined {
   const value = metadata[key];
   return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
+function isAdminSeoRole(value: unknown): value is AdminSeoRole {
+  return value === "writer" || value === "brief_lead" || value === "editor" || value === "publisher" || value === "seo_admin";
 }
 
 function planLabel(planId: string): string {

@@ -81,7 +81,12 @@ async function classifyKit(directory) {
   const hasRaw = await fileLargerThan(path.join(directory, "raw-demo.webm"), 100000);
   const manifest = await readOptionalJson(path.join(directory, "manifest.json"));
   const resultCount = Number(manifest?.variations ?? 3);
-  const resultFiles = await Promise.all(Array.from({ length: resultCount }, (_, index) => index + 1).map((index) => exists(path.join(directory, `result-${index}.jpg`))));
+  const declaredResults = Array.isArray(manifest?.results)
+    ? manifest.results.filter((file) => typeof file === "string" && file.trim() && isSafeKitFile(file))
+    : [];
+  const resultFiles = declaredResults.length === resultCount
+    ? await Promise.all(declaredResults.map((file) => exists(path.join(directory, file))))
+    : await Promise.all(Array.from({ length: resultCount }, (_, index) => index + 1).map((index) => exists(path.join(directory, `result-${index}.jpg`))));
   const hasAnyResults = resultFiles.some(Boolean);
   const hasAllResults = resultFiles.every(Boolean);
   const hasQa = await exists(path.join(directory, "qa-report.json"));
@@ -147,4 +152,8 @@ async function fileLargerThan(filePath, minimumBytes) {
   } catch {
     return false;
   }
+}
+
+function isSafeKitFile(file) {
+  return !path.isAbsolute(file) && !file.includes("..") && !file.includes("/") && !file.includes("\\");
 }

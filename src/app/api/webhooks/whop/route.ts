@@ -7,6 +7,7 @@ import {
   isValidWebhookTimestamp,
   shouldIgnoreEntitlementEvent,
 } from "@/lib/whop/webhooks";
+import { buildWhopTransactionFact } from "@/lib/whop/transactions";
 import { recordUserEvent } from "@/lib/analytics/user-events";
 
 export const runtime = "nodejs";
@@ -18,6 +19,26 @@ function isMembershipEvent(event: UnwrapWebhookEvent): event is Extract<
   return event.type === "membership.activated" || event.type === "membership.deactivated";
 }
 
+function isFinancialEvent(event: UnwrapWebhookEvent): event is Extract<
+  UnwrapWebhookEvent,
+  {
+    type:
+      | "payment.created"
+      | "payment.pending"
+      | "payment.succeeded"
+      | "payment.failed"
+      | "refund.created"
+      | "refund.updated";
+  }
+> {
+  return event.type === "payment.created"
+    || event.type === "payment.pending"
+    || event.type === "payment.succeeded"
+    || event.type === "payment.failed"
+    || event.type === "refund.created"
+    || event.type === "refund.updated";
+}
+
 export async function POST(request: Request): Promise<Response> {
   const requestBody = await request.text();
 
@@ -27,12 +48,17 @@ export async function POST(request: Request): Promise<Response> {
       key: getWhopWebhookKey(),
     });
 
+    const accountId = getWhopAccountId();
+
+    if (isFinancialEvent(event)) {
+      return await recordFinancialEvent(event, accountId);
+    }
+
     if (!isMembershipEvent(event)) {
       return new Response("Ignored", { status: 200 });
     }
 
     const membership = event.data;
-    const accountId = getWhopAccountId();
 
     if (membership.company.id !== accountId || (event.company_id && event.company_id !== accountId)) {
       return new Response("Invalid company", { status: 400 });
@@ -105,6 +131,70 @@ export async function POST(request: Request): Promise<Response> {
     console.error("Invalid Whop webhook.", error);
     return new Response("Invalid webhook", { status: 400 });
   }
+}
+
+async function recordFinancialEvent(
+  event: Extract<
+    UnwrapWebhookEvent,
+    {
+      type:
+        | "payment.created"
+        | "payment.pending"
+        | "payment.succeeded"
+        | "payment.failed"
+        | "refund.created"
+        | "refund.updated";
+    }
+  >,
+  accountId: string,
+): Promise<Response> {
+  if (event.company_id && event.company_id !== accountId) {
+    return new Response("Invalid company", { status: 400 });
+  }
+
+  if (!isValidWebhookTimestamp(event.timestamp)) {
+    return new Response("Invalid event timestamp", { status: 400 });
+  }
+
+  const fact = buildWhopTransactionFact({
+    id: event.id,
+    type: event.type,
+    timestamp: event.timestamp,
+    data: event.data,
+  });
+  if (!fact) return new Response("Invalid transaction payload", { status: 400 });
+
+  const { error } = await createSupabaseAdminClient()
+    .from("whop_transaction_facts")
+    .insert({
+      whop_event_id: fact.whopEventId,
+      object_type: fact.objectType,
+      whop_object_id: fact.whopObjectId,
+      event_type: fact.eventType,
+      user_id: fact.userId,
+      payment_id: fact.paymentId,
+      refund_id: fact.refundId,
+      membership_id: fact.membershipId,
+      plan_id: fact.planId,
+      checkout_configuration_id: fact.checkoutConfigurationId,
+      status: fact.status,
+      amount: fact.amount,
+      amount_after_fees: fact.amountAfterFees,
+      usd_amount: fact.usdAmount,
+      currency: fact.currency,
+      settlement_currency: fact.settlementCurrency,
+      tax_amount: fact.taxAmount,
+      refunded_amount: fact.refundedAmount,
+      occurred_at: fact.occurredAt,
+    });
+
+  // Webhook delivery is at-least-once. The signed event ID is the immutable
+  // idempotency key; an already-recorded event is a successful replay.
+  if (error && error.code !== "23505") {
+    console.error("Unable to save Whop transaction fact.", error);
+    return new Response("Unable to save transaction fact", { status: 500 });
+  }
+  return new Response("OK", { status: 200 });
 }
 
 function readPlanKey(planId: string): "commercial" | "premium" | undefined {

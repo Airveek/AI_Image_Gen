@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { isCheckoutResponse } from "@/lib/whop/checkout";
 import type { PlanKey } from "@/lib/whop/types";
+import { trackGa4Event } from "@/lib/analytics/browser";
 
 type CheckoutLauncherProps = {
   plan: PlanKey;
@@ -24,6 +25,7 @@ export function CheckoutLauncher({ plan }: CheckoutLauncherProps) {
 
     async function startCheckout() {
       try {
+        trackGa4Event("begin_checkout", { plan: plan });
         const response = await fetch("/api/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

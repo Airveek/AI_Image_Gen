@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { Inter, K2D } from "next/font/google";
-import { absoluteUrl, SITE_URL } from "@/lib/seo/site";
+import { absoluteUrl, SITE_URL, siteVerification } from "@/lib/seo/site";
 import { ConsentAndAttribution } from "@/components/seo/consent-and-attribution";
 import "./globals.css";
 
@@ -21,6 +21,7 @@ const k2d = K2D({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  verification: siteVerification(),
   title: {
     default: "Airveek: All-in-One AI Image Generator",
     template: "%s | Airveek",

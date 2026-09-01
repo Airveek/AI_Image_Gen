@@ -11,9 +11,11 @@ const manifest = JSON.parse(await readFile(path.join(kitDirectory, "manifest.jso
 const reviewPath = path.join(kitDirectory, "image-review.json");
 const review = await readOptionalJson(reviewPath);
 const expectedVariations = Number(manifest.variations ?? 0);
-const resultFiles = await listResultFiles(kitDirectory);
-const resultPath = path.join(kitDirectory, "result-1.jpg");
-const resultProbe = await probeImage(resultPath);
+const manifestResults = Array.isArray(manifest.results) ? manifest.results.filter((file) => typeof file === "string" && file.trim() && isSafeKitFile(file)) : [];
+const resultFiles = await listResultFiles(kitDirectory, manifestResults);
+const resultFile = resultFiles[0] ?? manifestResults[0] ?? "result-1.jpg";
+const resultPath = path.join(kitDirectory, resultFile);
+const resultProbe = await probeImage(resultPath, resultFile);
 const checks = {
   oneImage: { pass: expectedVariations === 1 && resultFiles.length === 1, expectedVariations, resultFiles },
   resultFile: resultProbe,
@@ -39,14 +41,31 @@ const report = {
 };
 await writeFile(path.join(kitDirectory, "image-qa-report.json"), `${JSON.stringify(report, null, 2)}\n`);
 console.log(JSON.stringify({ status: report.status, id: manifest.id, checks }, null, 2));
+// A failed report must fail the process as well. Callers such as CI, the
+// production runner, and shell pipelines must not be able to continue merely
+// because the report file was written successfully.
+process.exitCode = report.status === "pass" ? 0 : 1;
 
-async function listResultFiles(directory) {
+async function listResultFiles(directory, declaredFiles) {
+  if (declaredFiles.length > 0) {
+    const files = [];
+    for (const file of declaredFiles) {
+      try {
+        const value = await stat(path.join(directory, file));
+        if (value.size > 1000) files.push(file);
+      } catch {
+        return files;
+      }
+    }
+    return files;
+  }
   const files = [];
   for (let index = 1; index <= 20; index += 1) {
     try {
-      const candidate = path.join(directory, `result-${index}.jpg`);
+      const file = `result-${index}.jpg`;
+      const candidate = path.join(directory, file);
       const value = await stat(candidate);
-      if (value.size > 1000) files.push(`result-${index}.jpg`);
+      if (value.size > 1000) files.push(file);
     } catch {
       // Stop at the first missing sequential result.
       break;
@@ -55,7 +74,7 @@ async function listResultFiles(directory) {
   return files;
 }
 
-async function probeImage(filePath) {
+async function probeImage(filePath, fileName) {
   try {
     const { stdout } = await execFileAsync("ffprobe", ["-v", "error", "-show_entries", "format=size:stream=codec_name,width,height", "-of", "json", filePath]);
     const value = JSON.parse(stdout);
@@ -64,15 +83,19 @@ async function probeImage(filePath) {
     const height = Number(stream?.height ?? 0);
     return {
       pass: Boolean(stream) && width >= 600 && height >= 600 && width <= 16384 && height <= 16384,
-      file: "result-1.jpg",
+      file: fileName,
       bytes: Number(value.format?.size ?? 0),
       width,
       height,
       codec: stream?.codec_name ?? null,
     };
   } catch (error) {
-    return { pass: false, file: "result-1.jpg", error: error instanceof Error ? error.message : String(error) };
+    return { pass: false, file: fileName, error: error instanceof Error ? error.message : String(error) };
   }
+}
+
+function isSafeKitFile(file) {
+  return !path.isAbsolute(file) && !file.includes("..") && !file.includes("/") && !file.includes("\\");
 }
 
 async function readOptionalJson(filePath) {

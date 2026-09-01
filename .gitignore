@@ -46,6 +46,19 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Supabase CLI local metadata
+/supabase/.temp/
+
+# local Codex SEO content-agent state and run evidence
+/.seo-content-agent/
+/.seo-autopilot/
+/docs/research/seo-brief-candidates/
+
+# local Gemini cookie-recovery configuration and runtime state
+/cookie-recovery/.env
+/cookie-recovery/profiles.json
+/cookie-recovery/runtime/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

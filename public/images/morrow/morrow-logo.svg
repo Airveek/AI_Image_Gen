@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">morrow fictional demo brand logo</title>
+  <desc id="desc">A white rounded lowercase morrow wordmark with two sparkle stars.</desc>
+  <g fill="#fff">
+    <text x="48" y="252" font-family="Arial Rounded MT Bold, Nunito, Inter, Arial, sans-serif" font-size="176" font-weight="700" letter-spacing="2">morrow</text>
+    <path d="M1034 58c8 30 15 37 45 45-30 8-37 15-45 45-8-30-15-37-45-45 30-8 37-15 45-45Z"/>
+    <path d="M1120 24c4 16 8 20 24 24-16 4-20 8-24 24-4-16-8-20-24-24 16-4 20-8 24-24Z"/>
+  </g>
+</svg>

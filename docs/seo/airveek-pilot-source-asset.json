@@ -1,0 +1,35 @@
+{
+  "assetId": "airveek-pilot-serum-generated",
+  "file": "public/images/airveek/content-reference/airveek-pilot-serum-generated.png",
+  "mimeType": "image/png",
+  "width": 1254,
+  "height": 1254,
+  "checksum": "sha256:3657ceee3897fd5df9695b02b39e4d25d9583a3cb480e2404efaeb7fefcd71fc",
+  "role": "source",
+  "alt": "Unbranded amber glass dropper bottle on a neutral studio background",
+  "caption": "Original generic source reference generated for an Airveek product-photography pilot.",
+  "provenance": "Codex built-in image generation; prompt and generation record retained in the task history",
+  "generation": {
+    "provider": "openai-codex-imagegen",
+    "model": "built-in-imagegen",
+    "settings": {
+      "composition": "square catalog",
+      "lighting": "soft even studio lighting",
+      "background": "clean neutral white",
+      "quality": "high"
+    },
+    "prompt": "Use case: product-mockup. Asset type: rights-cleared source reference for an Airveek product-photography pilot. Create one photorealistic, unbranded amber glass skincare serum dropper bottle with a plain cream label containing no text or logo, centered upright on a clean neutral white studio background, square catalog composition, soft even lighting, sharp edges and visible dropper cap. This is an original generic prop, not a real brand or product. Constraints: no words, no letters, no numbers, no logo, no watermark, no extra bottles, no hands, no medical claims, no decorative props, accurate simple bottle geometry."
+  },
+  "rightsStatus": "unreviewed",
+  "approvedForPublic": false,
+  "rightsEvidenceId": null,
+  "reviewer": null,
+  "reviewedAt": null,
+  "logoPolicy": "no_logo_present",
+  "visualQa": {
+    "status": "pass",
+    "reviewedAt": "2026-08-30T00:00:00.000Z",
+    "notes": "Single unbranded bottle, no visible words, letters, numbers, logo, watermark, hands, or extra props."
+  },
+  "publicationGate": "Requires human rights/provenance approval and three independent Airveek listing/lifestyle/detail generation records before use in a public page."
+}
