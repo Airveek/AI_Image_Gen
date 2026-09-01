@@ -12,8 +12,10 @@ const MAX_CALLBACK_BYTES = 2 * 1024 * 1024;
 
 /**
  * Receive a signed completion from the external content agent. This endpoint
- * only ingests a non-live draft; it cannot approve, publish, redirect, merge,
- * prune, or change indexability.
+ * ingests a non-live draft. With the explicit instant-agent-approval switch,
+ * the database may record editorial approval after all deterministic checks;
+ * this endpoint still cannot publish, redirect, merge, prune, or change
+ * indexability.
  */
 export async function POST(request: Request) {
   const enforceEvidence = process.env.SEO_EVIDENCE_GATES_ENABLED?.trim().toLowerCase() === "true";
@@ -124,7 +126,10 @@ export async function POST(request: Request) {
           draftRecord,
           draftChecksum,
         });
-        if (recoveredPageId) return json({ accepted: true, duplicate: true, recovered: true, pageId: recoveredPageId }, 200);
+        if (recoveredPageId) {
+          const autoApproval = await maybeAutoApproveAgentDraft(client, String(run.id), recoveredPageId);
+          return json({ accepted: true, duplicate: true, recovered: true, pageId: recoveredPageId, ...(autoApproval ? { autoApproval } : {}) }, 200);
+        }
       }
     }
     return json({ accepted: true, processing: true }, 202);
@@ -258,7 +263,26 @@ export async function POST(request: Request) {
   }).eq("id", dispatchId).eq("status", "processing").select("id").maybeSingle();
   if (updateError || !completedRun) return json({ error: "agent_run_completion_update_failed" }, 500);
 
-  return json({ accepted: true, status: "completed", pageId: safePageId }, 200);
+  const autoApproval = await maybeAutoApproveAgentDraft(client, dispatchId, safePageId);
+
+  return json({ accepted: true, status: "completed", pageId: safePageId, ...(autoApproval ? { autoApproval } : {}) }, 200);
+}
+
+async function maybeAutoApproveAgentDraft(
+  client: ReturnType<typeof createSupabaseAdminClient>,
+  runId: string,
+  pageId: string,
+): Promise<Record<string, unknown> | null> {
+  if (process.env.SEO_INSTANT_AGENT_APPROVAL_ENABLED?.trim().toLowerCase() !== "true") return null;
+  const { data, error } = await client.rpc("auto_approve_seo_agent_draft", {
+    p_run_id: runId,
+    p_page_id: pageId,
+  });
+  if (error) {
+    console.warn("SEO instant agent approval failed.", error.message);
+    return { approved: false, reason: "rpc_failed" };
+  }
+  return isRecord(data) ? data : { approved: false, reason: "unexpected_rpc_response" };
 }
 
 async function markBriefFailed(

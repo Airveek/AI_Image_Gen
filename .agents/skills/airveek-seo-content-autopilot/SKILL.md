@@ -24,7 +24,16 @@ expose rights, evidence, reviewer, checksum, or compliance language in public
 copy. The explicit mode flag overrides the evidence-heavy examples below;
 setting both controls to `true` restores the stricter evidence gates.
 
-- Never publish a page just because a writer or model produced text. A page needs a distinct intent, a passing publish gate, a named author and reviewer, a working creator CTA, and the technical/content checks enabled by the current mode. When evidence gates are enabled, also require the real generation record, approved media rights, explicit media QA, and persisted evidence packet described below; when reader-first mode is enabled, those evidence records may be absent but must never be invented.
+When `SEO_INSTANT_AGENT_APPROVAL_ENABLED=true` and
+`seo_automation_config.instant_agent_approval_enabled=true`, a completed local
+or signed content-agent run that passes the validator and database ingest
+checks is automatically recorded as an editorial approval. This removes the
+manual click from the reversible draft workflow; it does not make the page
+live. The normal publish gate, render probe, wave capacity, sitemap, and
+IndexNow checks still control indexability. Redirects, merges, pruning,
+canonical changes, and noindex changes remain human-controlled.
+
+- Never publish a page just because a writer or model produced text. A page needs a distinct intent, a passing publish gate, a named author and reviewer, a working creator CTA, and the technical/content checks enabled by the current mode. Instant agent approval only records the review transition after deterministic checks; it is not a publish bypass. When evidence gates are enabled, also require the real generation record, approved media rights, explicit media QA, and persisted evidence packet described below; when reader-first mode is enabled, those evidence records may be absent but must never be invented.
 - Keep marketplace/listing imagery accurate and product-dominant. Keep lifestyle imagery contextual but never let styling change the product being sold.
 - A logo or brand mark may be used only when it is present in a supplied/rights-cleared source asset or explicitly supplied by the user. Preserve the provided mark; never invent, redraw, or silently add a trademark logo. If the request requires branded mockups and no logo asset is available, stop at the asset boundary and request one.
 - The reusable fictional demo brand is **morrow**. When a recording spec or brief includes its supplied logo reference, apply the exact lowercase `morrow` wordmark and two sparkle stars to the mock product/package so viewers can see a consistent brand system. Do not present it as a real customer or trademark, and do not add other readable brand copy.
@@ -39,23 +48,17 @@ setting both controls to `true` restores the stricter evidence gates.
 3. Read [references/research-protocol.md](references/research-protocol.md) for a new pillar or category. Use the existing graph for a researched variant and add fresh evidence rather than repeating old searches.
 4. Read [references/content-contract.md](references/content-contract.md) before constructing a page payload. Validate it with `node .agents/skills/airveek-seo-content-autopilot/scripts/validate-page-draft.mjs <draft.json>`.
    After the validator passes, use `pnpm seo:ingest-draft <draft.json> --apply` to
-   atomically create the non-live review record and evidence graph. Never use
-   `--apply` with an incomplete kit or to bypass editorial approval.
+   atomically create the non-live review record and evidence graph. In instant
+   agent-approval mode, only the worker completion path may record the
+   automatic approval; manual draft files remain review-only.
 5. Create the durable research-to-writer handoff first with
    `pnpm seo:create-brief <brief.json> [--apply]`. A page draft must carry the
    resulting `briefId`; the brief, evidence packets, assignments, and review
    decisions are the operational audit trail and are not optional metadata.
-6. Before local ingest or a signed callback, confirm that the brief already has
-   an approved rights evidence packet and matching approved rights item. The
-   source asset's `rightsEvidenceId` and exact checksum must match; approved
-   rights items without checksum metadata are rejected by the database. Setting
-   `rightsApproved: true` in JSON without that persisted review is a hard
-   failure.
-   A human reviewer can create that durable handoff with
-   `pnpm seo:review-evidence -- --brief-id <uuid> --reviewer-id <uuid>
-   --rights-evidence-id <id> --source-checksum sha256:<64-hex>` (dry-run first,
-   then `--apply`). The reviewer must already be an active editor, publisher,
-   or SEO admin; this command cannot create users or publish pages.
+6. In reader-first mode, source rights/evidence packets are optional and must
+   not be invented. If strict evidence mode is restored, confirm the brief has
+   an approved rights packet and matching checksum before ingest; the database
+   will reject an unreviewed source.
 
 When running as a long-lived worker, the scheduled content-agent dispatcher
 runs every five minutes and claims only briefs with an active writer
@@ -80,7 +83,7 @@ packet is valid; never invent volume, rankings, or a demand claim to fill it.
 
 ## Operating loop
 
-`research → opportunity → brief → source asset → image preview → human image review → real Airveek recording → image/recording QA → structured draft → evidence/link/schema QA → editor approval → publish wave → sitemap/IndexNow → measurement → feedback`
+`research → opportunity → brief → source asset → image preview → Airveek recording when available → structured draft → validator/ingest QA → instant worker approval (when enabled) → publish wave → sitemap/IndexNow → measurement → feedback`
 
 Every stage creates or updates a durable artifact. If resuming, continue from the first incomplete gate and preserve prior attempts.
 
@@ -171,7 +174,7 @@ The publish gate verifies those edges against live indexable pages or known stat
 
 ### 6. Publish and learn
 
-Only the gated `publishSeoPage` path may make a page live. It marks `seo_pages` live, upserts `seo_url_state`, revalidates the page/parents/archives/sitemap, and queues `seo/page.published`. The public render is checked before sitemap eligibility. If any post-live failure occurs, quarantine writes are attempted independently; each error is recorded and emits a deduplicated P0 alert so the page cannot silently remain indexable. The sitemap route reads live, canonical, indexable rows and emits family/month shards capped at 2,000 URLs; sitemap database errors fail closed instead of becoming an empty success response. IndexNow notifies Bing; a throttled six-hour heartbeat submits the sitemap index through the Search Console Sitemaps API when automation is enabled, while Google still controls crawl timing. A failed page never enters a sitemap.
+Only the gated `publishSeoPage` path may make a page live. It marks `seo_pages` live, upserts `seo_url_state`, revalidates the page/parents/archives/sitemap, and queues `seo/page.published`. The public render is checked before sitemap eligibility. If any post-live failure occurs, quarantine writes are attempted independently; each error is recorded and emits a deduplicated P0 alert so the page cannot silently remain indexable. The sitemap route reads live, canonical, indexable rows and emits family/month shards capped at 2,000 URLs; sitemap database errors fail closed instead of becoming an empty success response. IndexNow notifies Bing; a throttled six-hour heartbeat submits the sitemap index through the Search Console Sitemaps API when automation is enabled, while Google still controls crawl timing. A failed page never enters a sitemap. Instant agent approval only places a passing draft in the approved queue; it does not call this function.
 
 Use four waves of up to 50 from a reviewed buffer; the daily 200 target is a ceiling, not a quota. Start with a small pilot and keep `SEO_AUTOMATION_ENABLED` plus the Supabase kill switch off until the pilot passes. After publication, compare 7/14/28/56-day cohorts using GSC (queries/clicks/CTR/position), GA4/BigQuery (anonymous behavior), Supabase (page and activation events), and Whop (payment/refund truth). Update the feedback ledger only from comparable evidence; never generalize from one page.
 

@@ -666,7 +666,8 @@ export const seoPublishWaveHeartbeat = inngest.createFunction(
 /**
  * Dispatch assigned briefs to the configured content agent. The worker only
  * creates a signed, resumable handoff; its callback ingests a non-live draft
- * and never bypasses the evidence/editor/publish gates.
+ * and may record instant editorial approval after deterministic checks. It
+ * never bypasses the technical publish gate.
  */
 export const seoContentAgentDispatchHeartbeat = inngest.createFunction(
   {
@@ -1010,7 +1011,7 @@ export const seoContentAgentDispatchHeartbeat = inngest.createFunction(
  * Keep the writer queue supplied for both the hosted signed worker and the
  * owner-operated local bridge. Brief creation deliberately stops at
  * `ready_for_assignment`; this guarded loop performs only the reversible
- * queue handoff and never approves evidence or makes a page indexable.
+ * queue handoff. Approval and indexability are handled by their own gates.
  */
 export const seoContentAssignmentHeartbeat = inngest.createFunction(
   {

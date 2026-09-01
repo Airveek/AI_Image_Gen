@@ -45,6 +45,11 @@ if (!supabaseUrl || !secretKey) {
   await probeColumn(client, "seo_topics", "rights_evidence", "rights_guards");
   await probeColumn(client, "seo_pages", "intent_collision_status", "intent_collision_guards");
   await probeColumn(client, "seo_agent_runs", "next_attempt_at", "content_operations.agent_retry_state");
+  await probeColumn(client, "seo_automation_config", "instant_agent_approval_enabled", "content_operations.instant_agent_approval");
+  await probeRpc(client, "auto_approve_seo_agent_draft", "content_operations.instant_agent_approval.rpc", {
+    p_run_id: "00000000-0000-4000-8000-000000000000",
+    p_page_id: null,
+  });
   await probeOperationsSummary(client);
   await probeRpc(client, "check_seo_intent_collision", "intent_collision_guards.rpc", {
     p_normalized_intent_key: "production-readiness-probe",
@@ -77,7 +82,7 @@ if (!supabaseUrl || !secretKey) {
 
   const { data: config, error: configError } = await client
     .from("seo_automation_config")
-    .select("id,enabled,reader_first_mode,evidence_gates_enabled,crawl_enabled,source_sync_enabled,recommendations_enabled,alert_webhook_enabled,daily_publish_limit,daily_publish_wave_size,gsc_inspection_daily_budget,updated_at")
+    .select("id,enabled,reader_first_mode,evidence_gates_enabled,instant_agent_approval_enabled,crawl_enabled,source_sync_enabled,recommendations_enabled,alert_webhook_enabled,daily_publish_limit,daily_publish_wave_size,gsc_inspection_daily_budget,updated_at")
     .limit(1)
     .maybeSingle();
   checks.push(configError
@@ -85,6 +90,7 @@ if (!supabaseUrl || !secretKey) {
     : { name: "automation_config", status: config ? "pass" : "warn", detail: config ? "Configuration row is readable." : "No automation configuration row was found.", config: redactConfig(config) });
   databaseAutomationEnabled = config?.enabled === true;
   databaseEvidenceGatesEnabled = config?.evidence_gates_enabled === true;
+  const databaseInstantAgentApprovalEnabled = config?.instant_agent_approval_enabled === true;
   checks.push({
     name: "reader_first_mode",
     status: configError ? "warn" : config?.reader_first_mode === true && !databaseEvidenceGatesEnabled ? "pass" : "warn",
@@ -93,6 +99,15 @@ if (!supabaseUrl || !secretKey) {
       : databaseEvidenceGatesEnabled
         ? "Evidence gates are enabled; reader-first publishing is paused by configuration."
         : "Reader-first publishing mode is active; rights/evidence gates are optional.",
+  });
+  checks.push({
+    name: "instant_agent_approval",
+    status: configError ? "warn" : databaseInstantAgentApprovalEnabled && process.env.SEO_INSTANT_AGENT_APPROVAL_ENABLED === "true" ? "pass" : "warn",
+    detail: configError
+      ? "Unable to read instant-agent-approval configuration."
+      : databaseInstantAgentApprovalEnabled && process.env.SEO_INSTANT_AGENT_APPROVAL_ENABLED === "true"
+        ? "Passing worker drafts are automatically recorded as approved; publishing remains separately gated."
+        : "Instant worker approval is disabled in one or both control planes.",
   });
   await probeContentMembership(client, Boolean(config?.enabled) && process.env.SEO_AUTOMATION_ENABLED === "true");
   await probePilotContentReadiness(client, Boolean(config?.enabled) && process.env.SEO_AUTOMATION_ENABLED === "true");
@@ -511,7 +526,8 @@ function redactConfig(config) {
   return {
     enabled: Boolean(config.enabled),
     readerFirstMode: Boolean(config.reader_first_mode),
-    evidenceGatesEnabled: Boolean(config.evidence_gates_enabled),
+  evidenceGatesEnabled: Boolean(config.evidence_gates_enabled),
+    instantAgentApprovalEnabled: Boolean(config.instant_agent_approval_enabled),
     crawlEnabled: Boolean(config.crawl_enabled),
     sourceSyncEnabled: Boolean(config.source_sync_enabled),
     recommendationsEnabled: Boolean(config.recommendations_enabled),

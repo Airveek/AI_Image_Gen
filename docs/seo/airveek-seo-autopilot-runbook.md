@@ -14,7 +14,14 @@ the linked BigQuery dataset is still waiting for Google's asynchronous first
 export and remains a monitored warning, not a reason to disable on-site
 analytics.
 
-`SEO_AUTOMATION_ENABLED=true` is necessary but not sufficient. The `seo_automation_config.enabled` database switch must also be true. This gives the team a kill switch that does not require a deploy. Crawl, source-sync, and recommendations have separate database switches; keep recommendations off until source freshness is proven.
+`SEO_AUTOMATION_ENABLED=true` is necessary but not sufficient. The `seo_automation_config.enabled` database switch must also be true. This gives the team a kill switch that does not require a deploy. Crawl, source-sync, recommendations, and instant agent approval have separate database switches; keep recommendations off until source freshness is proven.
+
+For reader-first production, `SEO_INSTANT_AGENT_APPROVAL_ENABLED=true` plus
+`seo_automation_config.instant_agent_approval_enabled=true` records editorial
+approval automatically after a completed worker draft passes deterministic
+validation, ingest, quality, author/reviewer, and intent checks. The page stays
+private until the normal publish-wave, rendered-page, and sitemap gates pass.
+Turn either switch off to restore manual editorial approval.
 
 ### Fictional MORROW demo brand
 
@@ -28,13 +35,15 @@ not a real customer or trademark claim; no other brand copy is invented.
 
 The repeatable production workflow is packaged as the
 [`airveek-seo-content-autopilot`](../../.agents/skills/airveek-seo-content-autopilot/SKILL.md)
-skill. It requires the research packet, real listing/lifestyle/detail evidence,
-structured page draft, and deterministic draft validator before an editor can
-approve a page.
+skill. It requires a structured page draft and deterministic validator before
+the worker can request approval; strict media evidence remains optional in the
+current reader-first mode.
 
 The external signed-worker handoff is specified in
 [`content-agent-worker-contract.md`](content-agent-worker-contract.md). Keep
-the worker outside the publish path; it may submit a non-live draft only.
+the worker outside the publish path; it may submit a non-live draft and, when
+the instant-approval switches are enabled, the platform records the review
+approval after deterministic checks.
 
 FAQ citations are now referentially checked. Drafts use a stable `id` (or
 `sourceKey`) on every source record, and the ingest transaction rewrites each
@@ -402,6 +411,9 @@ asset and evidence first, then validate/apply each candidate with
    assignee has a compatible active content role.
 6. Reviewers record every decision in `seo_review_decisions`; decisions are
    append-only and carry the content version, checklist, score, and blockers.
+   With instant agent approval enabled, this ledger also receives an
+   `approvalMode: instant_agent` decision containing the worker run ID and the
+   deterministic checks that passed.
 7. Inserts, updates, and deletes on these operational records generate
    `seo_content_audit_events`. Audit rows and operational records are not
    physically deletable; corrections use a new version or compensating event.
@@ -410,7 +422,9 @@ The `/admin/seo` Operations tab exposes the same handoff without requiring SQL:
 admins can select an open brief, assign it to an active member, and record a
 review decision with score, blockers, and notes. The actions call the same
 server-side role and status checks as the worker; they never create Auth users,
-approve source rights implicitly, publish a page, or enable automation.
+approve source rights implicitly, publish a page, or enable automation. The
+automatic worker approval is visible in the same ledger and is paused by either
+instant-approval switch.
 
 For a long-running local recording pass, use `pnpm seo:run-queue` to inspect the
 selected opportunity set first. The worker is dry-run by default; add `--apply`
@@ -437,9 +451,9 @@ or user-owned configuration that is not present yet.
 
 ## What happens to an approved page
 
-1. A writer creates a structured page and attaches the exact Airveek generation evidence, source URLs, public media, author, reviewer, and internal-link edges.
-2. Automated QA records a score in `seo_quality_runs`. The page must score at least 85 and have no blocker.
-3. The publish worker reads at most 50 approved/scheduled pages every 15 minutes and enforces the database daily limit (200 by default, i.e. four 50-page waves). New templates remain human-review gated. A template can be marked `proven` only after 50 reviewed pages and 14 healthy days.
+1. A writer creates a structured page with source URLs, public media, author, reviewer, and internal-link edges. Rights and independent evidence are optional in reader-first mode.
+2. Automated QA records a score in `seo_quality_runs`. The page must score at least 85 and have no blocker. If instant agent approval is enabled, the completed worker run atomically records the editorial approval and leaves an auditable review decision.
+3. The publish worker reads at most 50 approved/scheduled pages every 15 minutes and enforces the database daily limit (200 by default, i.e. four 50-page waves). The wave still performs the full technical/content/render gate; automatic approval does not make a page live by itself.
 4. The publish gate rechecks independent listing/lifestyle/detail runs, approved media rights, source evidence, canonical state, author/reviewer, workflow completeness, and at least two inbound plus four outbound links. Link thresholds count only live indexable SEO pages or known static hubs; unverified edge rows do not satisfy the gate.
 5. A passing page becomes `live`, `noindex=false`, and receives a `seo_url_state` row. The publish function rechecks both `SEO_AUTOMATION_ENABLED=true` and the database `seo_automation_config.enabled=true` immediately before this transition, so pausing the database switch takes effect without a deploy. The public render is then crawled; only a healthy 200 response with matching canonical, robots, schema, content, and media checks flips the URL state to eligible. The page, linked parents/siblings, public hubs, static sitemap, sitemap index, and every affected current or prior family/month sitemap shard are revalidated.
    If an unexpected failure occurs after the live transition, the publisher quarantines that page back to `qa_failed`/`noindex=true`, removes sitemap eligibility, and marks its wave item `replaced` so a reviewed buffer page can take its place. A pre-live permanent quality/evidence failure similarly moves the page from `approved`/`scheduled` to `changes_requested`; transient configuration, persistence, or race failures remain retryable. Every quarantine write is checked independently; any failed recovery mutation emits a deduplicated P0 publishing alert with the affected table/error evidence and keeps the page blocked from an automatic retry until it is verified.
@@ -472,12 +486,12 @@ or user-owned configuration that is not present yet.
     `sent`; a failed state transition prevents the external request. The agent
     must call the signed
     `/api/seo/agent/callback` endpoint with a structured draft. The callback
-    re-runs the deterministic draft contract and the persisted rights packet
-    check before invoking the service-role ingest RPC. It only acknowledges a
-    completion after the brief, assignment, and idempotent audit event are
-    durable; otherwise the run remains retryable in `processing`. It changes
-    the brief to `submitted` and leaves the page non-live; editor approval and
-    the gated publish wave are still required. Missing agent configuration is
+    re-runs the deterministic draft contract and invokes the service-role
+    ingest RPC. It only acknowledges a completion after the brief, assignment,
+    and idempotent audit event are durable; otherwise the run remains retryable
+    in `processing`. In instant-agent mode, the completion records an auditable
+    editorial approval after the persisted quality, reviewer, and intent checks;
+    the gated publish wave is still required. Missing agent configuration is
     alerted, not treated as permission to fabricate or auto-publish content.
 14. The recovery loop runs every 15 minutes. A handoff that never reached the
     durable `sent` state or was never accepted is expired and safely requeued
@@ -555,7 +569,7 @@ The scheduler does not blindly publish 200 generated pages. It processes up to f
 2. Set `NEXT_PUBLIC_SITE_URL=https://airveek.com`, deploy the application-level
    permanent redirect, and configure the DNS/hosting redirects for HTTPS and
    `www`. Verify both variants return HTTP 308 with the same path/query.
-3. Create content members and assign publisher/SEO-admin roles. Keep the first 50 pages of each template in `editor_review` before changing the rollout row to `proven`.
+3. Create content members and assign publisher/SEO-admin roles. In the current instant-agent mode, worker drafts may move directly to `approved` after deterministic checks; the first 50 still remain subject to the normal publish-wave/render safeguards.
 4. Configure the service-account, GSC, GA4, Bing/IndexNow, alert, and signing-secret variables from `.env.example`.
    In GA4 Admin → Property access management, add the service-account email from
    `GOOGLE_SEO_SERVICE_ACCOUNT_JSON_BASE64` as at least a Viewer; otherwise the
@@ -576,7 +590,7 @@ The scheduler does not blindly publish 200 generated pages. It processes up to f
    - Keep the GA4 Data API as the fallback until a read-only BigQuery query is
      confirmed. Never treat a configured link, an empty dataset, or a successful
      GA4 tag pageview as proof that historical export is ready.
-5. Set the database automation row to enabled only after a pilot wave passes the route, sitemap, crawl, attribution, and rollback checks.
+5. Set the database automation row to enabled only after a pilot wave passes the route, sitemap, crawl, attribution, and rollback checks. Set `instant_agent_approval_enabled=true` only when automatic editorial approval for passing worker drafts is intended.
 6. For long-running production content work, configure
    `SEO_CONTENT_AGENT_WEBHOOK_URL`, `SEO_CONTENT_AGENT_SIGNING_SECRET`, and
    `SEO_CONTENT_AGENT_BATCH_SIZE` in the deployment environment. The agent

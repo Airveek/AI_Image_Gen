@@ -2,8 +2,10 @@
 
 This document is the implementation contract for the external worker that
 receives Airveek SEO briefs. It is intentionally separate from the publishing
-system: the worker can research, record, and submit a structured draft, but it
-cannot approve, publish, redirect, merge, prune, or change indexability.
+system: the worker can research, record, and submit a structured draft. When
+the explicit instant-agent-approval switches are enabled, Airveek records the
+editorial approval after deterministic checks; the worker itself still cannot
+publish, redirect, merge, prune, or change indexability.
 
 ## 1. Configuration
 
@@ -156,10 +158,10 @@ node .agents/skills/airveek-seo-content-autopilot/scripts/validate-page-draft.mj
 
 The validator must pass with no blockers and a score of at least 85 before the
 worker submits a completed callback. The callback runs the same validator again
-at the signed trust boundary and rejects any mismatch before the ingest RPC. A
-passing worker-side result is still not editor approval; Airveek rechecks the
-persisted rights packet and all other evidence at the trust boundary, then the
-publish gate checks it again later.
+at the signed trust boundary and rejects any mismatch before the ingest RPC. In
+instant-agent-approval mode, a passing draft is automatically recorded as
+editorial-approved only after persisted quality, author/reviewer, and intent
+checks pass; the publish gate checks it again later.
 
 ## 4. Completion callback
 
@@ -208,12 +210,14 @@ Airveek records `transient_provider` failures with a six-hour
 `next_attempt_at` cooldown and returns the brief/assignment to `assigned` for
 the dispatcher. Rights, policy, malformed-input, and editorial failures stay
 `manual_review`/`blocked`; metadata never grants approval or bypasses the
-recording, rights, draft, or publish gates.
+recording, draft, or publish gates. Instant approval only applies to a draft
+that has already passed the deterministic contract and ingest checks.
 
 The callback is idempotent. Re-sending the exact completed callback returns a
 duplicate-safe success response. A different draft for a dispatch that has a
 recorded checksum is rejected. The callback creates or updates only a
-non-live, `noindex` review record; it never calls the publish path.
+non-live, `noindex` review record and may record the explicit instant approval;
+it never calls the publish path.
 
 Terminal failed or expired handoffs remain audit history, but their stable
 dispatch key is available for a new attempt once no active run uses it. This
@@ -281,10 +285,10 @@ pnpm seo:local-agent --watch --poll-seconds 300
 ```
 
 The bridge uses the same Supabase service-role validation and draft-ingest
-transaction, but it invokes `codex exec` locally and keeps every result in a
-review-only state. It requires the Airveek autopilot skill, an active writer
-assignment, and the same rights, independent-job, recording, media, author,
-reviewer, and page-contract gates. It is deliberately not a publisher and
+transaction, but it invokes `codex exec` locally. With instant approval enabled,
+passing results move to `approved`; otherwise they remain review-only. It
+requires the Airveek autopilot skill, an active writer assignment, and the
+technical/content page-contract gates. It is deliberately not a publisher and
 never changes redirects, canonicals, noindex, migrations, env files, git
 history, or production automation switches. Keep the workstation attended
 during initial runs and inspect `.seo-content-agent/runs/` when a brief is

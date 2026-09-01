@@ -396,7 +396,34 @@ async function processCandidate(candidate) {
   if (runCompletionError || !completedRun) {
     return await failRun(candidate, runId, `agent_completion_persist_failed:${runCompletionError?.message ?? "state_changed"}`, { includeCompleted: true, includeSubmitted: true });
   }
-  return { runId, briefId: candidate.id, pageId, status: "completed", runDirectory };
+
+  // The worker never publishes. When the owner enables instant approval, the
+  // database RPC records the editorial approval only after the draft has
+  // passed the worker validator, ingest checks, quality score, and intent
+  // collision checks. Keeping this call after the run is completed makes the
+  // approval auditable and idempotent across retries.
+  const autoApproval = await maybeAutoApproveAgentDraft(runId, pageId);
+  return {
+    runId,
+    briefId: candidate.id,
+    pageId,
+    status: "completed",
+    runDirectory,
+    ...(autoApproval ? { autoApproval } : {}),
+  };
+}
+
+async function maybeAutoApproveAgentDraft(runId, pageId) {
+  if (process.env.SEO_INSTANT_AGENT_APPROVAL_ENABLED?.trim().toLowerCase() !== "true") return null;
+  const { data, error } = await supabase.rpc("auto_approve_seo_agent_draft", {
+    p_run_id: runId,
+    p_page_id: pageId,
+  });
+  if (error) {
+    console.warn(JSON.stringify({ status: "warning", phase: "instant_agent_approval", runId, pageId, error: error.message }));
+    return { approved: false, reason: "rpc_failed" };
+  }
+  return data && typeof data === "object" ? data : { approved: false, reason: "unexpected_rpc_response" };
 }
 
 function buildCodexPrompt({ briefPath, draftPath, runDirectory, candidate }) {
@@ -410,7 +437,7 @@ function buildCodexPrompt({ briefPath, draftPath, runDirectory, candidate }) {
     "Use the brief's demandEvidence and keywordEvidence as labelled research inputs. Treat each metric as measured only when its source/date is present; community and editorial signals are qualitative evidence, not search-volume claims. Do not fabricate product facts, screenshots, generation runs, timestamps, citations, metrics, or outputs. If an asset or recording is unavailable, continue with a useful reader-first draft and make the limitation practical and concise.",
     "For fictional demo-brand briefs, use the supplied brand manifest and logo reference exactly. The MORROW wordmark is a mock product brand for examples, not a real customer or trademark claim: place it naturally on the product or package, keep the exact lowercase wordmark and two sparkle stars, and never invent other brand text.",
     "Write visible copy for the reader, not for internal audit: never expose rights status, provenance, checksums, evidence packets, reviewer names, logo-policy labels, or legal/compliance language. Use positive instructions and product-specific decisions about lighting, composition, crop, scale, detail visibility, mobile thumbnails, and export settings. Keep any internal metadata out of the visible content body.",
-    "Do not publish. Do not call publishSeoPage. Do not change redirects, canonicals, noindex, migrations, env files, application code, or unrelated files. Do not commit or push.",
+    "Do not publish. Do not call publishSeoPage. Do not change redirects, canonicals, noindex, migrations, env files, application code, or unrelated files. Do not commit or push. After deterministic validation succeeds, the parent worker may record instant editorial approval; the worker itself must never mark a draft approved or live.",
     `When and only when every page-contract gate passes, write the complete review-only JSON draft to exactly: ${draftPath}`,
     `Run the validator against that file with: node --experimental-strip-types ${path.join(projectDirectory, ".agents/skills/airveek-seo-content-autopilot/scripts/validate-page-draft.mjs")} ${draftPath}`,
     "The draft must use the supplied briefId, status draft/editor_review/automated_qa/changes_requested/refresh, and must never use approved/scheduled/live.",
