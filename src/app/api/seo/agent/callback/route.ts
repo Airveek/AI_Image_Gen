@@ -59,6 +59,14 @@ export async function POST(request: Request) {
       if (run.draft_checksum && run.draft_checksum !== incomingChecksum) {
         return json({ error: "draft_checksum_mismatch" }, 409);
       }
+      // A previous callback may have persisted the completed run while the
+      // optional instant-approval RPC was temporarily unavailable. Re-run the
+      // idempotent approval on an exact replay so that a later retry can finish
+      // the reversible review transition without re-ingesting the page.
+      const autoApproval = run.page_id
+        ? await maybeAutoApproveAgentDraft(client, String(run.id), String(run.page_id))
+        : null;
+      return json({ accepted: true, duplicate: true, pageId: run.page_id ?? null, ...(autoApproval ? { autoApproval } : {}) }, 200);
     }
     return json({ accepted: true, duplicate: true, pageId: run.page_id ?? null }, 200);
   }
