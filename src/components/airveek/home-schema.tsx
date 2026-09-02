@@ -43,12 +43,11 @@ export function HomeSchema() {
           url: absoluteUrl("/"),
           description: "Create images, logos, and commercial artwork from a keyword with Airveek.",
           offers: [
-            { "@type": "Offer", name: "Commercial", price: "49", priceCurrency: "USD", url: absoluteUrl("/#pricing") },
-            { "@type": "Offer", name: "Premium", price: "147", priceCurrency: "USD", url: absoluteUrl("/#pricing") },
+            { "@type": "Offer", name: "Commercial monthly", price: "49", priceCurrency: "USD", url: absoluteUrl("/#pricing"), priceSpecification: { "@type": "UnitPriceSpecification", price: "49", priceCurrency: "USD", billingDuration: "P1M" } },
+            { "@type": "Offer", name: "Premium monthly", price: "147", priceCurrency: "USD", url: absoluteUrl("/#pricing"), priceSpecification: { "@type": "UnitPriceSpecification", price: "147", priceCurrency: "USD", billingDuration: "P1M" } },
           ],
         },
       ]}
     />
   );
 }
-

@@ -1,7 +1,12 @@
 import type { UnwrapWebhookEvent } from "@whop/sdk/resources.js";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getWhopAccountId, getWhopClient, getWhopWebhookKey } from "@/lib/whop/client";
+import {
+  getWhopAccountId,
+  getWhopClient,
+  getWhopPlanIdentity,
+  getWhopWebhookKey,
+} from "@/lib/whop/client";
 import {
   getWebhookMetadataUserId,
   isValidWebhookTimestamp,
@@ -164,14 +169,30 @@ async function recordFinancialEvent(
   });
   if (!fact) return new Response("Invalid transaction payload", { status: 400 });
 
-  const { error } = await createSupabaseAdminClient()
+  const supabase = createSupabaseAdminClient();
+  let userId = fact.userId;
+
+  if (!userId && fact.membershipId) {
+    const { data: entitlement, error: entitlementError } = await supabase
+      .from("whop_entitlements")
+      .select("user_id")
+      .eq("whop_membership_id", fact.membershipId)
+      .maybeSingle();
+    if (entitlementError) {
+      console.error("Unable to resolve the Whop transaction owner.", entitlementError);
+      return new Response("Unable to resolve transaction owner", { status: 500 });
+    }
+    userId = typeof entitlement?.user_id === "string" ? entitlement.user_id : null;
+  }
+
+  const { error } = await supabase
     .from("whop_transaction_facts")
     .insert({
       whop_event_id: fact.whopEventId,
       object_type: fact.objectType,
       whop_object_id: fact.whopObjectId,
       event_type: fact.eventType,
-      user_id: fact.userId,
+      user_id: userId,
       payment_id: fact.paymentId,
       refund_id: fact.refundId,
       membership_id: fact.membershipId,
@@ -198,7 +219,5 @@ async function recordFinancialEvent(
 }
 
 function readPlanKey(planId: string): "commercial" | "premium" | undefined {
-  if (planId === process.env.WHOP_PREMIUM_PLAN_ID) return "premium";
-  if (planId === process.env.WHOP_COMMERCIAL_PLAN_ID) return "commercial";
-  return undefined;
+  return getWhopPlanIdentity(planId).planKey ?? undefined;
 }

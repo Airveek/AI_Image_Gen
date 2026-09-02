@@ -2,6 +2,7 @@ import "server-only";
 
 import Whop from "@whop/sdk";
 
+import { identifyWhopPlan, type WhopPlanIdentity } from "@/lib/whop/plans";
 import type { PlanKey } from "@/lib/whop/types";
 
 let whopClient: Whop | null = null;
@@ -47,12 +48,21 @@ export function getWhopAccountId(): string {
   return getRequiredEnv("WHOP_COMPANY_ID");
 }
 
-export function getWhopPlanId(plan: PlanKey): string {
+export function getWhopCheckoutPlanId(plan: PlanKey): string {
   const envName = plan === "commercial"
-    ? "WHOP_COMMERCIAL_PLAN_ID"
-    : "WHOP_PREMIUM_PLAN_ID";
+    ? "WHOP_COMMERCIAL_MONTHLY_PLAN_ID"
+    : "WHOP_PREMIUM_MONTHLY_PLAN_ID";
 
   return getRequiredEnv(envName);
+}
+
+export function getWhopPlanIdentity(planId: string): WhopPlanIdentity {
+  return identifyWhopPlan(planId, {
+    commercialMonthly: process.env.WHOP_COMMERCIAL_MONTHLY_PLAN_ID,
+    premiumMonthly: process.env.WHOP_PREMIUM_MONTHLY_PLAN_ID,
+    commercialLegacy: process.env.WHOP_COMMERCIAL_PLAN_ID,
+    premiumLegacy: process.env.WHOP_PREMIUM_PLAN_ID,
+  });
 }
 
 export function getWhopCheckoutRedirectUrl(): string {

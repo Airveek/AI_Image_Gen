@@ -1,5 +1,7 @@
 export type PlanKey = "commercial" | "premium";
 
+export type BillingKind = "monthly" | "legacy-lifetime" | "unknown";
+
 export type CheckoutRequest = {
   plan: PlanKey;
 };
@@ -25,6 +27,29 @@ export type WhopEntitlementStatus =
 
 export type CreatorAccessSummary = {
   planName: string;
+  planKey: PlanKey | null;
+  billingKind: BillingKind;
   status: WhopEntitlementStatus | null;
   hasActiveAccess: boolean;
+};
+
+export type AccountBillingSummary = CreatorAccessSummary & {
+  cancelAtPeriodEnd: boolean;
+  manageUrl: string | null;
+  renewalAt: string | null;
+};
+
+export type PurchaseHistoryItem = {
+  id: string;
+  kind: "payment" | "refund";
+  planName: string;
+  status: string;
+  amount: number | null;
+  currency: string | null;
+  occurredAt: string;
+};
+
+export type PurchaseHistorySummary = {
+  items: PurchaseHistoryItem[];
+  available: boolean;
 };

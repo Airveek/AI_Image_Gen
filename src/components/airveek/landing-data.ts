@@ -319,19 +319,19 @@ export const recapFeatures = [
 export const faqs = [
   {
     question: "How is Airveek different from other apps?",
-    answer: "Airveek brings image generation, editing, mockups, background tools, upscaling, and commercial-ready workflows into one simple creative suite. You pay once instead of stacking monthly subscriptions.",
+    answer: "Airveek brings image generation, editing, mockups, background tools, upscaling, and commercial-ready workflows into one simple creative suite with clear monthly plans.",
   },
   {
     question: "Does it include unlimited design generation?",
-    answer: "The Airveek offer is built around unlimited design creation with no monthly fees. Your plan details and usage terms are shown clearly at checkout.",
+    answer: "Airveek plans include broad design creation subject to reasonable fair-use limits. Your plan details and billing terms are shown clearly at checkout.",
   },
   {
     question: "Can I use my designs commercially?",
     answer: "Yes. The commercial plan is designed for client work, marketing, digital products, print-on-demand, and other commercial projects according to the license terms.",
   },
   {
-    question: "Are there monthly or hidden costs?",
-    answer: "No. The offer is a one-time payment, with no monthly charge or surprise upsell required to use the core product.",
+    question: "How does monthly billing work?",
+    answer: "Choose the $49 Commercial plan or $147 Premium plan. Whop handles recurring billing securely, and you can manage or cancel your subscription from your Airveek account.",
   },
   {
     question: "Is there a money-back guarantee?",

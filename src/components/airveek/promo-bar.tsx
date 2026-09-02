@@ -5,7 +5,7 @@ export function PromoBar() {
       aria-label="Limited-time Airveek offer"
     >
       <p className="m-0 text-xs font-semibold leading-5 sm:text-sm">
-        <span className="font-black">Unlimited Images: $49 One-Time Payment!</span>
+        <span className="font-black">Airveek plans start at $49/month</span>
         <span className="mx-2 hidden text-[#040404]/40 sm:inline">•</span>
         <strong>Use Coupon &quot;SECRET10&quot; for 10% OFF!</strong>
       </p>

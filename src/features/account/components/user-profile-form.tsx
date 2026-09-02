@@ -11,23 +11,30 @@ import {
   type UserProfile,
 } from "@/features/account/types";
 
-export function UserProfileForm({ profile }: { profile: UserProfile | null }) {
+type UserProfileFormProps = {
+  profile: UserProfile | null;
+  presentation?: "onboarding" | "account";
+};
+
+export function UserProfileForm({ profile, presentation = "onboarding" }: UserProfileFormProps) {
   const [dismissed, setDismissed] = useState(false);
   const [state, formAction, pending] = useActionState(saveUserProfileAction, {
     status: "idle",
     message: "",
   } satisfies Parameters<typeof saveUserProfileAction>[0]);
 
-  if (dismissed) {
+  if (dismissed && presentation === "onboarding") {
     return null;
   }
+
+  const isAccount = presentation === "account";
 
   return (
     <section className="max-w-3xl rounded-2xl border border-border bg-surface-muted p-5" aria-labelledby="profile-heading">
       <div>
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-neon">Optional profile</p>
-        <h2 id="profile-heading" className="mt-2 font-display text-2xl font-bold">Help us make Airveek more useful</h2>
-        <p className="mt-2 text-sm leading-6 text-muted">Tell us what you do. You can skip this and change it later.</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">{isAccount ? "Creator profile" : "Optional profile"}</p>
+        <h2 id="profile-heading" className="mt-2 font-display text-2xl font-bold">{isAccount ? "Personalize your workspace" : "Help us make Airveek more useful"}</h2>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">{isAccount ? "Keep these details current so Airveek can better match your work." : "Tell us what you do. You can skip this and change it later."}</p>
       </div>
       <form action={formAction} className="mt-5 grid gap-4 sm:grid-cols-2">
         <label className="space-y-2 text-sm font-semibold" htmlFor="profile-user-type">
@@ -54,7 +61,7 @@ export function UserProfileForm({ profile }: { profile: UserProfile | null }) {
         </label>
         <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
           <Button disabled={pending} type="submit" variant="primary">{pending ? "Saving…" : "Save profile"}</Button>
-          <button type="button" onClick={() => setDismissed(true)} className="min-h-11 rounded-xl px-3 text-sm font-semibold text-muted transition-colors hover:bg-surface-muted hover:text-brand-white">Skip for now</button>
+          {!isAccount ? <button type="button" onClick={() => setDismissed(true)} className="min-h-11 rounded-xl px-3 text-sm font-semibold text-muted transition-colors hover:bg-surface-muted hover:text-brand-white">Skip for now</button> : null}
           <p aria-live="polite" className={state.status === "error" ? "text-sm text-danger" : "text-sm text-brand-soft"} role={state.status === "error" ? "alert" : "status"}>{state.message}</p>
         </div>
       </form>

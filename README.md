@@ -102,8 +102,12 @@ R2_BUCKET=
 DAILY_GENERATION_LIMIT=5
 WHOP_API_KEY=
 WHOP_COMPANY_ID=
+# Keep the existing one-time IDs for legacy lifetime access.
 WHOP_COMMERCIAL_PLAN_ID=
 WHOP_PREMIUM_PLAN_ID=
+# New recurring monthly plans ($49 Commercial / $147 Premium).
+WHOP_COMMERCIAL_MONTHLY_PLAN_ID=
+WHOP_PREMIUM_MONTHLY_PLAN_ID=
 WHOP_WEBHOOK_SECRET=
 WHOP_SANDBOX=false
 # SEO measurement and publishing (see .env.example for the complete list)
@@ -128,7 +132,7 @@ Apply the Supabase migrations in `supabase/migrations` before opening the creato
 https://your-domain.example/api/webhooks/whop
 ```
 
-Configure that URL in Whop and subscribe to membership activation and deactivation events. For local checkout testing, use an HTTPS tunnel and set `NEXT_PUBLIC_APP_URL` to the tunnel URL. Localhost HTTP is supported only for the local prototype and cannot receive a public Whop webhook.
+In Whop, configure the monthly plan IDs as recurring USD plans billed every month at $49 for Commercial and $147 for Premium. Keep the two legacy plan IDs unchanged so earlier lifetime purchases continue to resolve correctly. Configure the webhook URL and subscribe to membership activation/deactivation, payment created/pending/succeeded/failed, and refund created/updated events. For local checkout testing, use an HTTPS tunnel and set `NEXT_PUBLIC_APP_URL` to the tunnel URL. Localhost HTTP is supported only for the local prototype and cannot receive a public Whop webhook.
 
 Provider API keys, Whop keys, and the Google Drive refresh token are server-only values; they do not belong in browser code or committed files.
 

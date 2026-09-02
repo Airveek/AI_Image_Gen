@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { Home, Images, LogOut, Settings, Sparkles, Store } from "lucide-react";
+import { Home, Images, Sparkles, Store } from "lucide-react";
 
-import { signOutAction } from "@/app/(creator)/actions";
 import { AirveekLogo } from "@/components/airveek/airveek-logo";
+import { AccountMenu } from "@/features/account/components/account-menu";
 import { cn } from "@/lib/utils";
 import type { CreatorIdentity } from "@/features/creator/types";
 
@@ -15,7 +15,6 @@ const navigation = [
   { href: "/create/general-image", label: "Create", icon: Sparkles },
   { href: "/library", label: "Library", icon: Images },
   { href: "/store-images", label: "Store images", icon: Store },
-  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function CreatorShell({
@@ -58,22 +57,7 @@ export function CreatorShell({
               );
             })}
           </nav>
-          <div className="flex shrink-0 items-center gap-2">
-            <div className="hidden text-right lg:block">
-              <p className="max-w-40 truncate text-sm font-semibold">{user.displayName}</p>
-              <p className="max-w-40 truncate text-xs text-muted-foreground">{user.email}</p>
-            </div>
-            <form action={signOutAction}>
-              <button
-                type="submit"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-primary/35 hover:bg-surface-muted hover:text-foreground"
-                aria-label="Sign out"
-                title="Sign out"
-              >
-                <LogOut className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </form>
-          </div>
+          <AccountMenu user={user} />
         </div>
       </header>
       <main>{children}</main>

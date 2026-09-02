@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import type { ReactNode } from "react";
 import { X } from "lucide-react";
 
@@ -17,6 +17,8 @@ type DialogProps = {
 
 export function Dialog({ open, onOpenChange, title, description, className, children }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const descriptionId = useId();
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -37,6 +39,8 @@ export function Dialog({ open, onOpenChange, title, description, className, chil
   return (
     <dialog
       ref={dialogRef}
+      aria-labelledby={titleId}
+      aria-describedby={description ? descriptionId : undefined}
       className={cn("fixed left-1/2 top-1/2 m-0 max-h-[min(90vh,48rem)] w-[min(92vw,32rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-popover p-0 text-foreground shadow-2xl backdrop:bg-black/70", className)}
       onCancel={(event) => {
         event.preventDefault();
@@ -46,8 +50,8 @@ export function Dialog({ open, onOpenChange, title, description, className, chil
     >
       <div className="flex items-start justify-between gap-4 border-b border-border p-5">
         <div className="min-w-0">
-          <h2 className="font-display text-xl font-bold">{title}</h2>
-          {description ? <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p> : null}
+          <h2 id={titleId} className="font-display text-xl font-bold">{title}</h2>
+          {description ? <p id={descriptionId} className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p> : null}
         </div>
         <button
           type="button"

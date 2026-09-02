@@ -13,6 +13,8 @@ import { CtaButton } from "./cta-button";
 import { HomeFeatureSlider } from "./home-feature-slider";
 import { HomeOutcomeShowcase } from "./home-outcome-showcase";
 import { SectionHeading } from "./section-heading";
+import { PLAN_DEFINITIONS } from "@/lib/whop/plans";
+import type { PlanKey } from "@/lib/whop/types";
 
 const heroIcons = [
   { src: "/images/airveek/home/icons/ai-generator.png", className: "-left-5 top-[13%] size-24 sm:left-[27%] sm:top-[59%] sm:size-28 lg:size-32" },
@@ -56,7 +58,7 @@ export function HomeHero() {
 }
 
 export function HomeTrustRow() {
-  const items = ["One-time payment", "Commercial-use plans", "HD downloads", "30-day guarantee"];
+  const items = ["Simple monthly plans", "Commercial-use plans", "HD downloads", "30-day guarantee"];
 
   return (
     <section className="border-b border-border bg-surface px-4 py-6 sm:px-6" aria-label="Airveek purchase facts">
@@ -154,8 +156,8 @@ type PricingCardProps = {
   price: string;
   description: string;
   bestFor: string;
-  features: string[];
-  planKey: "commercial" | "premium";
+  features: readonly string[];
+  planKey: PlanKey;
   featured?: boolean;
 };
 
@@ -166,7 +168,7 @@ function PricingCard({ title, price, description, bestFor, features, planKey, fe
       <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">{title}</p>
       <div className="mt-5 flex items-end gap-2">
         <span className="font-display text-6xl font-extrabold leading-none text-foreground">{price}</span>
-        <span className="pb-1 text-sm font-semibold text-muted-foreground">one time</span>
+        <span className="pb-1 text-sm font-semibold text-muted-foreground">per month</span>
       </div>
       <p className="mt-5 min-h-14 text-sm leading-6 text-muted-foreground">{description}</p>
       <p className="mt-4 rounded-2xl bg-surface-muted px-4 py-3 text-sm leading-6 text-foreground"><span className="font-bold">Choose this if:</span> {bestFor}</p>
@@ -184,18 +186,18 @@ function PricingCard({ title, price, description, bestFor, features, planKey, fe
 }
 
 export function HomePricingAndGuarantee() {
-  const commercial = ["Unlimited designs", "HD image downloads", "No monthly fees", "Commercial license", "No watermarks", "30-day money-back guarantee"];
-  const premium = ["Everything in Commercial", "Consistent characters", "Your face in AI images", "Product mockups and virtual models", "Perfect text in AI images", "Faster generation and premium tools"];
+  const commercial = PLAN_DEFINITIONS.commercial;
+  const premium = PLAN_DEFINITIONS.premium;
 
   return (
     <section id="pricing" className="border-t border-border bg-surface-muted px-4 py-20 sm:px-6 lg:py-32" aria-labelledby="pricing-title">
       <div className="mx-auto max-w-7xl">
-        <SectionHeading titleId="pricing-title" eyebrow="One-time pricing" title="Create without another monthly bill." description="Pay once, choose the capability level your business needs, and keep creating without a recurring software charge." size="display" />
+        <SectionHeading titleId="pricing-title" eyebrow="Monthly pricing" title="Choose a plan that grows with your creative work." description="Start with the capability level your business needs and manage billing securely from your account." size="display" />
         <div className="mx-auto mt-10 grid max-w-5xl gap-5 lg:grid-cols-2">
-          <PricingCard title="Commercial" price="$49" description="The practical toolkit for everyday business images, campaigns, and client work." bestFor="you need dependable marketing visuals and commercial-use downloads." features={commercial} planKey="commercial" featured />
-          <PricingCard title="Premium" price="$147" description="Advanced creation for businesses that need consistency, better text, and premium product workflows." bestFor="your brand depends on repeatable characters, readable text, mockups, or virtual models." features={premium} planKey="premium" />
+          <PricingCard title={commercial.name} price={`$${commercial.priceUsdCents / 100}`} description={commercial.description} bestFor={commercial.bestFor} features={commercial.features} planKey={commercial.key} featured />
+          <PricingCard title={premium.name} price={`$${premium.priceUsdCents / 100}`} description={premium.description} bestFor={premium.bestFor} features={premium.features} planKey={premium.key} />
         </div>
-        <p className="mt-7 text-center text-xs font-semibold text-muted-foreground">Use coupon <span className="font-bold text-primary">SECRET10</span> for 10% off · No hidden fees · No monthly charges</p>
+        <p className="mt-7 text-center text-xs font-semibold text-muted-foreground">Use coupon <span className="font-bold text-primary">SECRET10</span> for 10% off · Cancel from your billing portal</p>
         <div className="mx-auto mt-10 flex max-w-5xl flex-col items-center gap-5 rounded-[2rem] border border-primary/25 bg-primary/6 p-7 text-center sm:flex-row sm:p-9 sm:text-left">
           <div className="grid size-16 shrink-0 place-items-center rounded-full bg-primary/12 text-primary"><ShieldCheck className="size-8" aria-hidden="true" /></div>
           <div className="flex-1">
@@ -204,7 +206,7 @@ export function HomePricingAndGuarantee() {
             <p className="mt-2 text-sm leading-6 text-muted-foreground">Create, test, and decide whether Airveek fits your workflow with a clear refund window.</p>
           </div>
           <div className="flex shrink-0 flex-col gap-2 text-xs font-bold text-foreground">
-            <span className="inline-flex items-center gap-2"><Clock3 className="size-4 text-primary" aria-hidden="true" /> One-time payment</span>
+            <span className="inline-flex items-center gap-2"><Clock3 className="size-4 text-primary" aria-hidden="true" /> Monthly billing</span>
             <span className="inline-flex items-center gap-2"><BadgeCheck className="size-4 text-primary" aria-hidden="true" /> Commercial-ready plans</span>
           </div>
         </div>
@@ -220,7 +222,7 @@ export function HomeFinalCta() {
       <div className="relative mx-auto flex max-w-5xl flex-col items-center text-center">
         <h2 className="text-balance font-display text-[2.7rem] font-medium leading-[1.05] tracking-[-0.035em] sm:text-6xl lg:text-7xl">Start creating with Airveek.</h2>
         <p className="mt-6 max-w-2xl text-base leading-7 text-white/82 sm:text-lg">Turn a straightforward business idea into polished visual options. Guidance is built in, with no prompt-engineering course required.</p>
-        <CtaButton className="mt-8 min-w-56" href="#pricing" variant="inverse" showArrow={false}>Get lifetime access from $49</CtaButton>
+        <CtaButton className="mt-8 min-w-56" href="#pricing" variant="inverse" showArrow={false}>Start from $49/month</CtaButton>
       </div>
     </section>
   );

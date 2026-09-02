@@ -21,6 +21,11 @@ export type UserProfileActionState = {
   message: string;
 };
 
+export type AccountNameActionState = {
+  status: "idle" | "success" | "error";
+  message: string;
+};
+
 export type FirstTouchAttribution = {
   source: string;
   medium: string;

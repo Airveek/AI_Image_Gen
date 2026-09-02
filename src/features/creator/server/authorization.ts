@@ -22,8 +22,8 @@ export async function requireCreatorUser(): Promise<CreatorIdentity> {
 
   const metadata = toMetadata(data.user.user_metadata);
   const displayName =
-    readString(metadata, "name") ??
     readString(metadata, "display_name") ??
+    readString(metadata, "name") ??
     data.user.email?.split("@")[0] ??
     "Creator";
 
@@ -44,4 +44,3 @@ function readString(metadata: Metadata, key: string): string | undefined {
   const value = metadata[key];
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
-

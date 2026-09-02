@@ -100,6 +100,55 @@ test("keeps a Style image distinct in the generation request", async ({ page }) 
   });
 });
 
+test("shows upload save progress and safely deletes an uploaded image", async ({ page }) => {
+  const uploadedId = "ca3c745c-08f3-4ca7-b01a-3cb6f024bde8";
+  let releaseUpload: () => void = () => undefined;
+  const uploadGate = new Promise<void>((resolve) => { releaseUpload = resolve; });
+  let deleteRequests = 0;
+
+  await page.route("**/api/creator/assets", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    await uploadGate;
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        data: assetFixture({ id: uploadedId, kind: "product", name: "Uploaded product" }),
+      }),
+    });
+  });
+  await page.route(`**/api/creator/assets/${uploadedId}`, async (route) => {
+    deleteRequests += 1;
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, data: { id: uploadedId } }),
+    });
+  });
+
+  await page.goto("/create/product-fashion");
+  await page.getByTestId("asset-upload-input").setInputFiles(imagePath);
+  const progress = page.locator('[data-testid="asset-upload-progress"]:visible');
+  await expect(progress).toBeVisible();
+  await expect(progress).toContainText("Uploading image");
+
+  releaseUpload();
+  await expect(progress).toHaveCount(0);
+  const deleteButton = page.getByRole("button", { name: "Delete Uploaded product" });
+  await expect(deleteButton).toBeVisible();
+
+  await deleteButton.click();
+  const confirmation = page.locator("dialog[open]").filter({ hasText: "Permanently delete image?" });
+  await expect(confirmation).toBeVisible();
+  await confirmation.getByRole("button", { name: "Cancel" }).click();
+  await expect(deleteButton).toBeVisible();
+
+  await deleteButton.click();
+  await confirmation.getByRole("button", { name: "Delete permanently" }).click();
+  await expect(deleteButton).toHaveCount(0);
+  await expect(page.getByTestId("creator-composer").getByText("Product", { exact: true })).toHaveCount(0);
+  expect(deleteRequests).toBe(1);
+});
+
 test("selects a generation count, sends identical requests in parallel, and retries one failed image", async ({ page }) => {
   const generationBodies: unknown[] = [];
   let inFlight = 0;
@@ -161,6 +210,7 @@ test("selects a generation count, sends identical requests in parallel, and retr
   await expect(page.getByTestId("generation-item-3").getByRole("button", { name: "Open Image 3" })).toBeVisible();
   await expect(page.getByTestId("generation-item-2")).toContainText("temporarily unavailable");
   await expect(page.getByTestId("generation-progress-status")).toContainText("2 of 3 images ready");
+  await expect(page.getByText("Image results", { exact: true })).toHaveCount(0);
 
   await page.getByTestId("generation-item-2").getByRole("button", { name: "Retry" }).click();
   await expect(page.getByTestId("generation-item-2").getByRole("button", { name: "Open Image 2" })).toBeVisible();
@@ -203,6 +253,25 @@ test("shows contextual controls and keeps the mobile composer inside the viewpor
   await page.getByTestId("creation-prompt").fill("Mina discovers a glowing door beneath the old oak tree.");
   await page.getByTestId("generate-button").click();
   await expect(page.getByText("Add a Character image or describe the main character in Optional details.")).toBeVisible();
+});
+
+test("dismisses composer popups from the prompt without stealing focus", async ({ page }) => {
+  await page.goto("/create/product-fashion");
+  const prompt = page.getByTestId("creation-prompt");
+
+  await page.getByTestId("add-reference-button").click();
+  await expect(page.getByRole("menuitem", { name: "Product" })).toBeVisible();
+  await prompt.click();
+  await expect(page.getByRole("menuitem", { name: "Product" })).toHaveCount(0);
+  await expect(prompt).toBeFocused();
+
+  await page.getByTestId("image-settings-button").click();
+  const settings = page.getByRole("dialog", { name: "Image settings" });
+  await expect(settings).toBeVisible();
+  await settings.getByLabel("Mode").selectOption({ index: 1 });
+  await expect(settings).toBeVisible();
+  await page.getByTestId("creator-composer").click({ position: { x: 5, y: 5 } });
+  await expect(settings).toHaveCount(0);
 });
 
 test("creates Image to Sketch from one primary image and one optional detail image", async ({ page }) => {

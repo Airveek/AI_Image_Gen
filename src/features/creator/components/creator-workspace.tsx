@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { ArrowRight, Check, Download, ImagePlus, LoaderCircle, PanelRightOpen, Search } from "lucide-react";
+import { ArrowRight, Check, Download, ImagePlus, LoaderCircle, PanelRightOpen, Search, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
@@ -12,6 +12,7 @@ import {
   CreatorAssetPicker,
   defaultRoleForAsset,
   referenceRoleLabel,
+  type CreatorUploadState,
 } from "@/features/creator/components/creator-asset-picker";
 import { CreatorComposer } from "@/features/creator/components/creator-composer";
 import { CreatorBatchProgress } from "@/features/creator/components/creator-batch-progress";
@@ -42,6 +43,7 @@ import { cn } from "@/lib/utils";
 import { trackGa4Event } from "@/lib/analytics/browser";
 
 type AssetResult = CreatorResult<CreatorAsset>;
+type DeleteAssetResult = CreatorResult<{ id: string }>;
 type UploadKind = Exclude<CreatorAssetKind, "generation">;
 
 export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
@@ -65,6 +67,10 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   const [batchStatus, setBatchStatus] = useState<CreatorBatchStatus>("idle");
   const [batchItems, setBatchItems] = useState<CreatorBatchItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadState, setUploadState] = useState<CreatorUploadState | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CreatorAsset | null>(null);
+  const [deletingAssetId, setDeletingAssetId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState("");
   const [arenaDialogOpen, setArenaDialogOpen] = useState(false);
   const [assetDialogOpen, setAssetDialogOpen] = useState(false);
   const [preferredRole, setPreferredRole] = useState<ReferenceRole | null>(null);
@@ -271,27 +277,71 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
       return;
     }
     setIsUploading(true);
-    setMessage("Saving your reference privately…");
+    setUploadState({ phase: "uploading", fileName: file.name, loadedBytes: 0, totalBytes: file.size || null, percent: 0 });
+    setMessage(`Uploading ${file.name}…`);
     try {
       const formData = new FormData();
       formData.set("file", file);
       formData.set("kind", kind);
       formData.set("name", file.name.replace(/\.[^.]+$/, ""));
-      const response = await fetch("/api/creator/assets", { method: "POST", body: formData });
-      const payload: unknown = await response.json();
+      const payload = await uploadAssetForm(formData, {
+        onProgress: ({ loadedBytes, totalBytes, percent }) => {
+          setUploadState({ phase: "uploading", fileName: file.name, loadedBytes, totalBytes, percent });
+        },
+        onSaving: () => {
+          setUploadState({ phase: "saving", fileName: file.name });
+          setMessage("Finishing the secure save…");
+        },
+      });
       const parsed = readAssetResult(payload);
       if (!parsed.ok) {
         setMessage(parsed.message);
+        setUploadState({ phase: "error", fileName: file.name, message: parsed.message });
         return;
       }
       setAssets((current) => [parsed.data, ...current]);
       setReferences((current) => [...current, { assetId: parsed.data.id, role }]);
       setMessage(`${parsed.data.name} saved and selected as ${referenceRoleLabel(role)}.`);
+      setUploadState(null);
       setAssetDialogOpen(false);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "The reference could not be uploaded.");
+      const errorMessage = error instanceof Error ? error.message : "The reference could not be uploaded.";
+      setMessage(errorMessage);
+      setUploadState({ phase: "error", fileName: file.name, message: errorMessage });
     } finally {
       setIsUploading(false);
+    }
+  }
+
+  function requestAssetDeletion(asset: CreatorAsset) {
+    setDeleteError("");
+    setDeleteTarget(asset);
+    setAssetDialogOpen(false);
+  }
+
+  async function deleteAsset() {
+    if (!deleteTarget || deletingAssetId) return;
+    const target = deleteTarget;
+    setDeletingAssetId(target.id);
+    setDeleteError("");
+    try {
+      const response = await fetch(`/api/creator/assets/${target.id}`, { method: "DELETE" });
+      const payload: unknown = await response.json();
+      const parsed = readDeleteAssetResult(payload);
+      if (!parsed.ok) {
+        setDeleteError(parsed.message);
+        return;
+      }
+      setAssets((current) => current.filter((asset) => asset.id !== parsed.data.id));
+      setReferences((current) => current.filter((reference) => reference.assetId !== parsed.data.id));
+      setViewingAsset((current) => current?.id === parsed.data.id ? null : current);
+      setDeleteTarget(null);
+      setMessage(`${target.name} was permanently deleted.`);
+      router.refresh();
+    } catch {
+      setDeleteError("The image could not be deleted. Please try again.");
+    } finally {
+      setDeletingAssetId(null);
     }
   }
 
@@ -386,7 +436,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
           </section>
 
           <aside className="hidden min-h-0 border-l border-border bg-surface-raised lg:block">
-            <CreatorAssetPicker assets={assets} references={references} onToggle={toggleReference} onUpload={handleUpload} isUploading={isUploading} allowedReferenceRoles={referenceRolesForArena(arenaId)} defaultUploadRole={defaultUploadRole(arenaId)} helperText={arenaId === "image-to-sketch" ? "One image is enough. Add a second zoomed detail when useful." : undefined} uploadInputTestId="asset-upload-input" presentation="kive" />
+            <CreatorAssetPicker assets={assets} references={references} onToggle={toggleReference} onUpload={handleUpload} isUploading={isUploading} allowedReferenceRoles={referenceRolesForArena(arenaId)} defaultUploadRole={defaultUploadRole(arenaId)} helperText={arenaId === "image-to-sketch" ? "One image is enough. Add a second zoomed detail when useful." : undefined} uploadInputTestId="asset-upload-input" presentation="kive" uploadState={uploadState} onRequestDelete={requestAssetDeletion} deletingAssetId={deletingAssetId} />
           </aside>
         </div>
       </form>
@@ -437,12 +487,36 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
             }}
             onUpload={handleUpload}
             isUploading={isUploading}
+            uploadState={uploadState}
+            onRequestDelete={requestAssetDeletion}
+            deletingAssetId={deletingAssetId}
             preferredRole={preferredRole}
             allowedReferenceRoles={referenceRolesForArena(arenaId)}
             helperText={arenaId === "image-to-sketch" ? "One image is enough. Add a second zoomed detail when useful." : undefined}
             compact
             presentation="kive"
           />
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteTarget(null);
+            setDeleteError("");
+          }
+        }}
+        title="Permanently delete image?"
+        description={deleteTarget ? `Delete ${deleteTarget.name} from your Airveek assets? This cannot be undone.` : "This cannot be undone."}
+      >
+        {deleteError ? <p className="mb-4 rounded-xl border border-danger/30 bg-danger-soft px-3 py-2 text-sm leading-6 text-danger" role="alert">{deleteError}</p> : null}
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button type="button" variant="ghost" onClick={() => { setDeleteTarget(null); setDeleteError(""); }} disabled={Boolean(deletingAssetId)}>Cancel</Button>
+          <Button type="button" variant="danger" onClick={() => void deleteAsset()} disabled={Boolean(deletingAssetId)}>
+            {deletingAssetId ? <LoaderCircle className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Trash2 className="h-4 w-4" aria-hidden="true" />}
+            {deletingAssetId ? "Deleting…" : "Delete permanently"}
+          </Button>
         </div>
       </Dialog>
     </div>
@@ -464,6 +538,68 @@ function readAssetResult(value: unknown): AssetResult {
     }
   }
   return { ok: false, message: "The server returned an invalid response.", code: "unknown" };
+}
+
+function readDeleteAssetResult(value: unknown): DeleteAssetResult {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return { ok: false, message: "The server returned an invalid response.", code: "unknown" };
+  }
+  const record = value as Record<string, unknown>;
+  if (record.ok === false && typeof record.message === "string") {
+    return { ok: false, message: record.message, code: readCreatorErrorCode(record.code) };
+  }
+  if (record.ok === true && typeof record.data === "object" && record.data !== null) {
+    const data = record.data as Record<string, unknown>;
+    if (typeof data.id === "string") return { ok: true, data: { id: data.id } };
+  }
+  return { ok: false, message: "The server returned an invalid response.", code: "unknown" };
+}
+
+function readCreatorErrorCode(value: unknown): Extract<DeleteAssetResult, { ok: false }>["code"] {
+  if (
+    value === "unauthorized" ||
+    value === "invalid_request" ||
+    value === "invalid_file" ||
+    value === "daily_limit" ||
+    value === "generation_in_progress" ||
+    value === "provider_not_configured" ||
+    value === "provider_incompatible" ||
+    value === "provider_blocked" ||
+    value === "provider_unavailable" ||
+    value === "provider_rate_limited" ||
+    value === "provider_timeout" ||
+    value === "storage_not_configured" ||
+    value === "storage_failed" ||
+    value === "not_found"
+  ) return value;
+  return "unknown";
+}
+
+function uploadAssetForm(formData: FormData, callbacks: {
+  onProgress: (progress: { loadedBytes: number; totalBytes: number | null; percent: number | null }) => void;
+  onSaving: () => void;
+}): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.upload.addEventListener("progress", (event) => {
+      const totalBytes = event.lengthComputable && event.total > 0 ? event.total : null;
+      const percent = totalBytes === null ? null : Math.min(100, Math.max(0, Math.round((event.loaded / totalBytes) * 100)));
+      callbacks.onProgress({ loadedBytes: event.loaded, totalBytes, percent });
+    });
+    request.upload.addEventListener("load", callbacks.onSaving);
+    request.addEventListener("load", () => {
+      try {
+        const payload: unknown = JSON.parse(request.responseText);
+        resolve(payload);
+      } catch {
+        reject(new Error("The server returned an invalid upload response."));
+      }
+    });
+    request.addEventListener("error", () => reject(new Error("The upload was interrupted. Check your connection and try again.")));
+    request.addEventListener("abort", () => reject(new Error("The upload was cancelled.")));
+    request.open("POST", "/api/creator/assets");
+    request.send(formData);
+  });
 }
 
 function createBatchItems(request: GenerationRequest, count: GenerationCount): CreatorBatchItem[] {

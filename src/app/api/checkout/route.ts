@@ -3,9 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   getWhopAccountId,
+  getWhopCheckoutPlanId,
   getWhopCheckoutRedirectUrl,
   getWhopClient,
-  getWhopPlanId,
 } from "@/lib/whop/client";
 import { isCheckoutRequest } from "@/lib/whop/checkout";
 import { recordUserEvent } from "@/lib/analytics/user-events";
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         supabase_user_id: user.id,
       },
       mode: "payment",
-      plan_id: getWhopPlanId(requestBody.plan),
+      plan_id: getWhopCheckoutPlanId(requestBody.plan),
       redirect_url: getWhopCheckoutRedirectUrl(),
     });
 

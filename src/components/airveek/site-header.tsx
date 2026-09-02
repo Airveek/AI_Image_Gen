@@ -79,7 +79,7 @@ export function SiteHeader({ variant = "default" }: SiteHeaderProps) {
             Register
           </Link>
           <div className="hidden md:block">
-            <CtaButton className="px-4 py-2 text-xs sm:px-5 sm:text-sm" href="/#pricing">Get lifetime access</CtaButton>
+            <CtaButton className="px-4 py-2 text-xs sm:px-5 sm:text-sm" href="/#pricing">View monthly plans</CtaButton>
           </div>
         </div>
       </div>

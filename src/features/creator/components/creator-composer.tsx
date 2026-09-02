@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   ChevronDown,
   ImageIcon,
@@ -48,6 +48,7 @@ type MenuId =
   | "details"
   | "generation-count"
   | `reference-${string}`;
+type MenuDismissReason = "dialog-launch" | "escape" | "pointer" | "selection";
 
 const lightingOptions: Array<{ value: LightingOption; label: string }> = [
   { value: "auto", label: "Auto light" },
@@ -141,38 +142,56 @@ export function CreatorComposer({
   onGenerationCountChange: (value: GenerationCount) => void;
   generationDisabled: boolean;
 }) {
-  const composerRef = useRef<HTMLDivElement>(null);
-  const generationCountButtonRef = useRef<HTMLButtonElement>(null);
-  const generationMenuWasOpen = useRef(false);
+  const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const restoreMenuFocusRef = useRef(false);
   const [openMenu, setOpenMenu] = useState<MenuId | null>(null);
   const arena = getCreatorArena(arenaId);
+
+  const dismissMenu = useCallback((reason: MenuDismissReason) => {
+    restoreMenuFocusRef.current = reason === "escape" || reason === "selection";
+    if (!restoreMenuFocusRef.current) menuTriggerRef.current = null;
+    setOpenMenu(null);
+  }, []);
+
+  function toggleMenu(menuId: MenuId, trigger: HTMLButtonElement) {
+    if (openMenu === menuId) {
+      dismissMenu("pointer");
+      return;
+    }
+
+    menuTriggerRef.current = trigger;
+    restoreMenuFocusRef.current = false;
+    setOpenMenu(menuId);
+  }
 
   useEffect(() => {
     if (!openMenu) return;
 
-    function closeOnOutsideClick(event: PointerEvent) {
-      if (event.target instanceof Node && !composerRef.current?.contains(event.target)) {
-        setOpenMenu(null);
-      }
+    function closeOutsideActiveOverlay(event: PointerEvent) {
+      if (event.target instanceof Node && menuTriggerRef.current?.contains(event.target)) return;
+      if (event.target instanceof Element && event.target.closest("[data-composer-overlay]")) return;
+      dismissMenu("pointer");
     }
 
     function closeOnEscape(event: globalThis.KeyboardEvent) {
-      if (event.key === "Escape") setOpenMenu(null);
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      dismissMenu("escape");
     }
 
-    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("pointerdown", closeOutsideActiveOverlay);
     document.addEventListener("keydown", closeOnEscape);
     return () => {
-      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("pointerdown", closeOutsideActiveOverlay);
       document.removeEventListener("keydown", closeOnEscape);
     };
-  }, [openMenu]);
+  }, [dismissMenu, openMenu]);
 
   useEffect(() => {
-    if (generationMenuWasOpen.current && openMenu !== "generation-count") {
-      generationCountButtonRef.current?.focus();
-    }
-    generationMenuWasOpen.current = openMenu === "generation-count";
+    if (openMenu || !restoreMenuFocusRef.current) return;
+    restoreMenuFocusRef.current = false;
+    menuTriggerRef.current?.focus();
+    menuTriggerRef.current = null;
   }, [openMenu]);
 
   if (!arena) return null;
@@ -188,7 +207,7 @@ export function CreatorComposer({
   const availableReferenceRoleOptions = arenaId === "product-fashion" ? productReferenceRoleOptions : isImageToSketch ? sketchReferenceRoleOptions : referenceRoleOptions;
 
   return (
-    <div ref={composerRef} className="relative mx-auto w-full max-w-[900px]" data-testid="creator-composer">
+    <div className="relative mx-auto w-full max-w-[900px]" data-testid="creator-composer">
       <div className="rounded-2xl border border-border bg-surface-raised p-2 shadow-[0_18px_60px_rgba(0,0,0,0.48)] transition-colors focus-within:border-brand-neon/45">
         {selectedReferences.length > 0 ? (
         <div className="flex flex-wrap gap-1.5 px-1 pb-1.5" aria-label="Selected reference images">
@@ -207,7 +226,7 @@ export function CreatorComposer({
                 ) : (
                   <button
                     type="button"
-                    onClick={() => setOpenMenu(openMenu === menuId ? null : menuId)}
+                    onClick={(event) => toggleMenu(menuId, event.currentTarget)}
                     className="min-w-0 flex-1 rounded-md text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
                     aria-haspopup="menu"
                     aria-expanded={openMenu === menuId}
@@ -224,7 +243,7 @@ export function CreatorComposer({
                     {availableReferenceRoleOptions.map((option) => (
                       <MenuItem key={option.value} selected={reference.role === option.value} onSelect={() => {
                         onChangeReferenceRole(reference.assetId, option.value);
-                        setOpenMenu(null);
+                        dismissMenu("selection");
                       }}>{option.label}</MenuItem>
                     ))}
                   </OptionPanel>
@@ -275,14 +294,14 @@ export function CreatorComposer({
             </Button>
 
             <div className="relative">
-              <Button type="button" size="icon" variant="secondary" onClick={() => setOpenMenu(openMenu === "add" ? null : "add")} aria-label={isImageToSketch ? "Add image" : "Add a reference image"} aria-haspopup="menu" aria-expanded={openMenu === "add"} data-testid="add-reference-button">
+              <Button type="button" size="icon" variant="secondary" onClick={(event) => toggleMenu("add", event.currentTarget)} aria-label={isImageToSketch ? "Add image" : "Add a reference image"} aria-haspopup="menu" aria-expanded={openMenu === "add"} data-testid="add-reference-button">
                 <Plus className="h-4 w-4" aria-hidden="true" />
               </Button>
               {openMenu === "add" ? (
                 <OptionPanel align="left">
                   {availableAddOptions.map((option) => {
                     const Icon = option.icon;
-                    return <MenuItem key={option.role} onSelect={() => { setOpenMenu(null); onOpenAssets(option.role); }}><Icon className="h-4 w-4 text-muted" aria-hidden="true" />{option.label}</MenuItem>;
+                    return <MenuItem key={option.role} onSelect={() => { dismissMenu("dialog-launch"); onOpenAssets(option.role); }}><Icon className="h-4 w-4 text-muted" aria-hidden="true" />{option.label}</MenuItem>;
                   })}
                 </OptionPanel>
               ) : null}
@@ -290,10 +309,10 @@ export function CreatorComposer({
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-2">
-            {!isImageToSketch ? <OptionMenu id="ratio" label={aspectRatio} icon={<ImageIcon className="h-4 w-4" aria-hidden="true" />} options={ratioOptions} value={aspectRatio} openMenu={openMenu} setOpenMenu={setOpenMenu} onChange={onAspectRatioChange} /> : null}
+            {!isImageToSketch ? <OptionMenu id="ratio" label={aspectRatio} icon={<ImageIcon className="h-4 w-4" aria-hidden="true" />} options={ratioOptions} value={aspectRatio} openMenu={openMenu} onToggle={toggleMenu} onDismiss={dismissMenu} onChange={onAspectRatioChange} /> : null}
 
             {!isImageToSketch ? <div className="relative">
-              <Button type="button" size="icon" variant="secondary" onClick={() => setOpenMenu(openMenu === "details" ? null : "details")} aria-label="Open image settings" aria-haspopup="dialog" aria-expanded={openMenu === "details"} data-testid="image-settings-button">
+              <Button type="button" size="icon" variant="secondary" onClick={(event) => toggleMenu("details", event.currentTarget)} aria-label="Open image settings" aria-haspopup="dialog" aria-expanded={openMenu === "details"} data-testid="image-settings-button">
                 <Settings2 className="h-4 w-4" aria-hidden="true" />
               </Button>
               {openMenu === "details" ? (
@@ -319,7 +338,7 @@ export function CreatorComposer({
                   onCharacterDescriptionChange={onCharacterDescriptionChange}
                   pageText={pageText}
                   onPageTextChange={onPageTextChange}
-                  onDone={() => setOpenMenu(null)}
+                  onDone={() => dismissMenu("selection")}
                 />
               ) : null}
             </div> : null}
@@ -330,10 +349,10 @@ export function CreatorComposer({
               options={generationCountOptions}
               value={generationCount}
               openMenu={openMenu}
-              setOpenMenu={setOpenMenu}
+              onToggle={toggleMenu}
+              onDismiss={dismissMenu}
               onChange={onGenerationCountChange}
               disabled={isGenerating || generationDisabled}
-              buttonRef={generationCountButtonRef}
               ariaLabel={`Select image count, currently ${generationCount}x`}
               testId="generation-count-button"
             />
@@ -347,28 +366,28 @@ export function CreatorComposer({
   );
 }
 
-function OptionMenu<T extends string | number>({ id, label, icon, options, value, openMenu, setOpenMenu, onChange, disabled = false, buttonRef, ariaLabel, testId }: {
+function OptionMenu<T extends string | number>({ id, label, icon, options, value, openMenu, onToggle, onDismiss, onChange, disabled = false, ariaLabel, testId }: {
   id: Exclude<MenuId, "add" | "details" | `reference-${string}`>;
   label: string;
   icon?: ReactNode;
   options: Array<{ value: T; label: string }>;
   value: T;
   openMenu: MenuId | null;
-  setOpenMenu: (value: MenuId | null) => void;
+  onToggle: (id: MenuId, trigger: HTMLButtonElement) => void;
+  onDismiss: (reason: MenuDismissReason) => void;
   onChange: (value: T) => void;
   disabled?: boolean;
-  buttonRef?: RefObject<HTMLButtonElement | null>;
   ariaLabel?: string;
   testId?: string;
 }) {
   return (
     <div className="relative">
-      <button ref={buttonRef} type="button" disabled={disabled} onClick={() => setOpenMenu(openMenu === id ? null : id)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-muted transition-colors hover:bg-surface-raised hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50" aria-label={ariaLabel ?? label} aria-haspopup="menu" aria-expanded={openMenu === id} data-testid={testId}>
+      <button type="button" disabled={disabled} onClick={(event) => onToggle(id, event.currentTarget)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-muted transition-colors hover:bg-surface-raised hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50" aria-label={ariaLabel ?? label} aria-haspopup="menu" aria-expanded={openMenu === id} data-testid={testId}>
         {icon}<span>{label}</span><ChevronDown className="h-3 w-3" aria-hidden="true" />
       </button>
       {openMenu === id ? (
         <OptionPanel>
-          {options.map((option) => <MenuItem key={option.value} selected={option.value === value} onSelect={() => { onChange(option.value); setOpenMenu(null); }}>{option.label}</MenuItem>)}
+          {options.map((option) => <MenuItem key={option.value} selected={option.value === value} onSelect={() => { onChange(option.value); onDismiss("selection"); }}>{option.label}</MenuItem>)}
         </OptionPanel>
       ) : null}
     </div>
@@ -395,7 +414,7 @@ function OptionPanel({ children, align = "right" }: { children: ReactNode; align
   }
 
   return (
-    <div ref={panelRef} role="menu" onKeyDown={handleKeyDown} className={cn("absolute bottom-[calc(100%+0.5rem)] z-30 min-w-52 rounded-xl border border-border bg-popover p-1.5 text-sm text-foreground shadow-2xl", align === "left" ? "left-0" : "right-0")}>
+    <div ref={panelRef} role="menu" data-composer-overlay onKeyDown={handleKeyDown} className={cn("absolute bottom-[calc(100%+0.5rem)] z-30 min-w-52 rounded-xl border border-border bg-popover p-1.5 text-sm text-foreground shadow-2xl", align === "left" ? "left-0" : "right-0")}>
       {children}
     </div>
   );
@@ -453,7 +472,7 @@ function ComposerSettingsPanel({
   onDone: () => void;
 }) {
   return (
-    <div role="dialog" aria-label="Image settings" className="absolute bottom-[calc(100%+0.5rem)] right-0 z-30 max-h-[min(70vh,34rem)] w-[min(23rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-border bg-popover p-4 text-sm text-foreground shadow-2xl">
+    <div role="dialog" aria-label="Image settings" data-composer-overlay className="absolute bottom-[calc(100%+0.5rem)] right-0 z-30 max-h-[min(70vh,34rem)] w-[min(23rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-border bg-popover p-4 text-sm text-foreground shadow-2xl">
       <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
         <div>
           <h3 className="font-semibold">Image settings</h3>

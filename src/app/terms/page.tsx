@@ -86,13 +86,15 @@ const sections: LegalSection[] = [
     title: "Payments, taxes, and refunds",
     paragraphs: [
       <>Prices, included features, billing terms, and any guarantee are shown at checkout. You authorize our payment provider to charge the selected payment method and are responsible for applicable taxes, duties, or bank fees.</>,
+      <>Monthly subscriptions automatically renew and the payment provider may charge the selected payment method each billing period until the subscription is cancelled. You can manage cancellation through the billing portal linked from your Airveek account; when cancellation takes effect, including any remaining access through the current billing period, follows the terms shown at checkout and by the payment provider.</>,
       <>Except where a stated money-back guarantee applies or law requires otherwise, payments are final. Request an eligible refund through support within the period shown at purchase.</>,
     ],
   },
   {
     id: "lifetime-license",
-    title: "Lifetime and one-time-payment licenses",
+    title: "Legacy lifetime and one-time-payment licenses",
     paragraphs: [
+      <>This section applies only to customers who purchased a plan that was explicitly sold as lifetime or one-time access. Current monthly subscriptions follow the recurring billing terms shown at checkout.</>,
       <>When a plan is marketed as “lifetime,” “lifetime access,” or a “one-time payment,” lifetime refers to the commercial lifespan of the applicable Airveek product—not the lifetime of an individual, a perpetual company existence, or guaranteed compatibility with future devices, models, browsers, or third-party services.</>,
       <>A lifetime plan includes the features identified at purchase. New products, premium models, optional capacity, add-ons, or future services may be offered separately. Lifetime access remains subject to these Terms, fair-use limits, and continued operation of the product.</>,
     ],

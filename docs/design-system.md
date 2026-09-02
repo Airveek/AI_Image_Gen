@@ -13,7 +13,7 @@ The rendered page follows this order:
 3. Outcome-led hero statement
 4. Product proof and workflow
 5. Trust, use cases, and feature suite
-6. One-time pricing and guarantee
+6. Monthly pricing and guarantee
 7. FAQ and final conversion path
 
 ## Typography

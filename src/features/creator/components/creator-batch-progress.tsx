@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { CircleAlert, Download, LoaderCircle, Sparkles } from "lucide-react";
+import { CircleAlert, Download, LoaderCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { CreatorAsset, CreatorBatchItem } from "@/features/creator/types";
@@ -26,8 +26,7 @@ export function CreatorBatchProgress({
     <section className="relative w-full max-w-5xl" data-testid="generation-batch-results" aria-busy={isGenerating}>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 text-brand-neon"><Sparkles className="h-4 w-4" aria-hidden="true" /><span className="text-xs font-semibold uppercase tracking-[0.16em]">Image results</span></div>
-          <h2 className="mt-2 font-display text-2xl font-bold text-foreground">{isGenerating ? `Creating ${items.length} images` : "Your images"}</h2>
+          <h2 className="font-display text-2xl font-bold text-foreground">{isGenerating ? `Creating ${items.length} images` : "Your images"}</h2>
           <p className="mt-1 text-sm text-muted">Each image uses the same prompt, references, and settings.</p>
         </div>
         <span className="text-sm font-semibold text-brand-soft" data-testid="generation-progress-status" role="status" aria-live="polite">{readyCount} of {items.length} images ready</span>
