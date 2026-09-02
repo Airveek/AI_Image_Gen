@@ -167,7 +167,7 @@ const sections: LegalSection[] = [
     id: "contact",
     title: "Contact",
     paragraphs: [
-      <>Questions about these Terms may be sent to <a className="font-semibold text-[#83ff00] underline decoration-[#83ff00]/30 underline-offset-4" href="mailto:support@airveek.com">support@airveek.com</a> or mailed to Airveek, 980 Fraser Drive, Suite 209, Burlington, Ontario L7L 5P5, Canada.</>,
+      <>Questions about these Terms may be sent to <a className="font-semibold text-primary underline decoration-primary/30 underline-offset-4" href="mailto:support@airveek.com">support@airveek.com</a> or mailed to Airveek, 980 Fraser Drive, Suite 209, Burlington, Ontario L7L 5P5, Canada.</>,
     ],
   },
 ];

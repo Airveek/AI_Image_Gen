@@ -73,20 +73,20 @@ const categories = ["All tutorials", ...Array.from(new Set(tutorials.map((tutori
 function VideoCard({ tutorial }: { tutorial: Tutorial }) {
   const thumbnail = `https://i.ytimg.com/vi/${tutorial.videoId}/hqdefault.jpg`;
   return (
-    <article className="group overflow-hidden rounded-[1.35rem] border border-white/10 bg-[#0b120b] shadow-[0_18px_50px_rgba(0,0,0,0.2)] transition duration-300 hover:-translate-y-1 hover:border-[#83ff00]/45 hover:shadow-[0_22px_60px_rgba(42,196,20,0.14)]">
+    <article className="group overflow-hidden rounded-[1.35rem] border border-border bg-surface shadow-[0_18px_50px_rgba(var(--theme-shadow))] transition duration-300 hover:-translate-y-1 hover:border-primary/45">
       <a className="block" href={`https://www.youtube.com/watch?v=${tutorial.videoId}`} target="_blank" rel="noreferrer" aria-label={`Watch ${tutorial.title}`}>
-        <div className="relative aspect-video overflow-hidden bg-[#050805]">
+        <div className="relative aspect-video overflow-hidden bg-media-stage">
           <Image src={thumbnail} alt="" fill sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover object-center transition duration-500 group-hover:scale-105" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#040404]/90 via-[#040404]/10 to-transparent" aria-hidden="true" />
-          <span className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-[#83ff00]/35 bg-[#071007]/85 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-[#d9ffb8] backdrop-blur-sm">
-            <Play className="h-3 w-3 fill-current text-[#83ff00]" aria-hidden="true" /> Watch
+          <span className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-white/35 bg-black/70 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-white backdrop-blur-sm">
+            <Play className="h-3 w-3 fill-current text-primary" aria-hidden="true" /> Watch
           </span>
           <span className="absolute bottom-4 left-4 right-4 font-display text-xl font-bold leading-tight text-white sm:text-2xl">{tutorial.title}</span>
         </div>
       </a>
       <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-5">
-        <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#83ff00]">{tutorial.category}</span>
-        <a className="text-xs font-bold text-[#a4b19e] underline decoration-[#83ff00]/30 underline-offset-4 transition hover:text-white" href={`https://www.youtube.com/watch?v=${tutorial.videoId}`} target="_blank" rel="noreferrer">Open video</a>
+        <span className="text-xs font-bold uppercase tracking-[0.16em] text-primary">{tutorial.category}</span>
+        <a className="text-xs font-bold text-muted-foreground underline decoration-primary/30 underline-offset-4 transition hover:text-foreground" href={`https://www.youtube.com/watch?v=${tutorial.videoId}`} target="_blank" rel="noreferrer">Open video</a>
       </div>
     </article>
   );
@@ -100,7 +100,7 @@ function FeaturedVideo({ videoId }: { videoId: string }) {
       <button type="button" className="group relative block aspect-video w-full overflow-hidden bg-black text-left" onClick={() => setPlaying(true)} aria-label="Play Airveek walkthrough">
         <Image src={thumbnail} alt="Airveek walkthrough video poster" fill sizes="(min-width: 1280px) 1120px, 100vw" className="object-cover transition duration-500 group-hover:scale-[1.02]" priority />
         <span className="absolute inset-0 bg-black/35 transition group-hover:bg-black/20" aria-hidden="true" />
-        <span className="absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full bg-[#83ff00] px-5 py-3 text-sm font-black text-[#040404] shadow-[0_10px_35px_rgba(131,255,0,0.3)]"><Play className="h-4 w-4 fill-current" aria-hidden="true" /> Play walkthrough</span>
+        <span className="absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-black text-[#0d120d] shadow-[0_10px_35px_rgba(0,0,0,0.25)]"><Play className="h-4 w-4 fill-current" aria-hidden="true" /> Play walkthrough</span>
       </button>
     );
   }
@@ -122,12 +122,12 @@ export function TutorialsPage() {
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:py-20" aria-labelledby="featured-tutorial">
         <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-[#83ff00]">Start here</p>
-            <h2 id="featured-tutorial" className="mt-2 font-display text-3xl font-extrabold text-white sm:text-4xl">Airveek walkthrough</h2>
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-primary">Start here</p>
+            <h2 id="featured-tutorial" className="mt-2 font-display text-3xl font-extrabold text-foreground sm:text-4xl">Airveek walkthrough</h2>
           </div>
-          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#83ff00]/20 bg-[#83ff00]/5 px-3 py-2 text-xs font-bold text-[#d9ffb8]"><Sparkles className="h-4 w-4 text-[#83ff00]" aria-hidden="true" /> New workflows added regularly</span>
+          <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-2 text-xs font-bold text-primary"><Sparkles className="h-4 w-4" aria-hidden="true" /> New workflows added regularly</span>
         </div>
-        <div className="overflow-hidden rounded-[1.5rem] border border-[#83ff00]/25 bg-[#071007] p-2 shadow-[0_24px_80px_rgba(42,196,20,0.12)] sm:p-3">
+        <div className="overflow-hidden rounded-[1.5rem] border border-primary/25 bg-media-stage p-2 shadow-[0_24px_80px_rgba(var(--theme-shadow))] sm:p-3">
           <div className="overflow-hidden rounded-[1.1rem] bg-black">
             <FeaturedVideo videoId="_Bi5QdWhfKE" />
           </div>
@@ -136,19 +136,19 @@ export function TutorialsPage() {
       <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:pb-28" aria-labelledby="tutorial-library">
         <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-[#83ff00]">Browse the library</p>
-            <h2 id="tutorial-library" className="mt-2 font-display text-3xl font-extrabold text-white sm:text-4xl">Tutorials for the work you already do.</h2>
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-primary">Browse the library</p>
+            <h2 id="tutorial-library" className="mt-2 font-display text-3xl font-extrabold text-foreground sm:text-4xl">Tutorials for the work you already do.</h2>
           </div>
           <div className="relative w-full lg:max-w-xs">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#83ff00]" aria-hidden="true" />
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" aria-hidden="true" />
             <label className="sr-only" htmlFor="tutorial-search">Search tutorials</label>
-            <input id="tutorial-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search tutorials" className="h-12 w-full rounded-full border border-white/10 bg-[#0b120b] pl-11 pr-4 text-sm text-white outline-none placeholder:text-[#6f6f6f] focus:border-[#83ff00]/70" />
+            <input id="tutorial-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search tutorials" className="h-12 w-full rounded-full border border-input bg-surface pl-11 pr-4 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-focus" />
           </div>
         </div>
         <div className="tutorial-category-scroll mb-9 flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label="Tutorial categories">
-          {categories.map((item) => <button key={item} type="button" role="tab" aria-selected={category === item} onClick={() => setCategory(item)} className={`whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-bold transition ${category === item ? "border-[#83ff00] bg-[#83ff00] text-[#040404]" : "border-white/10 bg-[#0b120b] text-[#a4b19e] hover:border-[#83ff00]/50 hover:text-white"}`}>{item}</button>)}
+          {categories.map((item) => <button key={item} type="button" role="tab" aria-selected={category === item} onClick={() => setCategory(item)} className={`whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-bold transition ${category === item ? "border-primary bg-primary text-primary-foreground" : "border-border bg-surface text-muted-foreground hover:border-primary/50 hover:text-foreground"}`}>{item}</button>)}
         </div>
-        {filtered.length ? <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{filtered.map((tutorial) => <VideoCard key={`${tutorial.category}-${tutorial.videoId}`} tutorial={tutorial} />)}</div> : <div className="rounded-2xl border border-dashed border-white/15 bg-[#0b120b] px-6 py-16 text-center text-[#a4b19e]">No tutorials match that search. Try another keyword or category.</div>}
+        {filtered.length ? <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{filtered.map((tutorial) => <VideoCard key={`${tutorial.category}-${tutorial.videoId}`} tutorial={tutorial} />)}</div> : <div className="rounded-2xl border border-dashed border-border bg-surface px-6 py-16 text-center text-muted-foreground">No tutorials match that search. Try another keyword or category.</div>}
       </section>
     </InteriorPageShell>
   );

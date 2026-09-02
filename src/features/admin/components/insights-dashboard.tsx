@@ -39,10 +39,10 @@ export function InsightsDashboard({ data }: { data: AdminInsightsData }) {
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-left text-sm">
-                <thead className="border-b border-white/10 text-xs uppercase tracking-[0.12em] text-brand-gray">
+                <thead className="border-b border-border text-xs uppercase tracking-[0.12em] text-brand-gray">
                   <tr><th className="pb-3 pr-4">Tool</th><th className="pb-3 pr-4">Users</th><th className="pb-3 pr-4">Attempts</th><th className="pb-3 pr-4">Success</th><th className="pb-3 pr-4">Repeat</th><th className="pb-3">Paid</th></tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.06]">
+                <tbody className="divide-y divide-border">
                   {data.arenas.map((arena) => (
                     <tr key={arena.arenaId}>
                       <td className="py-3 pr-4 font-semibold text-brand-white">{arena.label}</td>
@@ -68,8 +68,8 @@ export function InsightsDashboard({ data }: { data: AdminInsightsData }) {
             {data.cohorts.length === 0 ? <p className="text-sm text-muted">No cohort data yet.</p> : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[520px] text-left text-sm">
-                  <thead className="border-b border-white/10 text-xs uppercase tracking-[0.12em] text-brand-gray"><tr><th className="pb-3 pr-4">Week</th><th className="pb-3 pr-4">Users</th><th className="pb-3 pr-4">Created</th><th className="pb-3 pr-4">Paid</th><th className="pb-3">Returned</th></tr></thead>
-                  <tbody className="divide-y divide-white/[0.06]">
+                  <thead className="border-b border-border text-xs uppercase tracking-[0.12em] text-brand-gray"><tr><th className="pb-3 pr-4">Week</th><th className="pb-3 pr-4">Users</th><th className="pb-3 pr-4">Created</th><th className="pb-3 pr-4">Paid</th><th className="pb-3">Returned</th></tr></thead>
+                  <tbody className="divide-y divide-border">
                     {data.cohorts.slice(0, 12).map((cohort) => <tr key={cohort.week}><td className="py-3 pr-4 font-semibold text-brand-white">{cohort.week}</td><td className="py-3 pr-4 text-muted">{cohort.registered}</td><td className="py-3 pr-4 text-muted">{cohort.generated}</td><td className="py-3 pr-4 text-brand-soft">{cohort.paid}</td><td className="py-3 text-muted">{cohort.retained}</td></tr>)}
                   </tbody>
                 </table>
@@ -87,8 +87,8 @@ export function InsightsDashboard({ data }: { data: AdminInsightsData }) {
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1050px] text-left text-sm">
-              <thead className="border-b border-white/10 text-xs uppercase tracking-[0.12em] text-brand-gray"><tr><th className="pb-3 pr-4">User</th><th className="pb-3 pr-4">Plan</th><th className="pb-3 pr-4">Last activity</th><th className="pb-3 pr-4">Generations</th><th className="pb-3 pr-4">Tool</th><th className="pb-3 pr-4">Type</th><th className="pb-3">Source</th></tr></thead>
-              <tbody className="divide-y divide-white/[0.06]">
+              <thead className="border-b border-border text-xs uppercase tracking-[0.12em] text-brand-gray"><tr><th className="pb-3 pr-4">User</th><th className="pb-3 pr-4">Plan</th><th className="pb-3 pr-4">Last activity</th><th className="pb-3 pr-4">Generations</th><th className="pb-3 pr-4">Tool</th><th className="pb-3 pr-4">Type</th><th className="pb-3">Source</th></tr></thead>
+              <tbody className="divide-y divide-border">
                 {data.users.map((user) => <tr key={user.id}><td className="py-3 pr-4"><p className="font-semibold text-brand-white">{user.displayName}</p><p className="mt-1 text-xs text-muted">{user.email ?? "No email"}</p></td><td className="py-3 pr-4 text-muted">{user.paidPlan ? `${user.paidPlan} · ${user.paidStatus}` : "Free"}</td><td className="py-3 pr-4 text-muted">{formatDate(user.lastActivityAt)}</td><td className="py-3 pr-4 text-muted">{user.generationCount}</td><td className="py-3 pr-4 text-muted">{user.mostUsedArena ?? "—"}</td><td className="py-3 pr-4 text-muted">{user.userType ?? "—"}</td><td className="py-3 text-muted">{user.acquisitionSource ?? "—"}</td></tr>)}
               </tbody>
             </table>

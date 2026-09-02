@@ -37,11 +37,11 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
       <Card>
         <CardHeader><CardTitle>Registered users</CardTitle><CardDescription>{result.total} matching {result.total === 1 ? "user" : "users"}</CardDescription></CardHeader>
         <CardContent>
-          <form className="mb-5 grid gap-3 rounded-xl border border-white/10 bg-brand-black/40 p-3 md:grid-cols-[1fr_180px_auto]" method="get">
+          <form className="mb-5 grid gap-3 rounded-xl border border-border bg-brand-black/40 p-3 md:grid-cols-[1fr_180px_auto]" method="get">
             <label className="sr-only" htmlFor="user-search">Search users</label>
             <Input defaultValue={search} id="user-search" name="search" placeholder="Search by name or email" type="search" />
             <label className="sr-only" htmlFor="user-status">Filter by status</label>
-            <select className="min-h-11 rounded-xl border border-white/10 bg-brand-black px-3 text-sm text-brand-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon" defaultValue={status} id="user-status" name="status">
+            <select className="min-h-11 rounded-xl border border-border bg-brand-black px-3 text-sm text-brand-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus" defaultValue={status} id="user-status" name="status">
               <option value="all">All statuses</option>
               <option value="active">Active</option>
               <option value="suspended">Suspended</option>
@@ -49,7 +49,7 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
             <Button type="submit" variant="primary">Apply filters</Button>
           </form>
           <UserTable users={result.users} />
-          <div className="mt-5 flex flex-col justify-between gap-3 border-t border-white/10 pt-4 text-sm text-muted sm:flex-row sm:items-center">
+          <div className="mt-5 flex flex-col justify-between gap-3 border-t border-border pt-4 text-sm text-muted sm:flex-row sm:items-center">
             <p>Page {result.page} of {totalPages}</p>
             <div className="flex gap-2">
               {result.page > 1 ? <Link href={buildPageUrl(search, status, result.page - 1)}><Button type="button" variant="ghost">Previous</Button></Link> : <Button disabled type="button" variant="ghost">Previous</Button>}

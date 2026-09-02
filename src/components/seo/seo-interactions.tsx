@@ -72,7 +72,7 @@ export function SeoPromptCopyButton({
     }
   }
 
-  return <button type="button" onClick={handleCopy} className="mt-4 min-h-10 rounded-full border border-[#83ff00]/35 px-4 text-sm font-bold text-[#d9ffb8] transition hover:bg-[#83ff00]/10">{copied ? "Copied" : "Copy prompt"}</button>;
+  return <button type="button" onClick={handleCopy} className="mt-4 min-h-10 rounded-full border border-primary/35 px-4 text-sm font-bold text-primary transition hover:bg-primary/10">{copied ? "Copied" : "Copy prompt"}</button>;
 }
 
 function hasAnalyticsConsent() {

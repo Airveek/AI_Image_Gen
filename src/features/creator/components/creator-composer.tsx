@@ -189,34 +189,34 @@ export function CreatorComposer({
 
   return (
     <div ref={composerRef} className="relative mx-auto w-full max-w-[900px]" data-testid="creator-composer">
-      <div className="rounded-2xl border border-white/15 bg-[#1a1c1a] p-2 shadow-[0_18px_60px_rgba(0,0,0,0.48)] transition-colors focus-within:border-brand-neon/45">
+      <div className="rounded-2xl border border-border bg-surface-raised p-2 shadow-[0_18px_60px_rgba(0,0,0,0.48)] transition-colors focus-within:border-brand-neon/45">
         {selectedReferences.length > 0 ? (
         <div className="flex flex-wrap gap-1.5 px-1 pb-1.5" aria-label="Selected reference images">
           {selectedReferences.map((reference, index) => {
             const menuId: MenuId = `reference-${reference.assetId}`;
             return (
-              <div key={reference.assetId} className="relative flex h-9 min-w-0 max-w-52 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.045] px-1.5">
+              <div key={reference.assetId} className="relative flex h-9 min-w-0 max-w-52 items-center gap-1.5 rounded-lg border border-border bg-surface-muted px-1.5">
                 <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-md bg-brand-panel">
                   {reference.asset.imageUrl ? <Image src={reference.asset.imageUrl} alt="" fill unoptimized className="object-cover" sizes="24px" /> : null}
                 </span>
                 {isImageToSketch ? (
                   <div className="min-w-0 flex-1 text-left">
-                    <span className="block truncate text-xs font-semibold text-white">{reference.asset.name}</span>
+                    <span className="block truncate text-xs font-semibold text-foreground">{reference.asset.name}</span>
                     <span className="block text-[10px] text-muted">Sketch image {index + 1}</span>
                   </div>
                 ) : (
                   <button
                     type="button"
                     onClick={() => setOpenMenu(openMenu === menuId ? null : menuId)}
-                    className="min-w-0 flex-1 rounded-md text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon"
+                    className="min-w-0 flex-1 rounded-md text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
                     aria-haspopup="menu"
                     aria-expanded={openMenu === menuId}
                   >
-                    <span className="block truncate text-xs font-semibold text-white">{reference.asset.name}</span>
+                    <span className="block truncate text-xs font-semibold text-foreground">{reference.asset.name}</span>
                     <span className="flex items-center gap-1 text-[10px] text-muted">{referenceRoleLabel(reference.role)} <ChevronDown className="h-2.5 w-2.5" aria-hidden="true" /></span>
                   </button>
                 )}
-                <button type="button" onClick={() => onRemoveReference(reference.assetId)} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted hover:bg-white/[0.07] hover:text-white" aria-label={`Remove ${reference.asset.name}`}>
+                <button type="button" onClick={() => onRemoveReference(reference.assetId)} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted hover:bg-surface-raised hover:text-foreground" aria-label={`Remove ${reference.asset.name}`}>
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
                 {openMenu === menuId ? (
@@ -243,7 +243,7 @@ export function CreatorComposer({
               onChange={(event) => onMainTextChange(event.target.value)}
               rows={2}
               maxLength={600}
-              className="max-h-32 min-h-16 w-full resize-none bg-transparent px-3 py-2 text-base leading-6 text-white outline-none placeholder:text-[#8a8f8a]"
+              className="max-h-32 min-h-16 w-full resize-none bg-transparent px-3 py-2 text-base leading-6 text-foreground outline-none placeholder:text-muted-foreground"
               placeholder={placeholder}
               data-testid="creation-prompt"
             />
@@ -259,14 +259,14 @@ export function CreatorComposer({
               rows={3}
               maxLength={arenaId === "storybook-page" ? 800 : 600}
               required={arenaId !== "product-fashion"}
-              className="max-h-40 min-h-20 w-full resize-none bg-transparent px-3 py-2 text-base leading-6 text-white outline-none placeholder:text-[#8a8f8a]"
+              className="max-h-40 min-h-20 w-full resize-none bg-transparent px-3 py-2 text-base leading-6 text-foreground outline-none placeholder:text-muted-foreground"
               placeholder={placeholder}
               data-testid="creation-prompt"
             />
           </>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 px-1 pt-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-1 pt-2">
           <div className="flex flex-wrap items-center gap-2">
             <Button type="button" variant="secondary" onClick={onOpenArena} aria-label={`Change use case from ${arena.title}`} className="max-w-52 px-3">
               <ImageIcon className="h-4 w-4" aria-hidden="true" />
@@ -363,7 +363,7 @@ function OptionMenu<T extends string | number>({ id, label, icon, options, value
 }) {
   return (
     <div className="relative">
-      <button ref={buttonRef} type="button" disabled={disabled} onClick={() => setOpenMenu(openMenu === id ? null : id)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-muted transition-colors hover:bg-white/[0.06] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon disabled:cursor-not-allowed disabled:opacity-50" aria-label={ariaLabel ?? label} aria-haspopup="menu" aria-expanded={openMenu === id} data-testid={testId}>
+      <button ref={buttonRef} type="button" disabled={disabled} onClick={() => setOpenMenu(openMenu === id ? null : id)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold text-muted transition-colors hover:bg-surface-raised hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50" aria-label={ariaLabel ?? label} aria-haspopup="menu" aria-expanded={openMenu === id} data-testid={testId}>
         {icon}<span>{label}</span><ChevronDown className="h-3 w-3" aria-hidden="true" />
       </button>
       {openMenu === id ? (
@@ -395,14 +395,14 @@ function OptionPanel({ children, align = "right" }: { children: ReactNode; align
   }
 
   return (
-    <div ref={panelRef} role="menu" onKeyDown={handleKeyDown} className={cn("absolute bottom-[calc(100%+0.5rem)] z-30 min-w-52 rounded-xl border border-white/12 bg-[#202220] p-1.5 text-sm text-white shadow-2xl", align === "left" ? "left-0" : "right-0")}>
+    <div ref={panelRef} role="menu" onKeyDown={handleKeyDown} className={cn("absolute bottom-[calc(100%+0.5rem)] z-30 min-w-52 rounded-xl border border-border bg-popover p-1.5 text-sm text-foreground shadow-2xl", align === "left" ? "left-0" : "right-0")}>
       {children}
     </div>
   );
 }
 
 function MenuItem({ children, selected, onSelect }: { children: ReactNode; selected?: boolean; onSelect: () => void }) {
-  return <button type="button" role={selected === undefined ? "menuitem" : "menuitemradio"} aria-checked={selected} onClick={onSelect} className={cn("flex min-h-10 w-full items-center gap-2 rounded-lg px-3 text-left transition-colors hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon", selected && "bg-brand-neon/10 text-brand-soft")}>{children}</button>;
+  return <button type="button" role={selected === undefined ? "menuitem" : "menuitemradio"} aria-checked={selected} onClick={onSelect} className={cn("flex min-h-10 w-full items-center gap-2 rounded-lg px-3 text-left transition-colors hover:bg-surface-raised focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus", selected && "bg-brand-neon/10 text-brand-soft")}>{children}</button>;
 }
 
 function ComposerSettingsPanel({
@@ -453,8 +453,8 @@ function ComposerSettingsPanel({
   onDone: () => void;
 }) {
   return (
-    <div role="dialog" aria-label="Image settings" className="absolute bottom-[calc(100%+0.5rem)] right-0 z-30 max-h-[min(70vh,34rem)] w-[min(23rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-white/12 bg-[#202220] p-4 text-sm text-white shadow-2xl">
-      <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+    <div role="dialog" aria-label="Image settings" className="absolute bottom-[calc(100%+0.5rem)] right-0 z-30 max-h-[min(70vh,34rem)] w-[min(23rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-border bg-popover p-4 text-sm text-foreground shadow-2xl">
+      <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
         <div>
           <h3 className="font-semibold">Image settings</h3>
           <p className="mt-1 text-xs text-muted">Keep the composer simple. Change details only when you need them.</p>
@@ -511,7 +511,7 @@ function SettingsSelect<T extends string>({ label, value, options, onChange }: {
   return (
     <label className="block">
       <span className="mb-1.5 block font-semibold">{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value as T)} className="min-h-11 w-full rounded-xl border border-white/12 bg-black/25 px-3 text-sm text-white focus:border-brand-neon/50 focus:outline-none">
+      <select value={value} onChange={(event) => onChange(event.target.value as T)} className="min-h-11 w-full rounded-xl border border-border bg-surface-muted px-3 text-sm text-foreground focus:border-brand-neon/50 focus:outline-none">
         {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
       </select>
     </label>
@@ -553,5 +553,5 @@ const artStyleOptions: Array<{ value: ArtStyle; label: string }> = [
   { value: "cartoon", label: "Cartoon" }, { value: "watercolor", label: "Watercolor" }, { value: "3d-storybook", label: "3D storybook" }, { value: "custom", label: "Custom style" },
 ];
 
-const detailInputClassName = "min-h-11 w-full rounded-xl border border-white/12 bg-black/25 px-3 text-base text-white placeholder:text-brand-gray focus:border-brand-neon/50 focus:outline-none";
+const detailInputClassName = "min-h-11 w-full rounded-xl border border-border bg-surface-muted px-3 text-base text-foreground placeholder:text-brand-gray focus:border-brand-neon/50 focus:outline-none";
 const detailTextareaClassName = `${detailInputClassName} resize-none py-3 leading-6`;

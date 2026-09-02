@@ -296,11 +296,11 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   }
 
   return (
-    <div ref={workspaceRef} className="min-h-[calc(100dvh-4rem)] bg-[#101210] lg:h-[calc(100dvh-4rem)] lg:overflow-hidden" data-testid="creator-workspace" data-ready="false">
+    <div ref={workspaceRef} className="min-h-[calc(100dvh-4rem)] bg-media-stage lg:h-[calc(100dvh-4rem)] lg:overflow-hidden" data-testid="creator-workspace" data-ready="false">
       <h1 className="sr-only">Create {arena.title}</h1>
       <form onSubmit={handleGenerate} className="lg:h-full lg:overflow-hidden">
         <div className="grid min-h-[calc(100dvh-4rem)] lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_280px]">
-          <section className="flex min-h-[680px] min-w-0 flex-col bg-[#121412] lg:min-h-0" aria-label="Create image workspace">
+          <section className="flex min-h-[680px] min-w-0 flex-col bg-media-stage lg:min-h-0" aria-label="Create image workspace">
             <div className="relative flex min-h-[420px] flex-1 items-center justify-center overflow-hidden px-4 py-8 sm:px-8 lg:min-h-0" data-testid="generation-result">
               <Button className="absolute right-4 top-4 z-10 lg:hidden" type="button" variant="secondary" onClick={() => { setPreferredRole(null); setAssetDialogOpen(true); }} data-testid="open-assets-button">
                 <PanelRightOpen className="h-4 w-4" aria-hidden="true" /> Assets
@@ -318,7 +318,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
                 <div className="group relative h-full min-h-[420px] w-full">
                   <button
                     type="button"
-                    className="absolute inset-0 block h-full w-full cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-brand-neon"
+                    className="absolute inset-0 block h-full w-full cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-focus"
                     onClick={() => setViewingAsset(singleReadyResult.asset)}
                     aria-label={`Open ${singleReadyResult.asset.name}`}
                     data-testid="generation-result-image"
@@ -329,7 +329,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
                     href={`${singleReadyResult.imageUrl}?download=1`}
                     download
                     onClick={(event) => event.stopPropagation()}
-                    className="absolute right-3 top-3 z-10 flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 bg-black/75 text-white opacity-0 shadow-lg backdrop-blur transition-opacity hover:bg-black focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-neon group-hover:opacity-100"
+                    className="absolute right-3 top-3 z-10 flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 bg-black/75 text-white opacity-0 shadow-lg backdrop-blur transition-opacity hover:bg-black focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus group-hover:opacity-100"
                     aria-label="Download generated image"
                   >
                     <Download className="h-5 w-5" aria-hidden="true" />
@@ -385,7 +385,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
             </div>
           </section>
 
-          <aside className="hidden min-h-0 border-l border-white/10 bg-[#151715] lg:block">
+          <aside className="hidden min-h-0 border-l border-border bg-surface-raised lg:block">
             <CreatorAssetPicker assets={assets} references={references} onToggle={toggleReference} onUpload={handleUpload} isUploading={isUploading} allowedReferenceRoles={referenceRolesForArena(arenaId)} defaultUploadRole={defaultUploadRole(arenaId)} helperText={arenaId === "image-to-sketch" ? "One image is enough. Add a second zoomed detail when useful." : undefined} uploadInputTestId="asset-upload-input" presentation="kive" />
           </aside>
         </div>
@@ -397,22 +397,22 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
         <label className="sr-only" htmlFor="arena-search">Search creation tools</label>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
-          <input id="arena-search" type="search" value={arenaSearch} onChange={(event) => setArenaSearch(event.target.value)} placeholder="Search all 21 tools" className="min-h-12 w-full rounded-xl border border-white/10 bg-black/25 pl-10 pr-3 text-base text-white placeholder:text-brand-gray focus:border-brand-neon/50 focus:outline-none" />
+          <input id="arena-search" type="search" value={arenaSearch} onChange={(event) => setArenaSearch(event.target.value)} placeholder="Search all 21 tools" className="min-h-12 w-full rounded-xl border border-border bg-surface-muted pl-10 pr-3 text-base text-foreground placeholder:text-brand-gray focus:border-brand-neon/50 focus:outline-none" />
         </div>
         <div className="mt-4 max-h-[55vh] space-y-2 overflow-y-auto pr-1">
           {creatorCatalog.filter((item) => `${item.title} ${item.description} ${getCategoryLabel(item.categoryId)}`.toLowerCase().includes(arenaSearch.trim().toLowerCase())).map((item) => {
             const Icon = item.icon;
             const content = (
               <>
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-brand-neon"><Icon className="h-5 w-5" aria-hidden="true" /></span>
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-raised text-brand-neon"><Icon className="h-5 w-5" aria-hidden="true" /></span>
                 <span className="min-w-0 flex-1"><span className="block font-semibold">{item.title}</span><span className="mt-0.5 block truncate text-xs text-muted">{getCategoryLabel(item.categoryId)} · {item.availability === "available" ? "Available" : "Coming next"}</span></span>
                 {item.arenaId === arenaId ? <Check className="h-4 w-4 text-brand-neon" aria-label="Current tool" /> : item.arenaId ? <ArrowRight className="h-4 w-4 text-muted" aria-hidden="true" /> : null}
               </>
             );
             return item.arenaId ? (
-              <Link key={item.id} href={`/create/${item.id}`} onClick={() => setArenaDialogOpen(false)} className={cn("flex min-h-16 items-center gap-3 rounded-xl border p-3 transition-colors", item.id === arenaId ? "border-brand-neon/40 bg-brand-neon/10" : "border-white/10 hover:bg-white/[0.05]")}>{content}</Link>
+              <Link key={item.id} href={`/create/${item.id}`} onClick={() => setArenaDialogOpen(false)} className={cn("flex min-h-16 items-center gap-3 rounded-xl border p-3 transition-colors", item.id === arenaId ? "border-brand-neon/40 bg-brand-neon/10" : "border-border hover:bg-surface-muted")}>{content}</Link>
             ) : (
-              <div key={item.id} aria-disabled="true" className="flex min-h-16 items-center gap-3 rounded-xl border border-white/[0.07] p-3 opacity-55">{content}</div>
+              <div key={item.id} aria-disabled="true" className="flex min-h-16 items-center gap-3 rounded-xl border border-border p-3 opacity-55">{content}</div>
             );
           })}
         </div>

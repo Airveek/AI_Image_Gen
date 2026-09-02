@@ -38,13 +38,13 @@ export function AuthForm({
   }, [isRegister, state.ok]);
 
   return (
-    <div className="w-full max-w-md rounded-3xl border border-white/10 bg-brand-panel/90 p-6 shadow-2xl shadow-black/30 sm:p-8">
+    <div className="w-full max-w-md rounded-3xl border border-border bg-surface/95 p-6 shadow-[0_24px_80px_rgba(var(--theme-shadow))] sm:p-8">
       <div>
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-neon">Airveek account</p>
-        <h1 className="mt-3 font-display text-3xl font-bold text-brand-white">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Airveek account</p>
+        <h1 className="mt-3 font-display text-3xl font-bold text-foreground">
           {isRegister ? "Create your account" : "Welcome back"}
         </h1>
-        <p className="mt-3 text-sm leading-6 text-muted">
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">
           {isRegister
             ? "Start creating more with Airveek."
             : "Sign in to continue creating with Airveek."}
@@ -62,7 +62,7 @@ export function AuthForm({
         ) : null}
         {isRegister ? (
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-brand-white" htmlFor="display-name">
+            <label className="text-sm font-semibold text-foreground" htmlFor="display-name">
               Name
             </label>
             <Input id="display-name" name="displayName" autoComplete="name" required />
@@ -70,14 +70,14 @@ export function AuthForm({
         ) : null}
 
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-brand-white" htmlFor="email">
+          <label className="text-sm font-semibold text-foreground" htmlFor="email">
             Email
           </label>
           <Input id="email" name="email" type="email" autoComplete="email" required />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-brand-white" htmlFor="password">
+          <label className="text-sm font-semibold text-foreground" htmlFor="password">
             Password
           </label>
           <Input
@@ -88,7 +88,7 @@ export function AuthForm({
             minLength={6}
             required
           />
-          {isRegister ? <p className="text-xs text-muted">Use at least 6 characters.</p> : null}
+          {isRegister ? <p className="text-xs text-muted-foreground">Use at least 6 characters.</p> : null}
         </div>
 
         <Button className="w-full" disabled={pending} type="submit" variant="primary">
@@ -98,17 +98,17 @@ export function AuthForm({
         {state.message ? (
           <p
             aria-live="polite"
-            className={state.ok ? "text-sm text-brand-soft" : "text-sm text-red-200"}
+            className={state.ok ? "text-sm text-success" : "text-sm text-danger"}
           >
             {state.message}
           </p>
         ) : null}
       </form>
 
-      <p className="mt-6 text-center text-sm text-muted">
+      <p className="mt-6 text-center text-sm text-muted-foreground">
         {isRegister ? "Already have an account?" : "Need an account?"}{" "}
         <Link
-          className="font-semibold text-brand-neon underline-offset-4 hover:underline"
+          className="font-semibold text-primary underline-offset-4 hover:underline"
           href={isRegister ? "/login" : "/register"}
         >
           {isRegister ? "Log in" : "Register"}

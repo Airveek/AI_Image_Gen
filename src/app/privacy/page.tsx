@@ -80,12 +80,12 @@ const sections: LegalSection[] = [
   {
     id: "sharing",
     title: "How information is shared",
-    paragraphs: [<><strong className="text-[#fdfdfd]">Airveek does not sell personal information.</strong> We disclose information only as reasonably necessary for the purposes described in this Policy.</>],
+    paragraphs: [<><strong className="text-foreground">Airveek does not sell personal information.</strong> We disclose information only as reasonably necessary for the purposes described in this Policy.</>],
     bullets: [
-      <><strong className="text-[#d9ffb8]">Service providers:</strong> hosting, AI processing, storage, analytics, email, customer support, fraud prevention, and payment services.</>,
-      <><strong className="text-[#d9ffb8]">Professional advisors:</strong> legal, accounting, insurance, audit, and compliance professionals where necessary.</>,
-      <><strong className="text-[#d9ffb8]">Legal and safety disclosures:</strong> authorities or other parties when required by law or reasonably necessary to protect rights, safety, and security.</>,
-      <><strong className="text-[#d9ffb8]">Business transfers:</strong> a buyer, investor, lender, or successor involved in a merger, financing, restructuring, acquisition, or asset sale, subject to appropriate safeguards.</>,
+      <><strong className="text-foreground">Service providers:</strong> hosting, AI processing, storage, analytics, email, customer support, fraud prevention, and payment services.</>,
+      <><strong className="text-foreground">Professional advisors:</strong> legal, accounting, insurance, audit, and compliance professionals where necessary.</>,
+      <><strong className="text-foreground">Legal and safety disclosures:</strong> authorities or other parties when required by law or reasonably necessary to protect rights, safety, and security.</>,
+      <><strong className="text-foreground">Business transfers:</strong> a buyer, investor, lender, or successor involved in a merger, financing, restructuring, acquisition, or asset sale, subject to appropriate safeguards.</>,
     ],
   },
   {
@@ -126,7 +126,7 @@ const sections: LegalSection[] = [
     subsections: [
       {
         title: "Submitting a request",
-        paragraphs: [<>Email <a className="font-semibold text-[#83ff00] underline decoration-[#83ff00]/30 underline-offset-4" href="mailto:support@airveek.com">support@airveek.com</a>. We may ask for information needed to verify your identity and protect your account. Authorized agents may submit requests where local law permits.</>],
+        paragraphs: [<>Email <a className="font-semibold text-primary underline decoration-primary/30 underline-offset-4" href="mailto:support@airveek.com">support@airveek.com</a>. We may ask for information needed to verify your identity and protect your account. Authorized agents may submit requests where local law permits.</>],
       },
     ],
   },
@@ -156,7 +156,7 @@ const sections: LegalSection[] = [
     id: "contact",
     title: "Contact us",
     paragraphs: [
-      <>For privacy questions or requests, email <a className="font-semibold text-[#83ff00] underline decoration-[#83ff00]/30 underline-offset-4" href="mailto:support@airveek.com">support@airveek.com</a> or write to Airveek, 980 Fraser Drive, Suite 209, Burlington, Ontario L7L 5P5, Canada.</>,
+      <>For privacy questions or requests, email <a className="font-semibold text-primary underline decoration-primary/30 underline-offset-4" href="mailto:support@airveek.com">support@airveek.com</a> or write to Airveek, 980 Fraser Drive, Suite 209, Burlington, Ontario L7L 5P5, Canada.</>,
     ],
   },
 ];

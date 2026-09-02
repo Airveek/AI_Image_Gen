@@ -9,20 +9,20 @@ export default function ErrorPage({
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-2xl items-center px-6 py-16">
       <section aria-labelledby="error-title">
-        <p className="text-sm font-medium text-[#83ff00]">Airveek</p>
+        <p className="text-sm font-medium text-primary">Airveek</p>
         <h1
           id="error-title"
           className="mt-3 text-4xl font-semibold tracking-tight"
         >
           We could not load this page.
         </h1>
-        <p className="mt-4 max-w-xl leading-7 text-muted">
+        <p className="mt-4 max-w-xl leading-7 text-muted-foreground">
           Please try again. If the problem continues, return later.
         </p>
         <button
           type="button"
           onClick={reset}
-          className="mt-8 rounded-full bg-[#83ff00] px-5 py-3 text-sm font-semibold text-[#040404] transition-opacity hover:opacity-85"
+          className="mt-8 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
         >
           Try again
         </button>

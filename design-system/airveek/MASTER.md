@@ -1,31 +1,40 @@
 # Airveek Design System
 
-> Global source of truth for the Airveek landing page. Page-specific overrides live in `design-system/airveek/pages/`.
+> Global source of truth for the Airveek website and application. Page-specific guidance lives in `design-system/airveek/pages/`.
 
 **Project:** Airveek  
-**Updated:** 2026-08-19  
+**Updated:** 2026-09-01
 **Category:** AI creative generation suite  
-**Direction:** Focused, technical, high-energy, minimal
+**Direction:** Premium, light-first, green-led, minimal
 
 ## Brand signal
 
-The Airveek mark combines airflow lines with a circular motion system. Use the supplied transparent wordmark on dark surfaces. The green symbol is the active signal; the white wordmark is the stable anchor. Never place the wordmark inside a competing color block or apply the old logo hue filter.
+The Airveek mark combines airflow lines with a circular motion system. Use the Ink wordmark on light surfaces and the white wordmark on dark surfaces. The reusable `AirveekLogo` component makes this switch automatically.
 
-## Color tokens
+## Named primitives
 
 | Role | Hex | CSS variable |
 | --- | --- | --- |
-| Brand neon | `#83FF00` | `--brand-neon` |
-| Brand green | `#2AC414` | `--brand-green` |
-| White | `#FDFDFD` | `--brand-white` |
-| Soft white | `#D9FFB8` | `--brand-soft` |
-| Grey | `#6F6F6F` | `--brand-gray` |
-| Dark grey | `#3A3A3A` | `--brand-dark-gray` |
-| Black | `#040404` | `--brand-black` |
-| Panel | `#0B120B` | `--brand-panel` |
-| Raised panel | `#111A11` | `--brand-panel-raised` |
+| Airveek Canvas | `#FFFFFF` | `--airveek-canvas` |
+| Mint Mist | `#F5F7F3` | `--mint-mist` |
+| Raised Mint | `#EEF3EB` | `--raised-mint` |
+| Leaf Line | `#DDE6D9` | `--leaf-line` |
+| Airveek Ink | `#0D120D` | `--airveek-ink` |
+| Forest Gray | `#52604F` | `--forest-gray` |
+| Night Canvas | `#040404` | `--night-canvas` |
+| Forest Panel | `#0B120B` | `--forest-panel` |
+| Raised Forest | `#111A11` | `--raised-forest` |
+| Night Line | `#2A342A` | `--night-line` |
+| Snow | `#FDFDFD` | `--snow` |
+| Sage Copy | `#A4B19E` | `--sage-copy` |
+| Deep Forest | `#064E3B` | `--deep-forest` |
+| Airveek Emerald | `#087A43` | `--airveek-emerald` |
+| Clear Green | `#10863F` | `--clear-green` |
+| Growth Green | `#2AC414` | `--growth-green` |
+| Energy Lime | `#83FF00` | `--energy-lime` |
+| Lime Mist | `#E6FFD0` | `--lime-mist` |
 
-Use neon green for primary actions, active states, focus, and compact emphasis. Keep large surfaces black or near-black. Do not add purple, pink, cyan, amber, or blue to the branded UI.
+Use semantic surface, text, border, input, focus, state, and control tokens in components. Primitive greens remain stable while their semantic role changes between themes. Signature gradients are fixed brand treatments.
 
 ## Typography
 
@@ -35,15 +44,15 @@ Use neon green for primary actions, active states, focus, and compact emphasis. 
 
 ## Components
 
-- **Primary CTA:** `#2AC414 → #83FF00 → #2AC414`, black text, green ambient shadow, minimum 44px touch height.
-- **Secondary CTA:** transparent black surface, low-opacity green border, white text, green hover state.
-- **Cards:** `#0B120B` or `#111A11`, subtle neutral border, green border on hover.
-- **Focus:** 3px `#83FF00` outline with 4px offset; never suppress focus indication.
-- **Logo:** `/public/images/airveek/logo.png` for the wordmark and `/public/images/airveek/mark.png` for compact placements. Current display sizes are `200px` mobile / `247px` desktop in the header and `234px` in the footer.
+- **Primary CTA:** semantic primary background and foreground, minimum 44px touch height.
+- **Inverse CTA:** white with Ink text, only on the signature gradient.
+- **Cards:** semantic surface and border with restrained shadows in light mode.
+- **Focus:** semantic focus outline; never suppress focus indication.
+- **Logo:** `/public/images/airveek/logo-ink.png` in light mode and `/public/images/airveek/logo.png` in dark mode.
 
 ## Layout and behavior
 
-- Preserve the existing narrative landing-page order and conversion path.
+- Use light as the default and preserve the browser-local theme selection.
 - Use responsive container widths and retain at least 16px horizontal gutter on small screens.
 - Keep hover transitions between 150–300ms and respect `prefers-reduced-motion`.
 - Never rely on color alone for status, trust, pricing, or form feedback.

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { Inter, K2D } from "next/font/google";
+import Script from "next/script";
 import { absoluteUrl, SITE_URL, siteVerification } from "@/lib/seo/site";
 import { ConsentAndAttribution } from "@/components/seo/consent-and-attribution";
 import "./globals.css";
@@ -18,6 +19,21 @@ const k2d = K2D({
   weight: ["500", "600", "700", "800"],
   display: "swap",
 });
+
+const themeBootstrap = `
+  (() => {
+    try {
+      const value = window.localStorage.getItem("airveek-theme");
+      const theme = value === "dark" || value === "light" ? value : "light";
+      const root = document.documentElement;
+      root.dataset.theme = theme;
+      root.style.colorScheme = theme;
+    } catch {
+      document.documentElement.dataset.theme = "light";
+      document.documentElement.style.colorScheme = "light";
+    }
+  })();
+`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -55,10 +71,15 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="light"
       data-scroll-behavior="smooth"
       className={`${inter.variable} ${k2d.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full bg-background font-sans text-foreground">
+        <Script id="airveek-theme-bootstrap" strategy="beforeInteractive">
+          {themeBootstrap}
+        </Script>
         {children}
         <Analytics />
         <ConsentAndAttribution />

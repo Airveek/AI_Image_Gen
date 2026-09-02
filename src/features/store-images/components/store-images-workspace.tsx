@@ -415,20 +415,20 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, initialLogoA
 
   return (
     <div className="mx-auto min-h-screen max-w-[1800px] px-4 py-8 sm:px-6 lg:px-10">
-      <div className="flex flex-col gap-5 border-b border-white/10 pb-7 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex flex-col gap-5 border-b border-border pb-7 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-neon">Store image studio</p>
           <h1 className="mt-2 font-display text-3xl font-bold sm:text-4xl">Create product images in bulk</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">Choose products from your Apindex store, describe the new look once, and review generated images before publishing.</p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-muted">
-          <span className="font-bold text-white">{selectedCount}</span> products selected
+        <div className="rounded-2xl border border-border bg-surface-muted px-4 py-3 text-sm text-muted">
+          <span className="font-bold text-foreground">{selectedCount}</span> products selected
         </div>
       </div>
 
       <StoreNoticeBanner notice={notice} onDismiss={() => setNotice(null)} />
 
-      <section className="mt-7 rounded-2xl border border-white/10 bg-white/[0.035] p-4 sm:p-5" aria-label="Store image controls">
+      <section className="mt-7 rounded-2xl border border-border bg-surface-muted p-4 sm:p-5" aria-label="Store image controls">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_288px]">
           <div>
             <div className="flex items-center gap-3">
@@ -436,10 +436,10 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, initialLogoA
               <div><h2 className="font-display text-lg font-bold">Image direction</h2><p className="text-xs text-muted">One instruction will be used for every selected product.</p></div>
             </div>
             <label className="mt-5 block text-sm font-semibold" htmlFor="store-image-prompt">What should the new images look like?</label>
-            <textarea id="store-image-prompt" value={prompt} onChange={(event) => setPrompt(event.target.value.slice(0, 600))} rows={3} className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-muted focus:border-brand-neon/50 focus:ring-2 focus:ring-brand-neon/20" placeholder="Describe the background, lighting, and mood." />
+            <textarea id="store-image-prompt" value={prompt} onChange={(event) => setPrompt(event.target.value.slice(0, 600))} rows={3} className="mt-2 w-full resize-y rounded-xl border border-border bg-media-stage px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted focus:border-brand-neon/50 focus:ring-2 focus:ring-brand-neon/20" placeholder="Describe the background, lighting, and mood." />
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               {imageModes.map((mode) => (
-                <label key={mode.value} className={cn("cursor-pointer rounded-xl border p-3 transition-colors", imageMode === mode.value ? "border-brand-neon/60 bg-brand-neon/10" : "border-white/10 hover:border-white/25")}>
+                <label key={mode.value} className={cn("cursor-pointer rounded-xl border p-3 transition-colors", imageMode === mode.value ? "border-brand-neon/60 bg-brand-neon/10" : "border-border hover:border-white/25")}>
                   <input type="radio" name="image-mode" value={mode.value} checked={imageMode === mode.value} onChange={() => setImageMode(mode.value)} className="sr-only" />
                   <span className="flex items-center gap-2 text-sm font-bold">{imageMode === mode.value ? <Check className="h-4 w-4 text-brand-neon" aria-hidden="true" /> : <span className="h-4 w-4 rounded-full border border-white/30" aria-hidden="true" />}{mode.label}</span>
                   <span className="mt-2 block text-xs leading-5 text-muted">{mode.description}</span>
@@ -452,7 +452,7 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, initialLogoA
             </Button>
           </div>
 
-          <aside className="rounded-xl border border-white/10 bg-black/15" aria-label="Saved logo assets">
+          <aside className="rounded-xl border border-border bg-surface-muted" aria-label="Saved logo assets">
             <CreatorAssetPicker
               assets={logoAssets}
               references={logoAsset ? [{ assetId: logoAsset.id, role: "logo" }] : []}
@@ -510,8 +510,8 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, initialLogoA
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div><h2 id="products-heading" className="font-display text-2xl font-bold">Store products</h2><p className="mt-1 text-sm text-muted">Showing {products.length} of {total} products</p></div>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" /><input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { const query = search.trim(); setAppliedSearch(query); void loadProducts({ reset: true, query }); } }} className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] pl-10 pr-3 text-sm text-white outline-none focus:border-brand-neon/50 sm:w-64" placeholder="Search products" aria-label="Search products" /></div>
-            <select value={status} onChange={(event) => { const nextStatus = event.target.value as typeof status; const query = search.trim(); setStatus(nextStatus); setAppliedSearch(query); void loadProducts({ reset: true, query, productStatus: nextStatus }); }} className="h-11 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-white outline-none focus:border-brand-neon/50" aria-label="Product status"><option value="active">Active</option><option value="draft">Draft</option><option value="archived">Archived</option></select>
+            <div className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" /><input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { const query = search.trim(); setAppliedSearch(query); void loadProducts({ reset: true, query }); } }} className="h-11 w-full rounded-xl border border-border bg-surface-muted pl-10 pr-3 text-sm text-foreground outline-none focus:border-brand-neon/50 sm:w-64" placeholder="Search products" aria-label="Search products" /></div>
+            <select value={status} onChange={(event) => { const nextStatus = event.target.value as typeof status; const query = search.trim(); setStatus(nextStatus); setAppliedSearch(query); void loadProducts({ reset: true, query, productStatus: nextStatus }); }} className="h-11 rounded-xl border border-border bg-surface-muted px-3 text-sm text-foreground outline-none focus:border-brand-neon/50" aria-label="Product status"><option value="active">Active</option><option value="draft">Draft</option><option value="archived">Archived</option></select>
           </div>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
@@ -520,7 +520,7 @@ export function StoreImagesWorkspace({ initialProducts, initialRun, initialLogoA
           {selectedIds.size > 0 || allMatches ? <Button type="button" variant="ghost" onClick={() => { setSelectedIds(new Set()); setAllMatches(false); }}>Clear selection</Button> : null}
         </div>
 
-        {products.length > 0 ? <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">{products.map((product) => <ProductCard key={product.id} product={product} selected={allMatches || selectedIds.has(product.id)} onToggle={() => toggleProduct(product.id)} />)}</div> : <div className="mt-5 rounded-2xl border border-dashed border-white/15 px-6 py-16 text-center text-sm text-muted">{isLoadingProducts ? "Loading products…" : "No products matched this search."}</div>}
+        {products.length > 0 ? <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">{products.map((product) => <ProductCard key={product.id} product={product} selected={allMatches || selectedIds.has(product.id)} onToggle={() => toggleProduct(product.id)} />)}</div> : <div className="mt-5 rounded-2xl border border-dashed border-border px-6 py-16 text-center text-sm text-muted">{isLoadingProducts ? "Loading products…" : "No products matched this search."}</div>}
         {nextCursor ? <Button type="button" onClick={() => void loadProducts({ reset: false })} disabled={isLoadingProducts} className="mx-auto mt-6 flex">{isLoadingProducts ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ChevronDown className="h-4 w-4" aria-hidden="true" />} Load more</Button> : null}
       </section>
 
@@ -537,21 +537,21 @@ function StoreNoticeBanner({ notice, onDismiss }: { notice: StoreNotice | null; 
       className={cn(
         "mt-5 flex items-start justify-between gap-3 rounded-xl border px-4 py-3 text-sm",
         notice.tone === "success" && "border-brand-neon/25 bg-brand-neon/10 text-brand-soft",
-        notice.tone === "error" && "border-red-400/30 bg-red-500/10 text-red-200",
-        notice.tone === "info" && "border-white/15 bg-white/[0.05] text-white",
+        notice.tone === "error" && "border-red-400/30 bg-red-500/10 text-danger",
+        notice.tone === "info" && "border-border bg-surface-muted text-foreground",
       )}
       role={notice.tone === "error" ? "alert" : "status"}
       aria-live={notice.tone === "error" ? "assertive" : "polite"}
     >
       <span className="flex items-start gap-2"><Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />{notice.text}</span>
-      <button type="button" onClick={onDismiss} className="flex min-h-10 min-w-10 items-center justify-center rounded-lg text-current hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon" aria-label="Dismiss message"><X className="h-4 w-4" aria-hidden="true" /></button>
+      <button type="button" onClick={onDismiss} className="flex min-h-10 min-w-10 items-center justify-center rounded-lg text-current hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus" aria-label="Dismiss message"><X className="h-4 w-4" aria-hidden="true" /></button>
     </div>
   );
 }
 
 function RunActivityPanel({ run, now, isCancelling, onCancel }: { run: StoreBulkRun | null; now: number; isCancelling: boolean; onCancel: () => void }) {
   if (!run) {
-    return <section className="mt-4 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-sm text-muted" aria-label="Run progress">No run yet. Generated images will stay here until you publish them.</section>;
+    return <section className="mt-4 rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm text-muted" aria-label="Run progress">No run yet. Generated images will stay here until you publish them.</section>;
   }
 
   const activity = getRunActivity(run);
@@ -560,20 +560,20 @@ function RunActivityPanel({ run, now, isCancelling, onCancel }: { run: StoreBulk
   const generationActive = isGenerationActive(run);
 
   return (
-    <section className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5" aria-label="Run progress" aria-busy={activity.phase === "generating" || activity.phase === "publishing"}>
+    <section className="mt-4 rounded-xl border border-border bg-surface-muted px-4 py-3.5" aria-label="Run progress" aria-busy={activity.phase === "generating" || activity.phase === "publishing"}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="flex min-w-0 flex-1 items-start gap-3">
-          <span className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", activity.phase === "finished" ? "bg-brand-neon/10 text-brand-neon" : activity.phase === "issues" ? "bg-red-500/10 text-red-200" : "bg-white/[0.06] text-white")}>
+          <span className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", activity.phase === "finished" ? "bg-brand-neon/10 text-brand-neon" : activity.phase === "issues" ? "bg-red-500/10 text-danger" : "bg-surface-raised text-foreground")}>
             {activity.phase === "finished" ? <CircleCheck className="h-4 w-4" aria-hidden="true" /> : activity.phase === "issues" ? <CircleAlert className="h-4 w-4" aria-hidden="true" /> : activity.phase === "generating" || activity.phase === "publishing" ? <LoaderCircle className="h-4 w-4 motion-safe:animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <p className="text-sm font-bold text-white" role="status" aria-live="polite" aria-atomic="true">{activity.title}</p>
+              <p className="text-sm font-bold text-foreground" role="status" aria-live="polite" aria-atomic="true">{activity.title}</p>
               <span className="inline-flex items-center gap-1 text-xs text-muted"><Clock3 className="h-3.5 w-3.5" aria-hidden="true" />{formatElapsed(run.createdAt, now)}</span>
             </div>
             <p className="mt-0.5 text-xs text-muted">{activity.detail}</p>
             <div
-              className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10"
+              className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-raised"
               role="progressbar"
               aria-label={activity.title}
               aria-valuemin={0}
@@ -599,7 +599,7 @@ function RunActivityPanel({ run, now, isCancelling, onCancel }: { run: StoreBulk
 }
 
 function ProductCard({ product, selected, onToggle }: { product: StoreProduct; selected: boolean; onToggle: () => void }) {
-  return <button type="button" onClick={onToggle} className={cn("group relative overflow-hidden rounded-2xl border text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon", selected ? "border-brand-neon/60 bg-brand-neon/10" : "border-white/10 bg-white/[0.035] hover:border-white/25")} aria-pressed={selected}><div className="relative aspect-square bg-black/20">{product.imageUrl ? <Image src={product.imageUrl} alt={product.name} fill unoptimized className="object-contain p-4 transition-transform duration-200 group-hover:scale-[1.02]" sizes="(max-width: 640px) 50vw, (max-width: 1536px) 33vw, 25vw" /> : <div className="flex h-full items-center justify-center text-muted"><ImageIcon className="h-8 w-8" aria-hidden="true" /></div>}<span className={cn("absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border", selected ? "border-brand-neon bg-brand-neon text-black" : "border-white/30 bg-black/40 text-transparent")}><Check className="h-4 w-4" aria-hidden="true" /></span></div><div className="p-4"><p className="truncate text-sm font-bold text-white">{product.name}</p><p className="mt-1 truncate text-xs text-muted">{product.handle}</p></div></button>;
+  return <button type="button" onClick={onToggle} className={cn("group relative overflow-hidden rounded-2xl border text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus", selected ? "border-brand-neon/60 bg-brand-neon/10" : "border-border bg-surface-muted hover:border-white/25")} aria-pressed={selected}><div className="relative aspect-square bg-media-stage">{product.imageUrl ? <Image src={product.imageUrl} alt={product.name} fill unoptimized className="object-contain p-4 transition-transform duration-200 group-hover:scale-[1.02]" sizes="(max-width: 640px) 50vw, (max-width: 1536px) 33vw, 25vw" /> : <div className="flex h-full items-center justify-center text-muted"><ImageIcon className="h-8 w-8" aria-hidden="true" /></div>}<span className={cn("absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border", selected ? "border-brand-neon bg-brand-neon text-primary-foreground" : "border-white/30 bg-black/40 text-transparent")}><Check className="h-4 w-4" aria-hidden="true" /></span></div><div className="p-4"><p className="truncate text-sm font-bold text-foreground">{product.name}</p><p className="mt-1 truncate text-xs text-muted">{product.handle}</p></div></button>;
 }
 
 function ResultCard({ item, onView, onPublish, onRetry, disabled }: { item: StoreBulkItem; onView: () => void; onPublish: () => void; onRetry: () => void; disabled: boolean }) {
@@ -609,23 +609,23 @@ function ResultCard({ item, onView, onPublish, onRetry, disabled }: { item: Stor
   const statusLabel = getItemStatusLabel(item);
 
   return (
-    <article className="min-w-0 overflow-hidden rounded-xl border border-white/10 bg-white/[0.035]">
-      <button type="button" onClick={onView} disabled={!imageUrl} className="group relative block aspect-square w-full cursor-zoom-in overflow-hidden bg-[#121412] disabled:cursor-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-brand-neon" aria-label={imageUrl ? `Open full image for ${item.productName}` : statusLabel}>
+    <article className="min-w-0 overflow-hidden rounded-xl border border-border bg-surface-muted">
+      <button type="button" onClick={onView} disabled={!imageUrl} className="group relative block aspect-square w-full cursor-zoom-in overflow-hidden bg-media-stage disabled:cursor-default focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-focus" aria-label={imageUrl ? `Open full image for ${item.productName}` : statusLabel}>
         {imageUrl ? <Image src={imageUrl} alt={`Generated image for ${item.productName}`} fill unoptimized className="object-contain p-3 transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transition-none" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw" /> : <Skeleton className="absolute inset-3 motion-reduce:animate-none" />}
         {!imageUrl ? <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-3 text-center text-xs text-muted">{isWorking ? <LoaderCircle className="h-6 w-6 text-brand-neon motion-safe:animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <ImageIcon className="h-6 w-6" aria-hidden="true" />}<span>{statusLabel}</span></div> : null}
         {imageUrl ? <span className="absolute right-2 top-2 flex min-h-10 min-w-10 items-center justify-center rounded-full border border-white/20 bg-black/75 text-white opacity-0 shadow-lg backdrop-blur transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"><Eye className="h-4 w-4" aria-hidden="true" /><span className="sr-only">Open full image</span></span> : null}
       </button>
       <div className="p-3">
-        <p className="truncate text-sm font-bold text-white" title={item.productName}>{item.productName}</p>
+        <p className="truncate text-sm font-bold text-foreground" title={item.productName}>{item.productName}</p>
         <div className="mt-2 flex items-center justify-between gap-2">
           <StatusBadge item={item} />
-          {imageUrl ? <a href={`${imageUrl}?download=1`} download className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg text-muted hover:bg-white/[0.06] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon" aria-label={`Download ${item.productName}`}><Download className="h-4 w-4" aria-hidden="true" /></a> : null}
+          {imageUrl ? <a href={`${imageUrl}?download=1`} download className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg text-muted hover:bg-surface-raised hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus" aria-label={`Download ${item.productName}`}><Download className="h-4 w-4" aria-hidden="true" /></a> : null}
         </div>
-        {item.errorMessage ? <p className="mt-2 line-clamp-3 text-xs leading-5 text-red-200">{item.errorMessage}</p> : null}
+        {item.errorMessage ? <p className="mt-2 line-clamp-3 text-xs leading-5 text-danger">{item.errorMessage}</p> : null}
         {item.status === "published" ? (
           <div className="mt-3 rounded-lg border border-brand-neon/20 bg-brand-neon/[0.07] p-2.5 text-xs text-brand-soft">
             <span className="flex items-center gap-1.5 font-semibold"><CircleCheck className="h-3.5 w-3.5" aria-hidden="true" />Published to Apindex</span>
-            {item.publishedImageUrl ? <a href={item.publishedImageUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex min-h-10 items-center gap-1 font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon">Open store image <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /></a> : null}
+            {item.publishedImageUrl ? <a href={item.publishedImageUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex min-h-10 items-center gap-1 font-semibold text-foreground underline decoration-white/30 underline-offset-4 hover:decoration-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus">Open store image <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /></a> : null}
           </div>
         ) : null}
         {item.status === "ready" ? <Button type="button" variant="primary" onClick={onPublish} disabled={disabled} className="mt-3 w-full px-3 text-xs"><UploadCloud className="h-4 w-4" aria-hidden="true" />Publish</Button> : null}

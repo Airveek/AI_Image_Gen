@@ -29,7 +29,7 @@ export function CreatorImageViewer({
     >
       {asset && imageUrl ? (
         <div>
-          <div className="relative h-[min(70vh,42rem)] w-full overflow-hidden rounded-xl bg-black/30">
+          <div className="relative h-[min(70vh,42rem)] w-full overflow-hidden rounded-xl bg-media-stage">
             <Image
               src={imageUrl}
               alt={asset.name}
@@ -44,7 +44,7 @@ export function CreatorImageViewer({
             <a
               href={`${imageUrl}?download=1`}
               download
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-neon px-4 text-sm font-bold text-black hover:bg-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-neon"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               <Download className="h-4 w-4" aria-hidden="true" />
               Download

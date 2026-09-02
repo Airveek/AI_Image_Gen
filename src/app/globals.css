@@ -1,59 +1,163 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
-  --brand-neon: #83ff00;
-  --brand-green: #2ac414;
-  --brand-white: #fdfdfd;
-  --brand-gray: #6f6f6f;
-  --brand-dark-gray: #3a3a3a;
-  --brand-black: #040404;
-  --brand-panel: #0b120b;
-  --brand-panel-raised: #111a11;
-  --brand-soft: #d9ffb8;
-  --page-background: var(--brand-black);
-  --page-foreground: var(--brand-white);
-  --page-muted: #a4b19e;
+  /* Airveek primitives: stable brand colors with theme-specific semantic roles. */
+  --airveek-canvas: #ffffff;
+  --mint-mist: #f5f7f3;
+  --raised-mint: #eef3eb;
+  --leaf-line: #dde6d9;
+  --airveek-ink: #0d120d;
+  --forest-gray: #52604f;
+  --night-canvas: #040404;
+  --forest-panel: #0b120b;
+  --raised-forest: #111a11;
+  --night-line: #2a342a;
+  --snow: #fdfdfd;
+  --sage-copy: #a4b19e;
+  --deep-forest: #064e3b;
+  --airveek-emerald: #087a43;
+  --clear-green: #10863f;
+  --growth-green: #2ac414;
+  --energy-lime: #83ff00;
+  --lime-mist: #e6ffd0;
+
+  /* Light is deliberately the product default. */
+  --theme-background: var(--airveek-canvas);
+  --theme-surface: var(--airveek-canvas);
+  --theme-surface-muted: var(--mint-mist);
+  --theme-surface-raised: var(--raised-mint);
+  --theme-foreground: var(--airveek-ink);
+  --theme-muted-foreground: var(--forest-gray);
+  --theme-border: var(--leaf-line);
+  --theme-input: #cbd8c7;
+  --theme-primary: #0e7138;
+  --theme-primary-hover: #095d2d;
+  --theme-primary-foreground: var(--snow);
+  --theme-accent: var(--growth-green);
+  --theme-focus: #0e7138;
+  --theme-media-stage: #e8ece6;
+  --theme-popover: var(--airveek-canvas);
+  --theme-overlay: rgb(4 4 4 / 0.64);
+  --theme-disabled: #e5ebe2;
+  --theme-disabled-foreground: #7a8776;
+  --theme-success: #0e7138;
+  --theme-success-soft: #e6f6e9;
+  --theme-warning: #9a5800;
+  --theme-warning-soft: #fff5dd;
+  --theme-danger: #b42318;
+  --theme-danger-soft: #fff0ee;
+  --theme-info: #175cd3;
+  --theme-info-soft: #eef4ff;
+  --theme-shadow: 13 44 23 / 0.1;
+
+  /* Compatibility aliases while active screens move to semantic tokens. */
+  --brand-neon: var(--energy-lime);
+  --brand-green: var(--growth-green);
+  --brand-white: var(--theme-foreground);
+  --brand-gray: var(--theme-muted-foreground);
+  --brand-dark-gray: var(--theme-border);
+  --brand-black: var(--theme-background);
+  --brand-panel: var(--theme-surface);
+  --brand-panel-raised: var(--theme-surface-raised);
+  --brand-soft: var(--theme-primary);
+  --page-background: var(--theme-background);
+  --page-foreground: var(--theme-foreground);
+  --page-muted: var(--theme-muted-foreground);
+}
+
+:root[data-theme="dark"] {
+  --theme-background: var(--night-canvas);
+  --theme-surface: var(--forest-panel);
+  --theme-surface-muted: #080d08;
+  --theme-surface-raised: var(--raised-forest);
+  --theme-foreground: var(--snow);
+  --theme-muted-foreground: var(--sage-copy);
+  --theme-border: var(--night-line);
+  --theme-input: #354235;
+  --theme-primary: var(--energy-lime);
+  --theme-primary-hover: #a5ff48;
+  --theme-primary-foreground: var(--airveek-ink);
+  --theme-accent: var(--growth-green);
+  --theme-focus: var(--energy-lime);
+  --theme-media-stage: #121412;
+  --theme-popover: var(--forest-panel);
+  --theme-overlay: rgb(0 0 0 / 0.72);
+  --theme-disabled: #202820;
+  --theme-disabled-foreground: #778074;
+  --theme-success: #8af275;
+  --theme-success-soft: #102a14;
+  --theme-warning: #fdbb5d;
+  --theme-warning-soft: #33240d;
+  --theme-danger: #ff8d85;
+  --theme-danger-soft: #351412;
+  --theme-info: #84adff;
+  --theme-info-soft: #102044;
+  --theme-shadow: 0 0 0 / 0.4;
 }
 
 @theme inline {
-  --color-background: var(--page-background);
-  --color-foreground: var(--page-foreground);
-  --color-muted: var(--page-muted);
-  --color-brand-neon: var(--brand-neon);
-  --color-brand-green: var(--brand-green);
-  --color-brand-white: var(--brand-white);
-  --color-brand-soft: var(--brand-soft);
-  --color-brand-gray: var(--brand-gray);
-  --color-brand-dark-gray: var(--brand-dark-gray);
-  --color-brand-black: var(--brand-black);
-  --color-brand-panel: var(--brand-panel);
-  --color-brand-panel-raised: var(--brand-panel-raised);
+  --color-background: var(--theme-background);
+  --color-foreground: var(--theme-foreground);
+  --color-surface: var(--theme-surface);
+  --color-surface-muted: var(--theme-surface-muted);
+  --color-surface-raised: var(--theme-surface-raised);
+  --color-muted: var(--theme-muted-foreground);
+  --color-muted-foreground: var(--theme-muted-foreground);
+  --color-border: var(--theme-border);
+  --color-input: var(--theme-input);
+  --color-primary: var(--theme-primary);
+  --color-primary-hover: var(--theme-primary-hover);
+  --color-primary-foreground: var(--theme-primary-foreground);
+  --color-accent: var(--theme-accent);
+  --color-focus: var(--theme-focus);
+  --color-media-stage: var(--theme-media-stage);
+  --color-popover: var(--theme-popover);
+  --color-disabled: var(--theme-disabled);
+  --color-disabled-foreground: var(--theme-disabled-foreground);
+  --color-success: var(--theme-success);
+  --color-success-soft: var(--theme-success-soft);
+  --color-warning: var(--theme-warning);
+  --color-warning-soft: var(--theme-warning-soft);
+  --color-danger: var(--theme-danger);
+  --color-danger-soft: var(--theme-danger-soft);
+  --color-info: var(--theme-info);
+  --color-info-soft: var(--theme-info-soft);
+  --color-brand-neon: var(--theme-primary);
+  --color-brand-green: var(--theme-accent);
+  --color-brand-white: var(--theme-foreground);
+  --color-brand-soft: var(--theme-primary);
+  --color-brand-gray: var(--theme-muted-foreground);
+  --color-brand-dark-gray: var(--theme-border);
+  --color-brand-black: var(--theme-background);
+  --color-brand-panel: var(--theme-surface);
+  --color-brand-panel-raised: var(--theme-surface-raised);
   --font-sans: var(--font-inter);
   --font-display: var(--font-k2d);
 }
 
 * {
   box-sizing: border-box;
+  scrollbar-color: color-mix(in srgb, var(--theme-primary) 58%, transparent) transparent;
+  scrollbar-width: thin;
 }
 
 html {
   scroll-behavior: smooth;
-  scrollbar-color: rgb(111 155 73 / 0.62) transparent;
-  scrollbar-width: thin;
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
   overflow-x: hidden;
-  background: var(--page-background);
-  color: var(--page-foreground);
+  background: var(--theme-background);
+  color: var(--theme-foreground);
   font-family: var(--font-inter), Arial, sans-serif;
-}
-
-/* Quiet, brand-aware scrollbars for the page, panels, trays, and dialogs. */
-* {
-  scrollbar-color: rgb(111 155 73 / 0.62) transparent;
-  scrollbar-width: thin;
 }
 
 *::-webkit-scrollbar {
@@ -68,15 +172,7 @@ body {
 *::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgb(131 255 0 / 0.62), rgb(42 196 20 / 0.42)) padding-box;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgb(131 255 0 / 0.86), rgb(42 196 20 / 0.62)) padding-box;
-}
-
-*::-webkit-scrollbar-thumb:active {
-  background: var(--brand-neon) padding-box;
+  background: linear-gradient(180deg, var(--theme-primary), var(--growth-green)) padding-box;
 }
 
 button,
@@ -85,8 +181,8 @@ a {
 }
 
 ::selection {
-  background: var(--brand-neon);
-  color: var(--brand-black);
+  background: var(--energy-lime);
+  color: var(--airveek-ink);
 }
 
 img {
@@ -94,35 +190,59 @@ img {
   max-width: 100%;
 }
 
-a {
-  color: inherit;
+@layer base {
+  a {
+    color: inherit;
+  }
 }
 
 :focus-visible {
-  outline: 2px solid var(--brand-neon);
-  outline-offset: 1px;
+  outline: 2px solid var(--theme-focus);
+  outline-offset: 2px;
 }
 
-/* Form controls already expose focus through their single highlighted border. */
 :where(input, select, textarea):focus-visible {
   outline: none;
 }
 
-/* Airveek brand surface helpers: black-first, green-led, and deliberately restrained. */
 .brand-glow {
+  background:
+    radial-gradient(circle at 82% 14%, rgb(42 196 20 / 0.12), transparent 28%),
+    radial-gradient(circle at 12% 42%, rgb(14 113 56 / 0.09), transparent 32%),
+    var(--theme-background);
+}
+
+:root[data-theme="dark"] .brand-glow {
   background:
     radial-gradient(circle at 82% 14%, rgb(131 255 0 / 0.2), transparent 28%),
     radial-gradient(circle at 12% 42%, rgb(42 196 20 / 0.16), transparent 32%),
-    var(--brand-black);
+    var(--theme-background);
+}
+
+.signature-gradient {
+  background: linear-gradient(90deg in oklab, var(--deep-forest) 0%, var(--airveek-emerald) 52%, var(--clear-green) 100%);
+}
+
+.home-hero-gradient {
+  background: linear-gradient(180deg, #064e3b 0%, #087a43 46%, #2ac414 76%, #c9ffad 100%);
+}
+
+.theme-logo-light,
+:root[data-theme="dark"] .theme-logo-dark {
+  display: block;
+}
+
+.theme-logo-dark,
+:root[data-theme="dark"] .theme-logo-light {
+  display: none;
 }
 
 .cta-primary {
-  color: var(--brand-black) !important;
+  color: var(--theme-primary-foreground) !important;
 }
 
 .tutorial-category-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: var(--brand-neon) rgb(255 255 255 / 0.08);
+  scrollbar-color: var(--theme-primary) var(--theme-surface-raised);
   scrollbar-gutter: stable;
 }
 
@@ -132,19 +252,13 @@ a {
 
 .tutorial-category-scroll::-webkit-scrollbar-track {
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.08);
+  background: var(--theme-surface-raised);
 }
 
 .tutorial-category-scroll::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--brand-green), var(--brand-neon)) padding-box;
-  background-clip: padding-box;
-}
-
-.tutorial-category-scroll::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(90deg, var(--brand-neon), #b4ff66) padding-box;
-  background-clip: padding-box;
+  background: linear-gradient(90deg, var(--growth-green), var(--theme-primary)) padding-box;
 }
 
 .tutorial-category-scroll::-webkit-scrollbar-button {
@@ -163,5 +277,7 @@ a {
   *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

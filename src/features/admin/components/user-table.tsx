@@ -124,7 +124,7 @@ function UserRow({ user, pending, onDetails, onStatusChange, onDelete }: { user:
       </TableCell>
       <TableCell className="text-muted">{user.provider}</TableCell>
       <TableCell><span className="font-semibold">{user.generationsToday}</span><span className="ml-1 text-xs text-muted">today</span></TableCell>
-      <TableCell><span className="font-semibold">{user.generationRequests}</span>{user.failedGenerations ? <span className="ml-1 text-xs text-red-200">· {user.failedGenerations} failed</span> : null}</TableCell>
+      <TableCell><span className="font-semibold">{user.generationRequests}</span>{user.failedGenerations ? <span className="ml-1 text-xs text-danger">· {user.failedGenerations} failed</span> : null}</TableCell>
       <TableCell className="text-muted">{formatDate(user.createdAt)}</TableCell>
       <TableCell className="text-muted">{user.lastSignInAt ? formatDate(user.lastSignInAt) : "Never"}</TableCell>
       <TableCell>
@@ -133,7 +133,7 @@ function UserRow({ user, pending, onDetails, onStatusChange, onDelete }: { user:
           <Button aria-label={`${user.status === "suspended" ? "Restore" : "Suspend"} ${user.displayName}`} disabled={pending} onClick={onStatusChange} size="icon" title={user.status === "suspended" ? "Restore user" : "Suspend user"} type="button" variant="ghost">
             {user.status === "suspended" ? <PlayCircle aria-hidden="true" className="h-4 w-4" /> : <PauseCircle aria-hidden="true" className="h-4 w-4" />}
           </Button>
-          <Button aria-label={`Delete ${user.displayName}`} disabled={pending} onClick={onDelete} size="icon" title="Delete user" type="button" variant="ghost"><Trash2 aria-hidden="true" className="h-4 w-4 text-red-300" /></Button>
+          <Button aria-label={`Delete ${user.displayName}`} disabled={pending} onClick={onDelete} size="icon" title="Delete user" type="button" variant="ghost"><Trash2 aria-hidden="true" className="h-4 w-4 text-danger" /></Button>
         </div>
       </TableCell>
     </TableRow>
@@ -179,7 +179,7 @@ function SeoMembershipForm({ user }: { user: AdminUser }) {
   }, [router, state.ok, state.message]);
 
   return (
-    <form action={action} className="mt-6 space-y-4 border-t border-white/10 pt-5">
+    <form action={action} className="mt-6 space-y-4 border-t border-border pt-5">
       <div>
         <h3 className="flex items-center gap-2 font-display text-lg font-bold text-brand-white"><UserCog aria-hidden="true" className="h-4 w-4 text-brand-neon" /> SEO content membership</h3>
         <p className="mt-1 text-xs leading-5 text-muted">Attach this existing Auth account to the controlled content team. This does not create an account, publish pages, or enable automation.</p>
@@ -195,14 +195,14 @@ function SeoMembershipForm({ user }: { user: AdminUser }) {
       </div>
       <label className="block space-y-2 text-sm font-semibold text-brand-white"><span>Expertise (comma separated, optional)</span><input className={membershipInputClassName} name="expertise" placeholder="product photography, ecommerce" /></label>
       <label className="flex items-center gap-3 text-sm font-semibold text-brand-white"><input className="h-4 w-4 accent-brand-neon" defaultChecked={user.seoMemberActive || !user.seoRole} name="isActive" type="checkbox" value="true" /><span>Active content member <span className="block text-xs font-normal text-muted">Inactive members cannot receive SEO assignments or publish waves.</span></span></label>
-      {!state.ok ? <p aria-live="polite" className="rounded-xl border border-red-300/20 bg-red-300/5 px-3 py-2 text-xs text-red-100" role="alert">{state.message}</p> : null}
+      {!state.ok ? <p aria-live="polite" className="rounded-xl border border-red-300/20 bg-red-300/5 px-3 py-2 text-xs text-danger" role="alert">{state.message}</p> : null}
       {state.ok && state.message ? <p aria-live="polite" className="rounded-xl border border-brand-neon/20 bg-brand-neon/5 px-3 py-2 text-xs text-brand-soft" role="status">{state.message} Automation remains disabled until the separate readiness gates pass.</p> : null}
       <Button disabled={pending} type="submit" variant="secondary">{pending ? "Saving…" : user.seoRole ? "Update membership" : "Add to content team"}</Button>
     </form>
   );
 }
 
-const membershipInputClassName = "min-h-11 w-full rounded-xl border border-white/10 bg-brand-black px-3 text-sm text-brand-white placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon";
+const membershipInputClassName = "min-h-11 w-full rounded-xl border border-border bg-brand-black px-3 text-sm text-brand-white placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus";
 
 function slugify(value: string): string {
   const slug = value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");

@@ -112,22 +112,22 @@ export function CreatorLibrary({
           <h1 className="mt-3 font-display text-4xl font-bold">Your library</h1>
           <p className="mt-2 max-w-xl text-sm leading-6 text-muted">Products, people, characters, references, and every successful creation in one place.</p>
         </div>
-        <Link href="/create/general-image" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-neon px-5 text-sm font-bold text-black hover:bg-brand-soft">
+        <Link href="/create/general-image" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-neon px-5 text-sm font-bold text-primary-foreground hover:bg-brand-soft">
           Create image <ExternalLink className="h-4 w-4" aria-hidden="true" />
         </Link>
       </div>
 
-      <div className="mt-8 flex flex-col gap-4 border-y border-white/10 py-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mt-8 flex flex-col gap-4 border-y border-border py-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2" aria-label="Asset type filters">
           {filters.map((item) => (
-            <button key={item.id} type="button" onClick={() => setFilter(item.id)} aria-pressed={filter === item.id} className={cn("min-h-11 rounded-xl border px-4 text-sm font-semibold", filter === item.id ? "border-brand-neon/40 bg-brand-neon/10 text-brand-soft" : "border-white/10 text-muted hover:text-white")}>{item.label}</button>
+            <button key={item.id} type="button" onClick={() => setFilter(item.id)} aria-pressed={filter === item.id} className={cn("min-h-11 rounded-xl border px-4 text-sm font-semibold", filter === item.id ? "border-brand-neon/40 bg-brand-neon/10 text-brand-soft" : "border-border text-muted hover:text-foreground")}>{item.label}</button>
           ))}
         </div>
         <div className="relative w-full lg:max-w-xs">
           <label className="sr-only" htmlFor="library-search">Search library</label>
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
-          <input id="library-search" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by name" className="min-h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] pl-10 pr-10 text-sm text-white placeholder:text-brand-gray focus:border-brand-neon/50 focus:outline-none focus-visible:outline-none" />
-          {search ? <button type="button" onClick={() => setSearch("")} className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted hover:text-white" aria-label="Clear search"><X className="h-4 w-4" aria-hidden="true" /></button> : null}
+          <input id="library-search" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by name" className="min-h-11 w-full rounded-xl border border-border bg-surface-muted pl-10 pr-10 text-sm text-foreground placeholder:text-brand-gray focus:border-brand-neon/50 focus:outline-none focus-visible:outline-none" />
+          {search ? <button type="button" onClick={() => setSearch("")} className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted hover:text-foreground" aria-label="Clear search"><X className="h-4 w-4" aria-hidden="true" /></button> : null}
         </div>
       </div>
 
@@ -136,7 +136,7 @@ export function CreatorLibrary({
       {visibleAssets.length > 0 ? (
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {visibleAssets.map((asset) => (
-            <article key={asset.id} className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+            <article key={asset.id} className="group relative overflow-hidden rounded-2xl border border-border bg-surface-muted">
               <button type="button" onClick={() => setSelected(asset)} className="group relative block aspect-square w-full overflow-hidden bg-brand-panel text-left" aria-label={`View ${asset.name}`}>
                 {asset.imageUrl ? <Image src={asset.imageUrl} alt={asset.name} fill unoptimized className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" sizes="(max-width: 640px) 50vw, 20vw" /> : <ImageIcon className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />}
                 {asset.status !== "ready" ? <Badge className="absolute left-2 top-2" variant={asset.status === "failed" ? "danger" : "warning"}>{asset.status}</Badge> : null}
@@ -146,7 +146,7 @@ export function CreatorLibrary({
                   href={`${asset.imageUrl}?download=1`}
                   download
                   onClick={(event) => event.stopPropagation()}
-                  className="absolute right-3 top-3 z-10 flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 bg-black/75 text-white opacity-0 shadow-lg backdrop-blur transition-opacity hover:bg-black focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-neon group-hover:opacity-100"
+                  className="absolute right-3 top-3 z-10 flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 bg-black/75 text-white opacity-0 shadow-lg backdrop-blur transition-opacity hover:bg-black focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus group-hover:opacity-100"
                   aria-label={`Download ${asset.name}`}
                 >
                   <Download className="h-5 w-5" aria-hidden="true" />
@@ -157,8 +157,8 @@ export function CreatorLibrary({
                 <div className="mt-1 flex items-center justify-between gap-2">
                   <span className="text-xs capitalize text-muted">{asset.kind}</span>
                   <div className="flex">
-                    <button type="button" onClick={() => { setRenameTarget(asset); setRenameValue(asset.name); }} className="flex h-10 w-10 items-center justify-center rounded-lg text-muted hover:bg-white/[0.06] hover:text-white" aria-label={`Rename ${asset.name}`}><Pencil className="h-4 w-4" aria-hidden="true" /></button>
-                    <button type="button" onClick={() => setDeleteTarget(asset)} className="flex h-10 w-10 items-center justify-center rounded-lg text-muted hover:bg-red-500/10 hover:text-red-200" aria-label={`Delete ${asset.name}`}><Trash2 className="h-4 w-4" aria-hidden="true" /></button>
+                    <button type="button" onClick={() => { setRenameTarget(asset); setRenameValue(asset.name); }} className="flex h-10 w-10 items-center justify-center rounded-lg text-muted hover:bg-surface-raised hover:text-foreground" aria-label={`Rename ${asset.name}`}><Pencil className="h-4 w-4" aria-hidden="true" /></button>
+                    <button type="button" onClick={() => setDeleteTarget(asset)} className="flex h-10 w-10 items-center justify-center rounded-lg text-muted hover:bg-red-500/10 hover:text-danger" aria-label={`Delete ${asset.name}`}><Trash2 className="h-4 w-4" aria-hidden="true" /></button>
                   </div>
                 </div>
               </div>
@@ -166,7 +166,7 @@ export function CreatorLibrary({
           ))}
         </div>
       ) : (
-        <div className="mt-4 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] px-6 py-20 text-center">
+        <div className="mt-4 rounded-2xl border border-dashed border-border bg-surface-muted px-6 py-20 text-center">
           <ImageIcon className="mx-auto h-8 w-8 text-brand-neon" aria-hidden="true" />
           <h2 className="mt-4 font-display text-xl font-bold">Nothing here yet</h2>
           <p className="mt-2 text-sm text-muted">{assets.length ? "Try another filter or search." : "Upload a reference or create your first image."}</p>
@@ -176,12 +176,12 @@ export function CreatorLibrary({
       <Dialog open={Boolean(selected)} onOpenChange={(open) => { if (!open) setSelected(null); }} title={selected?.name ?? "Image"} description={selected ? `${capitalize(selected.kind)} · ${new Date(selected.createdAt).toLocaleDateString()}` : undefined}>
         {selected ? (
           <div>
-            <div className="relative aspect-square overflow-hidden rounded-xl bg-black/30">
+            <div className="relative aspect-square overflow-hidden rounded-xl bg-media-stage">
               {selected.imageUrl ? <Image src={selected.imageUrl} alt={selected.name} fill unoptimized className="object-contain" sizes="500px" /> : null}
             </div>
             <div className="mt-4 grid gap-2 sm:grid-cols-3">
-              {selected.imageUrl ? <a href={`${selected.imageUrl}?download=1`} download className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-4 text-sm font-semibold hover:border-brand-neon/40"><Download className="h-4 w-4" aria-hidden="true" /> Download</a> : null}
-              <Link href={`/create/${reuseArena(selected)}?asset=${selected.id}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-neon px-4 text-sm font-bold text-black hover:bg-brand-soft"><RefreshCw className="h-4 w-4" aria-hidden="true" /> Reuse</Link>
+              {selected.imageUrl ? <a href={`${selected.imageUrl}?download=1`} download className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-surface-raised px-4 text-sm font-semibold hover:border-brand-neon/40"><Download className="h-4 w-4" aria-hidden="true" /> Download</a> : null}
+              <Link href={`/create/${reuseArena(selected)}?asset=${selected.id}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand-neon px-4 text-sm font-bold text-primary-foreground hover:bg-brand-soft"><RefreshCw className="h-4 w-4" aria-hidden="true" /> Reuse</Link>
               <Button type="button" variant="secondary" onClick={() => setSelected(null)}>Close</Button>
             </div>
           </div>
@@ -190,7 +190,7 @@ export function CreatorLibrary({
 
       <Dialog open={Boolean(renameTarget)} onOpenChange={(open) => { if (!open) setRenameTarget(null); }} title="Rename image" description="Use a short name that will be easy to find later.">
         <label htmlFor="rename-value" className="text-sm font-semibold">Name</label>
-        <input id="rename-value" value={renameValue} onChange={(event) => setRenameValue(event.target.value)} maxLength={100} className="mt-2 min-h-12 w-full rounded-xl border border-white/10 bg-black/25 px-3 text-sm focus:border-brand-neon/50 focus:outline-none focus-visible:outline-none" />
+        <input id="rename-value" value={renameValue} onChange={(event) => setRenameValue(event.target.value)} maxLength={100} className="mt-2 min-h-12 w-full rounded-xl border border-border bg-surface-muted px-3 text-sm focus:border-brand-neon/50 focus:outline-none focus-visible:outline-none" />
         <div className="mt-5 flex justify-end gap-2"><Button type="button" variant="ghost" onClick={() => setRenameTarget(null)}>Cancel</Button><Button type="button" variant="primary" onClick={() => void renameAsset()} disabled={!renameValue.trim() || pendingId === renameTarget?.id}>{pendingId === renameTarget?.id ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : null} Save</Button></div>
       </Dialog>
 

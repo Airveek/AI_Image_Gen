@@ -58,18 +58,18 @@ export function CheckoutLauncher({ plan }: CheckoutLauncherProps) {
 
   return (
     <main className="brand-glow flex min-h-screen items-center justify-center px-4 py-10 sm:px-6">
-      <section className="w-full max-w-md rounded-3xl border border-[#83ff00]/20 bg-[#0b120b]/95 p-8 text-center shadow-[0_24px_80px_rgba(0,0,0,0.45)]" aria-labelledby="checkout-title">
+      <section className="w-full max-w-md rounded-3xl border border-primary/20 bg-surface/95 p-8 text-center shadow-[0_24px_80px_rgba(var(--theme-shadow))]" aria-labelledby="checkout-title">
         {error ? (
           <>
-            <h1 id="checkout-title" className="font-display text-3xl font-extrabold text-[#fdfdfd]">Checkout unavailable</h1>
-            <p className="mt-3 text-sm leading-6 text-[#a4b19e]">{error}</p>
-            <Link className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-[#83ff00] px-5 py-2 text-sm font-bold text-[#040404]" href={`/checkout?plan=${plan}`}>Try again</Link>
+            <h1 id="checkout-title" className="font-display text-3xl font-extrabold text-foreground">Checkout unavailable</h1>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">{error}</p>
+            <Link className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-bold text-primary-foreground hover:bg-primary-hover" href={`/checkout?plan=${plan}`}>Try again</Link>
           </>
         ) : (
           <>
-            <div className="mx-auto mb-5 h-10 w-10 animate-pulse rounded-full bg-[#83ff00]/20" aria-hidden="true" />
-            <h1 id="checkout-title" className="font-display text-3xl font-extrabold text-[#fdfdfd]">Opening secure checkout</h1>
-            <p className="mt-3 text-sm leading-6 text-[#a4b19e]">You are being redirected to Whop to complete your purchase.</p>
+            <div className="mx-auto mb-5 h-10 w-10 animate-pulse rounded-full bg-primary/20" aria-hidden="true" />
+            <h1 id="checkout-title" className="font-display text-3xl font-extrabold text-foreground">Opening secure checkout</h1>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">You are being redirected to Whop to complete your purchase.</p>
           </>
         )}
       </section>

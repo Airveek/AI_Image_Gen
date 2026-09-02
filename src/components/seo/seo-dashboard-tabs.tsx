@@ -14,7 +14,7 @@ export function SeoDashboardTabs({ tabs }: { tabs: SeoDashboardTab[] }) {
 
   return (
     <div className="space-y-6">
-      <div className="sticky top-2 z-10 rounded-2xl border border-white/10 bg-brand-panel/95 p-2 backdrop-blur">
+      <div className="sticky top-2 z-10 rounded-2xl border border-border bg-brand-panel/95 p-2 backdrop-blur">
         <div className="flex flex-wrap gap-2" role="tablist" aria-label="SEO dashboard sections" id={tabListId}>
           {tabs.map((tab) => {
             const selected = tab.id === activeId;

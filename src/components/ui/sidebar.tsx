@@ -35,7 +35,7 @@ export function Sidebar({ children, className }: { children: ReactNode; classNam
       ) : null}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-white/10 bg-brand-black transition-transform duration-200 lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-border bg-background transition-transform duration-200 lg:translate-x-0",
           context.open ? "translate-x-0" : "-translate-x-full",
           className,
         )}
@@ -43,7 +43,7 @@ export function Sidebar({ children, className }: { children: ReactNode; classNam
         <div className="flex items-center justify-end p-3 lg:hidden">
           <button
             aria-label="Close navigation"
-            className="grid h-11 w-11 place-items-center rounded-xl text-muted hover:bg-white/[0.06] hover:text-brand-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon"
+            className="grid h-11 w-11 place-items-center rounded-xl text-muted-foreground hover:bg-surface-muted hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
             onClick={() => context.setOpen(false)}
             type="button"
           >
@@ -66,7 +66,7 @@ export function SidebarTrigger() {
   return (
     <button
       aria-label={context.open ? "Close navigation" : "Open navigation"}
-      className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-muted hover:border-brand-neon/40 hover:text-brand-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-neon lg:hidden"
+      className="grid h-11 w-11 place-items-center rounded-xl border border-border bg-surface text-muted-foreground hover:border-primary/40 hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus lg:hidden"
       onClick={() => context.setOpen(!context.open)}
       type="button"
     >

@@ -53,7 +53,7 @@ const sections: LegalSection[] = [
     id: "copyright-requests",
     title: "Copyright and rights concerns",
     paragraphs: [
-      <>Airveek respects intellectual property and other legal rights. If you believe content created or distributed through the Service infringes your rights, send a clear notice to <a className="font-semibold text-[#83ff00] underline decoration-[#83ff00]/30 underline-offset-4" href="mailto:support@airveek.com">support@airveek.com</a>.</>,
+      <>Airveek respects intellectual property and other legal rights. If you believe content created or distributed through the Service infringes your rights, send a clear notice to <a className="font-semibold text-primary underline decoration-primary/30 underline-offset-4" href="mailto:support@airveek.com">support@airveek.com</a>.</>,
     ],
     bullets: [
       <>Identify the protected work, person, or right at issue.</>,
@@ -75,7 +75,7 @@ const sections: LegalSection[] = [
     title: "Acceptance and contact",
     paragraphs: [
       <>By using Airveek, you acknowledge the limitations of AI-generated content and accept responsibility for how you use the Service and its outputs.</>,
-      <>Questions about this Disclaimer may be sent to <a className="font-semibold text-[#83ff00] underline decoration-[#83ff00]/30 underline-offset-4" href="mailto:support@airveek.com">support@airveek.com</a>.</>,
+      <>Questions about this Disclaimer may be sent to <a className="font-semibold text-primary underline decoration-primary/30 underline-offset-4" href="mailto:support@airveek.com">support@airveek.com</a>.</>,
     ],
   },
 ];

@@ -91,13 +91,13 @@ export function CreatorDashboard({
             value={search}
             onChange={(event) => updateParams({ search: event.target.value })}
             placeholder="Search product photos, storybooks, thumbnails…"
-            className="min-h-14 w-full rounded-2xl border border-white/12 bg-white/[0.05] pl-12 pr-12 text-base text-white placeholder:text-brand-gray focus:border-brand-neon/60 focus:outline-none focus-visible:outline-none"
+            className="min-h-14 w-full rounded-2xl border border-border bg-surface-muted pl-12 pr-12 text-base text-foreground placeholder:text-brand-gray focus:border-brand-neon/60 focus:outline-none focus-visible:outline-none"
           />
           {search ? (
             <button
               type="button"
               onClick={() => updateParams({ search: "" })}
-              className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-muted hover:bg-white/[0.06] hover:text-white"
+              className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-muted hover:bg-surface-raised hover:text-foreground"
               aria-label="Clear search"
             >
               <X className="h-4 w-4" aria-hidden="true" />
@@ -172,30 +172,30 @@ export function CreatorDashboard({
                 <Link
                   key={item.id}
                   href={`/create/${item.arenaId}`}
-                  className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] transition-colors hover:border-brand-neon/40 hover:bg-white/[0.055]"
+                  className="group overflow-hidden rounded-2xl border border-border bg-surface-muted transition-colors hover:border-brand-neon/40 hover:bg-surface-raised"
                 >
                   {content}
                 </Link>
               ) : (
-                <article key={item.id} className="group overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.025] opacity-80">
+                <article key={item.id} className="group overflow-hidden rounded-2xl border border-border bg-surface-muted opacity-80">
                   {content}
                 </article>
               );
             })}
           </div>
         ) : (
-          <div className="mt-5 rounded-2xl border border-dashed border-white/15 bg-white/[0.025] px-6 py-16 text-center">
+          <div className="mt-5 rounded-2xl border border-dashed border-border bg-surface-muted px-6 py-16 text-center">
             <Sparkles className="mx-auto h-7 w-7 text-brand-neon" aria-hidden="true" />
             <h3 className="mt-4 font-display text-xl font-bold">No matching tool yet</h3>
             <p className="mt-2 text-sm text-muted">Try another word or show all creation tools.</p>
-            <button type="button" onClick={resetFilters} className="mt-5 min-h-11 rounded-xl bg-brand-neon px-5 text-sm font-bold text-black hover:bg-brand-soft">
+            <button type="button" onClick={resetFilters} className="mt-5 min-h-11 rounded-xl bg-brand-neon px-5 text-sm font-bold text-primary-foreground hover:bg-brand-soft">
               Reset filters
             </button>
           </div>
         )}
       </section>
 
-      <section className="mt-14 border-t border-white/10 pt-10" aria-labelledby="recent-heading">
+      <section className="mt-14 border-t border-border pt-10" aria-labelledby="recent-heading">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 id="recent-heading" className="font-display text-2xl font-bold">Recent creations</h2>
@@ -204,18 +204,18 @@ export function CreatorDashboard({
           <Link className="text-sm font-bold text-brand-neon hover:text-brand-soft" href="/library">Open library</Link>
         </div>
         {storageMessage ? (
-          <p className="mt-5 rounded-xl border border-amber-300/20 bg-amber-300/5 p-4 text-sm leading-6 text-amber-100">{storageMessage}</p>
+          <p className="mt-5 rounded-xl border border-warning/30 bg-warning-soft p-4 text-sm leading-6 text-warning">{storageMessage}</p>
         ) : recent.length > 0 ? (
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {recent.map((asset) => (
-              <Link key={asset.id} href="/library" className="group relative aspect-square overflow-hidden rounded-xl border border-white/10 bg-brand-panel">
+              <Link key={asset.id} href="/library" className="group relative aspect-square overflow-hidden rounded-xl border border-border bg-brand-panel">
                 {asset.imageUrl ? <Image src={asset.imageUrl} alt={asset.name} fill unoptimized className="object-cover transition-transform group-hover:scale-[1.03]" sizes="20vw" /> : null}
-                <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/90 to-transparent px-3 pb-2 pt-8 text-xs font-semibold">{asset.name}</span>
+                <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/90 to-transparent px-3 pb-2 pt-8 text-xs font-semibold text-white">{asset.name}</span>
               </Link>
             ))}
           </div>
         ) : (
-          <div className="mt-5 rounded-2xl border border-dashed border-white/12 bg-white/[0.02] p-8 text-sm text-muted">
+          <div className="mt-5 rounded-2xl border border-dashed border-border bg-surface-muted p-8 text-sm text-muted">
             Your first successful generation will appear here automatically.
           </div>
         )}
@@ -233,7 +233,7 @@ function FilterButton({ active, children, onClick }: { active: boolean; children
         "min-h-11 rounded-xl border px-4 text-sm font-semibold transition-colors",
         active
           ? "border-brand-neon/50 bg-brand-neon/12 text-brand-soft"
-          : "border-white/10 bg-white/[0.035] text-muted hover:border-white/20 hover:text-white",
+          : "border-border bg-surface-muted text-muted hover:border-white/20 hover:text-foreground",
       )}
       aria-pressed={active}
     >
