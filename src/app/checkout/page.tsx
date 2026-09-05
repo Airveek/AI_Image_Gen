@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { CheckoutLauncher } from "@/components/checkout/checkout-launcher";
+import { getCurrentCreatorAccess } from "@/features/creator/server/entitlements";
 import { getPathWithNext, getSafeRedirectPath } from "@/lib/auth/redirect-path";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isPlanKey, type PlanKey } from "@/lib/whop/types";
@@ -34,6 +35,11 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
   if (!user) {
     const nextPath = getSafeRedirectPath(`/checkout?plan=${encodeURIComponent(plan)}`);
     redirect(getPathWithNext("/login", nextPath));
+  }
+
+  const access = await getCurrentCreatorAccess();
+  if (access.hasActiveAccess && (access.planKey === null || access.planKey === plan)) {
+    redirect("/plans");
   }
 
   return <CheckoutLauncher plan={plan} />;

@@ -2,8 +2,11 @@ import type Stripe from "stripe";
 
 import { recordUserEvent } from "@/lib/analytics/user-events";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { replacePreviousEntitlement } from "@/features/billing/server/entitlement-replacement";
 import { getStripeClient, getStripeWebhookSecret } from "@/lib/stripe/client";
 import { identifyStripePrice } from "@/lib/stripe/plans";
+import { readUpgradeSource } from "@/lib/billing/upgrade";
+import type { UpgradeSource } from "@/lib/billing/upgrade";
 import type { BillingMode, PlanKey } from "@/lib/billing/types";
 
 export const runtime = "nodejs";
@@ -63,6 +66,11 @@ async function applyCheckoutEvent(event: Stripe.Event & { data: { object: Stripe
     ? "failed"
     : (session.payment_status === "paid" || session.payment_status === "no_payment_required" ? "completed" : "pending");
 
+  const upgrade = readUpgradeSource(session.metadata);
+  if (status === "completed" && upgrade) {
+    await replaceStripeEntitlement(userId, session.id, upgrade, event);
+  }
+
   await applyEntitlement({
     userId, reference: session.id, planId: priceId, planKey: resolvedPlan, mode,
     status, customerId: idOf(session.customer), paymentId: idOf(session.payment_intent),
@@ -85,12 +93,32 @@ async function applySubscriptionEvent(event: Stripe.Event & { data: { object: St
   }
   const status = subscription.cancel_at_period_end && subscription.status === "active" ? "canceling" : subscription.status;
   const periodEnd = item && typeof item.current_period_end === "number" ? new Date(item.current_period_end * 1000).toISOString() : null;
+  const upgrade = readUpgradeSource(subscription.metadata);
+  if (["active", "trialing"].includes(subscription.status) && upgrade) {
+    await replaceStripeEntitlement(userId, subscription.id, upgrade, event);
+  }
   await applyEntitlement({
     userId, reference: subscription.id, planId: priceId, planKey, mode: "subscription",
     status, customerId: idOf(subscription.customer), paymentId: null, checkoutSessionId: null,
     cancelAtPeriodEnd: subscription.cancel_at_period_end, accessExpiresAt: periodEnd, event,
   });
   await recordMembershipAnalytics(userId, planKey, ["active", "trialing", "canceling"].includes(status), event);
+}
+
+async function replaceStripeEntitlement(userId: string, currentReference: string, upgrade: UpgradeSource, event: Stripe.Event): Promise<void> {
+  if (upgrade.provider !== "stripe") throw new Error("Stripe upgrade metadata references another provider.");
+  await replacePreviousEntitlement({
+    userId,
+    provider: "stripe",
+    previousReference: upgrade.reference,
+    currentReference,
+    eventId: event.id,
+    eventAt: new Date(event.created * 1000).toISOString(),
+    cancelRemote: async () => {
+      if (upgrade.billingMode !== "subscription") return;
+      await getStripeClient().subscriptions.cancel(upgrade.reference);
+    },
+  });
 }
 
 async function applyEntitlement(input: {

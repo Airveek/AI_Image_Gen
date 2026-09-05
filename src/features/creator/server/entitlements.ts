@@ -11,7 +11,7 @@ type EntitlementRow = { provider: BillingProvider; provider_reference: string; p
   access_expires_at: string | null; provider_customer_id: string | null; updated_at: string };
 type SelectedEntitlement = { row: EntitlementRow; access: CreatorAccessSummary };
 
-const EMPTY_ACCESS: CreatorAccessSummary = { provider: null, planName: "No plan yet", planKey: null, billingKind: "unknown", status: null, hasActiveAccess: false };
+const EMPTY_ACCESS: CreatorAccessSummary = { provider: null, providerReference: null, providerCustomerId: null, planName: "No plan yet", planKey: null, billingKind: "unknown", status: null, hasActiveAccess: false };
 const EMPTY_BILLING: AccountBillingSummary = { ...EMPTY_ACCESS, cancelAtPeriodEnd: false, canManageBilling: false, manageUrl: null, renewalAt: null };
 
 export async function getCurrentCreatorAccess(): Promise<CreatorAccessSummary> {
@@ -72,7 +72,8 @@ function mapAccess(row: EntitlementRow): CreatorAccessSummary {
   const planKey = row.plan_key ?? whopIdentity?.planKey ?? null;
   const legacy = whopIdentity?.billingKind === "legacy-lifetime";
   const status = readBillingStatus(row.status);
-  return { provider: row.provider, planName: planKey ? PLAN_DEFINITIONS[planKey].name : whopIdentity?.planName ?? "Paid plan",
+  return { provider: row.provider, providerReference: row.provider_reference, providerCustomerId: row.provider_customer_id,
+    planName: planKey ? PLAN_DEFINITIONS[planKey].name : whopIdentity?.planName ?? "Paid plan",
     planKey, billingKind: legacy ? "legacy-lifetime" : billingKindForMode(row.billing_mode), status,
     hasActiveAccess: legacy ? hasBillingAccess("one_time", status) : hasBillingAccess(row.billing_mode, status) };
 }
