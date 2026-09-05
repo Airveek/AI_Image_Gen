@@ -61,6 +61,14 @@ export function ConsentAndAttribution() {
 
   function decide(value: "granted" | "denied") {
     document.cookie = `${CONSENT_COOKIE}=${value}; Max-Age=${60 * 60 * 24 * 180}; Path=/; SameSite=Lax${window.location.protocol === "https:" ? "; Secure" : ""}`;
+    // Initialize the Pixel queue before notifying page-level trackers. On a
+    // visitor's first consent grant, those listeners run synchronously and
+    // would otherwise miss their browser copy while the SDK is still mounting.
+    if (value === "granted" && !analyticsExcludedRoute && pathname && META_PIXEL_ID) {
+      ensureMetaPixel(META_PIXEL_ID);
+      lastMetaPathname.current = pathname;
+      trackFunnelEvent("PageView", { content_name: document.title });
+    }
     setConsent(value);
     setVisible(false);
     window.dispatchEvent(new Event("airveek:analytics-consent"));
