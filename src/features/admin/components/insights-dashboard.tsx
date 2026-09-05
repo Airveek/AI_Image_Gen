@@ -30,6 +30,23 @@ export function InsightsDashboard({ data }: { data: AdminInsightsData }) {
         ))}
       </section>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>AI Fashion Photoshoot funnel</CardTitle>
+          <CardDescription>Deduplicated first-party campaign events for the selected attribution window.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="mb-6 flex flex-col gap-3 sm:flex-row" method="get">
+            <label className="text-sm font-semibold">Window<select className="mt-1 block min-h-11 rounded-xl border border-border bg-surface px-3 font-normal" defaultValue={String(data.fashionFunnel.periodDays)} name="days">{[7, 30, 90, 365].map((days) => <option value={days} key={days}>{days} days</option>)}</select></label>
+            <label className="text-sm font-semibold">Campaign<select className="mt-1 block min-h-11 min-w-56 rounded-xl border border-border bg-surface px-3 font-normal" defaultValue={data.fashionFunnel.campaign ?? ""} name="campaign"><option value="">All campaigns</option>{data.fashionFunnel.campaigns.map((campaign) => <option value={campaign} key={campaign}>{campaign}</option>)}</select></label>
+            <button className="min-h-11 self-end rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground" type="submit">Apply</button>
+          </form>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
+            {data.fashionFunnel.stages.map((stage) => <div className="rounded-2xl border border-border bg-surface-muted p-4" key={stage.eventName}><p className="text-xs font-bold uppercase tracking-[0.1em] text-muted">{stage.label}</p><p className="mt-2 font-display text-3xl font-bold text-brand-white">{stage.count}</p><p className="mt-1 text-xs text-muted">{stage.conversionFromPrevious === null ? "Entry stage" : `${stage.conversionFromPrevious}% from prior`}</p></div>)}
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
         <Card>
           <CardHeader>

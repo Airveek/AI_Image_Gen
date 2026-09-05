@@ -99,6 +99,12 @@ export type AdminInsightsData = {
   arenas: AdminInsightArena[];
   cohorts: AdminInsightCohort[];
   users: AdminInsightUser[];
+  fashionFunnel: {
+    periodDays: number;
+    campaign: string | null;
+    campaigns: string[];
+    stages: Array<{ eventName: string; label: string; count: number; conversionFromPrevious: number | null }>;
+  };
 };
 
 export type AdminActionResult =

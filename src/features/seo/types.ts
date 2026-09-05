@@ -34,10 +34,15 @@ export type SeoTouch = {
   campaign: string | null;
   referrerHost: string | null;
   contentId: string | null;
+  utmContent: string | null;
+  utmTerm: string | null;
+  fbclid: string | null;
+  fbp: string | null;
+  fbc: string | null;
 };
 
 export type SeoAttributionCookie = {
-  version: 1;
+  version: 1 | 2;
   anonymousId: string;
   firstTouch: SeoTouch;
   lastNonDirectTouch: SeoTouch | null;

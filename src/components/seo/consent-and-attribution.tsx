@@ -3,19 +3,25 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { Analytics } from "@vercel/analytics/next";
 
 import { CoreWebVitalsReporter } from "@/components/seo/core-web-vitals-reporter";
 import { trackGa4Event } from "@/lib/analytics/browser";
+import { ensureMetaPixel, trackFunnelEvent } from "@/lib/analytics/meta-browser";
 
 const CONSENT_COOKIE = "airveek_analytics_consent";
 // Never emit a guessed or malformed measurement ID. The public env value is
 // injected at build time; when it is absent, analytics stays disabled rather
 // than sending data to an unintended GA4 property.
 const GA4_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID?.trim() || null;
+const META_PIXEL_ID = /^\d{6,30}$/.test(process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim() ?? "")
+  ? process.env.NEXT_PUBLIC_META_PIXEL_ID!.trim()
+  : null;
 
 export function ConsentAndAttribution() {
   const pathname = usePathname();
   const previousPathname = useRef(pathname);
+  const lastMetaPathname = useRef<string | null>(null);
   const [visible, setVisible] = useState(false);
   const [consent, setConsent] = useState<"granted" | "denied" | null>(null);
 
@@ -45,6 +51,14 @@ export function ConsentAndAttribution() {
     });
   }, [pathname, consent, analyticsExcludedRoute]);
 
+  useEffect(() => {
+    if (consent !== "granted" || analyticsExcludedRoute || !pathname || !META_PIXEL_ID) return;
+    if (lastMetaPathname.current === pathname) return;
+    lastMetaPathname.current = pathname;
+    ensureMetaPixel(META_PIXEL_ID);
+    trackFunnelEvent("PageView", { content_name: document.title });
+  }, [pathname, consent, analyticsExcludedRoute]);
+
   function decide(value: "granted" | "denied") {
     document.cookie = `${CONSENT_COOKIE}=${value}; Max-Age=${60 * 60 * 24 * 180}; Path=/; SameSite=Lax${window.location.protocol === "https:" ? "; Secure" : ""}`;
     setConsent(value);
@@ -55,8 +69,10 @@ export function ConsentAndAttribution() {
 
   return <>
     {consent === "granted" && !analyticsExcludedRoute ? <GoogleAnalyticsTag /> : null}
+    {consent === "granted" && !analyticsExcludedRoute ? <Analytics /> : null}
+    {consent === "granted" && !analyticsExcludedRoute && META_PIXEL_ID ? <Script id="airveek-meta-pixel" async src="https://connect.facebook.net/en_US/fbevents.js" strategy="afterInteractive" /> : null}
     {consent === "granted" && !privateRoute ? <CoreWebVitalsReporter /> : null}
-    {visible && !privateRoute ? <aside className="pointer-events-none fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-3xl flex-col gap-4 rounded-2xl border border-border bg-popover/95 p-5 text-sm text-foreground shadow-2xl backdrop-blur sm:bottom-auto sm:top-4 sm:flex-row sm:items-center sm:justify-between" role="dialog" aria-label="Analytics preferences"><p className="max-w-xl leading-6">Airveek uses optional analytics to understand which guides help people create and buy. Essential cookies work without this choice.</p><div className="pointer-events-auto flex shrink-0 gap-2"><button className="rounded-full border border-border px-4 py-2 font-bold text-muted-foreground hover:border-primary/50" onClick={() => decide("denied")} type="button">Decline</button><button className="rounded-full bg-primary px-4 py-2 font-black text-primary-foreground hover:bg-primary-hover" onClick={() => decide("granted")} type="button">Allow analytics</button></div></aside> : null}
+    {visible && !privateRoute ? <aside className="pointer-events-none fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-3xl flex-col gap-4 rounded-2xl border border-border bg-popover/95 p-5 text-sm text-foreground shadow-2xl backdrop-blur sm:bottom-auto sm:top-4 sm:flex-row sm:items-center sm:justify-between" role="dialog" aria-label="Analytics preferences"><p className="max-w-xl leading-6">Airveek uses optional analytics and advertising measurement to understand which pages help people create and buy. Essential cookies work without this choice.</p><div className="pointer-events-auto flex shrink-0 gap-2"><button className="min-h-11 rounded-full border border-border px-4 py-2 font-bold text-muted-foreground hover:border-primary/50" onClick={() => decide("denied")} type="button">Decline</button><button className="min-h-11 rounded-full bg-primary px-4 py-2 font-black text-primary-foreground hover:bg-primary-hover" onClick={() => decide("granted")} type="button">Allow measurement</button></div></aside> : null}
   </>;
 }
 

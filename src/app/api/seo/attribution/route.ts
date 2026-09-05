@@ -34,6 +34,8 @@ export async function POST(request: Request) {
     existingCookieValue: cookieValue,
     signingSecret: getSeoAttributionSigningSecret(),
     siteHostname: requestUrl.hostname,
+    fbp: readCookie(request.headers.get("cookie"), "_fbp"),
+    fbc: readCookie(request.headers.get("cookie"), "_fbc"),
   });
 
   const response = NextResponse.json({ ok: true, action: mutation.action }, { status: 200, headers: PRIVATE_HEADERS });
@@ -43,6 +45,13 @@ export async function POST(request: Request) {
     if (mutation.touchToRecord) await recordSeoTouchpoint({ attribution: mutation.attribution, touch: mutation.touchToRecord });
   }
   return response;
+}
+
+function readCookie(header: string | null, name: string): string | null {
+  if (!header) return null;
+  const value = header.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1);
+  if (!value) return null;
+  try { return decodeURIComponent(value); } catch { return value; }
 }
 
 function readReferrer(value: unknown): string | null {

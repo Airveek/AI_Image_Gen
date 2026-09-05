@@ -20,6 +20,7 @@ export default function robots(): MetadataRoute.Robots {
           "/login",
           "/register",
           "/preview/",
+          "/playground/",
           "/search",
         ],
       },

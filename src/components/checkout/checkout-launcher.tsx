@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { isCheckoutResponse } from "@/lib/billing/checkout";
 import type { PlanKey } from "@/lib/billing/types";
 import { trackGa4Event } from "@/lib/analytics/browser";
+import { trackServerMirroredPixelEvent } from "@/lib/analytics/meta-browser";
 
 type CheckoutLauncherProps = {
   plan: PlanKey;
@@ -40,6 +41,7 @@ export function CheckoutLauncher({ plan }: CheckoutLauncherProps) {
         }
 
         if (!cancelled) {
+          trackServerMirroredPixelEvent("InitiateCheckout", responseBody.metaEventId, { plan_key: plan, content_name: `Airveek ${plan === "premium" ? "Premium" : "Commercial"}`, content_category: "paid_access", value: plan === "premium" ? 147 : 49, currency: "USD" });
           window.location.assign(responseBody.purchaseUrl);
         }
       } catch (checkoutError: unknown) {

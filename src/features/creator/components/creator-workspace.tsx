@@ -30,6 +30,8 @@ import type {
   CreatorBatchItem,
   CreatorBatchStatus,
   CreatorResult,
+  CreatorGenerationResult,
+  GenerationAccessSummary,
   GenerationReference,
   GenerationCount,
   GenerationRequest,
@@ -41,14 +43,18 @@ import type {
 import { studioRecipeIdForScene } from "@/features/creator/quality";
 import { cn } from "@/lib/utils";
 import { trackGa4Event } from "@/lib/analytics/browser";
+import { hasAnalyticsConsent, trackFunnelEvent, trackPixelEvent, trackServerMirroredPixelEvent } from "@/lib/analytics/meta-browser";
 
 type AssetResult = CreatorResult<CreatorAsset>;
+type GenerationAssetResult = CreatorGenerationResult;
 type DeleteAssetResult = CreatorResult<{ id: string }>;
 type UploadKind = Exclude<CreatorAssetKind, "generation">;
 
-export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
+export function CreatorWorkspace({ arenaId, initialAssets, initialAccess, billingMode, storageMessage }: {
   arenaId: CreatorArenaId;
   initialAssets: CreatorAsset[];
+  initialAccess: GenerationAccessSummary;
+  billingMode: "one_time" | "subscription";
   storageMessage: string | null;
 }) {
   const workspaceRef = useRef<HTMLDivElement>(null);
@@ -63,7 +69,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   });
   const [viewingAsset, setViewingAsset] = useState<CreatorAsset | null>(null);
   const [message, setMessage] = useState(storageMessage ?? "");
-  const [generationCount, setGenerationCount] = useState<GenerationCount>(2);
+  const [generationCount, setGenerationCount] = useState<GenerationCount>(() => initialAccess.hasPaidAccess ? 2 : Math.min(2, Math.max(1, initialAccess.remaining)) as GenerationCount);
   const [batchStatus, setBatchStatus] = useState<CreatorBatchStatus>("idle");
   const [batchItems, setBatchItems] = useState<CreatorBatchItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -75,6 +81,9 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   const [assetDialogOpen, setAssetDialogOpen] = useState(false);
   const [preferredRole, setPreferredRole] = useState<ReferenceRole | null>(null);
   const [arenaSearch, setArenaSearch] = useState("");
+  const [access, setAccess] = useState(initialAccess);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const paywallTracked = useRef(false);
 
   const [subject, setSubject] = useState("");
   const [exactText, setExactText] = useState("");
@@ -96,6 +105,17 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
     workspaceRef.current?.setAttribute("data-ready", "true");
   }, []);
 
+  useEffect(() => {
+    const trackPaywall = () => {
+      if (!paywallOpen || paywallTracked.current || !hasAnalyticsConsent()) return;
+      paywallTracked.current = true;
+      trackFunnelEvent("PaywallView", { placement: "creator_workspace", plan_key: "commercial", value: 49, currency: "USD", billing_mode: billingMode });
+    };
+    trackPaywall();
+    window.addEventListener("airveek:analytics-consent", trackPaywall);
+    return () => window.removeEventListener("airveek:analytics-consent", trackPaywall);
+  }, [paywallOpen, billingMode]);
+
   const selectedReferences = useMemo(() => references.flatMap((reference) => {
     const asset = assets.find((item) => item.id === reference.assetId);
     return asset ? [{ ...reference, asset }] : [];
@@ -106,6 +126,9 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   const mainText = arenaId === "general-image" ? subject : arenaId === "product-fashion" ? extraDirection : arenaId === "storybook-page" ? storyScene : sketchPrompt;
   const isGenerating = batchStatus === "generating";
   const isBusy = isGenerating;
+  const availableGenerationCount = access.hasPaidAccess || access.remaining <= 0
+    ? generationCount
+    : Math.min(generationCount, access.remaining) as GenerationCount;
   const singleReadyResult = batchItems.length === 1 && batchItems[0]?.status === "ready" && batchItems[0].asset?.imageUrl
     ? { asset: batchItems[0].asset, imageUrl: batchItems[0].asset.imageUrl }
     : null;
@@ -119,20 +142,33 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
 
   async function handleGenerate(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
+    if (!access.hasPaidAccess && access.remaining <= 0) {
+      setPaywallOpen(true);
+      setMessage("Your two free images are used. Unlock Airveek to keep creating.");
+      return;
+    }
     if (isBusy || !validateForGeneration()) return;
     const request = buildRequest();
-    trackGa4Event("generation_requested", { arena_id: arenaId, reference_count: request.references.length, generation_count: generationCount });
-    const items = createBatchItems(request, generationCount);
+    const count = availableGenerationCount;
+    trackGa4Event("generation_requested", { arena_id: arenaId, reference_count: request.references.length, generation_count: count });
+    trackFunnelEvent("GenerationIntent", { arena_id: arenaId, generation_count: count, placement: "creator_workspace" });
+    trackFunnelEvent("GenerationStarted", { arena_id: arenaId, generation_count: count, placement: "creator_workspace" });
+    const items = createBatchItems(request, count);
     setBatchItems(items);
     setBatchStatus("generating");
-    setMessage(arenaId === "image-to-sketch" ? `Airveek is cleaning ${generationCount === 1 ? "your sketch" : `${generationCount} versions of your sketch`}…` : `Airveek is creating ${generationCount} image${generationCount === 1 ? "" : "s"}…`);
+    setMessage(arenaId === "image-to-sketch" ? `Airveek is cleaning ${count === 1 ? "your sketch" : `${count} versions of your sketch`}…` : `Airveek is creating ${count} image${count === 1 ? "" : "s"}…`);
 
-    const jobs = items.map(async (item): Promise<AssetResult> => {
+    const jobs = items.map(async (item): Promise<GenerationAssetResult> => {
       const parsed = await requestGeneration(item.request);
       if (!parsed.ok) {
+        if (parsed.access) setAccess(parsed.access);
+        if (parsed.code === "payment_required") setPaywallOpen(true);
         updateBatchItem(item.index, { status: "failed", error: parsed.message });
         return parsed;
       }
+      setAccess(parsed.access);
+      trackServerMirroredPixelEvent("GenerationSucceeded", parsed.trackingEventId, { arena_id: arenaId, content_name: arenaId === "product-fashion" ? "AI Fashion Photoshoot" : "Airveek generation", content_category: "creator_output", remaining_credits: parsed.access.remaining });
+      if (!parsed.access.hasPaidAccess) trackPixelEvent("FreeGenerationUsed", crypto.randomUUID(), { arena_id: arenaId, remaining_credits: parsed.access.remaining });
       addGeneratedAsset(parsed.data);
       updateBatchItem(item.index, { status: "ready", asset: parsed.data, error: null });
       return parsed;
@@ -146,12 +182,19 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
     });
     const hasFailure = settled.some((outcome) => outcome.status === "rejected" || (outcome.status === "fulfilled" && !outcome.value.ok));
     const hasSuccess = settled.some((outcome) => outcome.status === "fulfilled" && outcome.value.ok);
+    const accessResults = settled.flatMap((outcome) => outcome.status === "fulfilled" && outcome.value.access ? [outcome.value.access] : []);
+    const finalAccess = accessResults.find((summary) => summary.hasPaidAccess)
+      ?? accessResults.sort((left, right) => right.remaining - left.remaining)[0];
+    if (finalAccess) {
+      setAccess(finalAccess);
+      if (!finalAccess.hasPaidAccess && finalAccess.remaining === 0 && hasSuccess) setPaywallOpen(true);
+    }
     if (hasSuccess && typeof window !== "undefined" && !window.sessionStorage.getItem("airveek_first_generation_tracked")) {
       window.sessionStorage.setItem("airveek_first_generation_tracked", "1");
       trackGa4Event("first_generation", { arena_id: arenaId, reference_count: request.references.length });
     }
     setBatchStatus(hasFailure ? "completed-with-errors" : "completed");
-    setMessage(hasFailure ? "Some images are ready. Retry any failed image below." : `${generationCount === 1 ? "Your image is" : "Your images are"} ready and saved to the library.`);
+    setMessage(hasFailure ? "Some images are ready. Retry any failed image below." : `${count === 1 ? "Your image is" : "Your images are"} ready and saved to the library.`);
     router.refresh();
   }
 
@@ -159,16 +202,22 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
     if (isBusy) return;
     const item = batchItems.find((candidate) => candidate.index === index);
     if (!item) return;
+    const retryRequest = { ...item.request, generationAttemptId: crypto.randomUUID() } as GenerationRequest;
+    updateBatchItem(index, { request: retryRequest });
     updateBatchItem(index, { status: "generating", error: null });
     setBatchStatus("generating");
     setMessage(`Retrying image ${index}…`);
-    const parsed = await requestGeneration(item.request);
+    const parsed = await requestGeneration(retryRequest);
     if (!parsed.ok) {
+      if (parsed.access) setAccess(parsed.access);
+      if (parsed.code === "payment_required") setPaywallOpen(true);
       updateBatchItem(index, { status: "failed", error: parsed.message });
       setBatchStatus("completed-with-errors");
       setMessage(`Image ${index} still needs attention. You can retry it again.`);
       return;
     }
+    setAccess(parsed.access);
+    trackServerMirroredPixelEvent("GenerationSucceeded", parsed.trackingEventId, { arena_id: arenaId, content_name: arenaId === "product-fashion" ? "AI Fashion Photoshoot" : "Airveek generation", content_category: "creator_output", remaining_credits: parsed.access.remaining });
     addGeneratedAsset(parsed.data);
     updateBatchItem(index, { status: "ready", asset: parsed.data, error: null });
     const hasOtherFailures = batchItems.some((candidate) => candidate.index !== index && candidate.status === "failed");
@@ -177,7 +226,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
     router.refresh();
   }
 
-  async function requestGeneration(request: GenerationRequest): Promise<AssetResult> {
+  async function requestGeneration(request: GenerationRequest): Promise<GenerationAssetResult> {
     try {
       const response = await fetch("/api/creator/generate", {
         method: "POST",
@@ -185,7 +234,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
         body: JSON.stringify(request),
       });
       const payload: unknown = await response.json();
-      return readAssetResult(payload);
+      return readGenerationResult(payload);
     } catch (error) {
       return { ok: false, message: error instanceof Error ? error.message : "The request failed. Please try again.", code: "unknown" };
     }
@@ -224,16 +273,17 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
   }
 
   function buildRequest(): GenerationRequest {
+    const generationAttemptId = crypto.randomUUID();
     if (arenaId === "product-fashion") {
-      return { arenaId, mode, scene, campaignGoal, studioRecipeId: studioRecipeIdForScene(scene), backgroundMood, lighting, aspectRatio, extraDirection, references };
+      return { generationAttemptId, arenaId, mode, scene, campaignGoal, studioRecipeId: studioRecipeIdForScene(scene), backgroundMood, lighting, aspectRatio, extraDirection, references };
     }
     if (arenaId === "image-to-sketch") {
-      return { arenaId, aspectRatio: "1:1", prompt: sketchPrompt, references };
+      return { generationAttemptId, arenaId, aspectRatio: "1:1", prompt: sketchPrompt, references };
     }
     if (arenaId === "storybook-page") {
-      return { arenaId, characterDescription, scene: storyScene, artStyle, pageText, lighting, aspectRatio, extraDirection: "", references };
+      return { generationAttemptId, arenaId, characterDescription, scene: storyScene, artStyle, pageText, lighting, aspectRatio, extraDirection: "", references };
     }
-    return { arenaId, outputType: "image", subject, exactText, style, lighting, aspectRatio, extraDirection: "", references };
+    return { generationAttemptId, arenaId, outputType: "image", subject, exactText, style, lighting, aspectRatio, extraDirection: "", references };
   }
 
   function toggleReference(asset: CreatorAsset, role: ReferenceRole) {
@@ -427,11 +477,12 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
                 onRemoveReference={removeReference}
                 onChangeReferenceRole={changeReferenceRole}
                 isGenerating={isGenerating}
-                generationCount={generationCount}
-                onGenerationCountChange={setGenerationCount}
+                generationCount={availableGenerationCount}
+                onGenerationCountChange={(count) => setGenerationCount(!access.hasPaidAccess ? Math.min(count, Math.max(1, access.remaining)) as GenerationCount : count)}
                 generationDisabled={Boolean(storageMessage)}
               />
               <div className="mx-auto mt-2 min-h-5 max-w-[900px] text-center text-sm text-muted" aria-live="polite" aria-atomic="true">{message}</div>
+              {!access.hasPaidAccess ? <p className="mt-1 text-center text-xs font-semibold text-primary" data-testid="free-credit-count">{access.remaining} of {access.granted} free image{access.granted === 1 ? "" : "s"} remaining</p> : null}
             </div>
           </section>
 
@@ -500,6 +551,25 @@ export function CreatorWorkspace({ arenaId, initialAssets, storageMessage }: {
       </Dialog>
 
       <Dialog
+        open={paywallOpen}
+        onOpenChange={setPaywallOpen}
+        title="Keep creating with Airveek"
+        description="Your two free images are complete and saved to your library."
+      >
+        <div className="rounded-2xl bg-surface-muted p-5">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">Commercial access</p>
+          <p className="mt-3 font-display text-4xl font-extrabold">$49 <span className="text-base font-semibold text-muted-foreground">{billingMode === "one_time" ? "one time" : "/ month"}</span></p>
+          <ul className="mt-4 space-y-2 text-sm text-foreground">
+            <li className="flex gap-2"><Check className="mt-0.5 size-4 text-primary" aria-hidden="true" /> Unlimited designs subject to fair use</li>
+            <li className="flex gap-2"><Check className="mt-0.5 size-4 text-primary" aria-hidden="true" /> HD downloads and commercial license</li>
+            <li className="flex gap-2"><Check className="mt-0.5 size-4 text-primary" aria-hidden="true" /> No watermarks</li>
+          </ul>
+        </div>
+        <Link href="/checkout?plan=commercial" className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground transition hover:bg-primary-hover">Unlock Commercial access</Link>
+        <p className="mt-3 text-center text-xs text-muted-foreground">30-day money-back guarantee</p>
+      </Dialog>
+
+      <Dialog
         open={Boolean(deleteTarget)}
         onOpenChange={(open) => {
           if (!open) {
@@ -540,6 +610,29 @@ function readAssetResult(value: unknown): AssetResult {
   return { ok: false, message: "The server returned an invalid response.", code: "unknown" };
 }
 
+function readGenerationResult(value: unknown): GenerationAssetResult {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return { ok: false, message: "The server returned an invalid response.", code: "unknown" };
+  }
+  const record = value as Record<string, unknown>;
+  if (record.ok === false && typeof record.message === "string" && typeof record.code === "string") {
+    return record as Extract<GenerationAssetResult, { ok: false }>;
+  }
+  if (record.ok === true && typeof record.data === "object" && record.data !== null && typeof record.trackingEventId === "string" && isAccessSummary(record.access)) {
+    const data = record.data as Record<string, unknown>;
+    if (typeof data.id === "string" && typeof data.name === "string" && typeof data.status === "string") {
+      return { ok: true, data: data as CreatorAsset, trackingEventId: record.trackingEventId, access: record.access };
+    }
+  }
+  return { ok: false, message: "The server returned an invalid response.", code: "unknown" };
+}
+
+function isAccessSummary(value: unknown): value is GenerationAccessSummary {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  return typeof record.hasPaidAccess === "boolean" && [record.granted, record.used, record.reserved, record.remaining].every((item) => typeof item === "number" && Number.isFinite(item));
+}
+
 function readDeleteAssetResult(value: unknown): DeleteAssetResult {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return { ok: false, message: "The server returned an invalid response.", code: "unknown" };
@@ -562,6 +655,7 @@ function readCreatorErrorCode(value: unknown): Extract<DeleteAssetResult, { ok: 
     value === "invalid_file" ||
     value === "daily_limit" ||
     value === "generation_in_progress" ||
+    value === "payment_required" ||
     value === "provider_not_configured" ||
     value === "provider_incompatible" ||
     value === "provider_blocked" ||
@@ -605,7 +699,7 @@ function uploadAssetForm(formData: FormData, callbacks: {
 function createBatchItems(request: GenerationRequest, count: GenerationCount): CreatorBatchItem[] {
   return Array.from({ length: count }, (_, index) => ({
     index: index + 1,
-    request,
+    request: { ...request, generationAttemptId: crypto.randomUUID() } as GenerationRequest,
     status: "generating" as const,
     asset: null,
     error: null,

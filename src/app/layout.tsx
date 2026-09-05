@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Analytics } from "@vercel/analytics/next";
 import { Inter, K2D } from "next/font/google";
 import Script from "next/script";
 import { absoluteUrl, SITE_URL, siteVerification } from "@/lib/seo/site";
@@ -81,7 +80,6 @@ export default function RootLayout({
           {themeBootstrap}
         </Script>
         {children}
-        <Analytics />
         <ConsentAndAttribution />
       </body>
     </html>

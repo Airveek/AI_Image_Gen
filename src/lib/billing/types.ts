@@ -9,7 +9,7 @@ export type BillingStatus =
   | "unpaid" | "incomplete" | "incomplete_expired" | "failed" | "refunded";
 
 export type CheckoutRequest = { plan: PlanKey; checkoutAttemptId: string };
-export type CheckoutResponse = { purchaseUrl: string };
+export type CheckoutResponse = { purchaseUrl: string; metaEventId: string };
 
 export type CreatorAccessSummary = {
   provider: BillingProvider | null;

@@ -46,6 +46,7 @@ test("homepage stays within a 375px viewport and preserves checkout plan links",
     "href",
     "/checkout?plan=premium",
   );
-  await expect(page.getByText("per month", { exact: true })).toHaveCount(2);
-  await expect(page.getByText(/one[- ]time|no monthly fee|lifetime access/i)).toHaveCount(0);
+  const oneTimeMode = await page.getByText("Simple one-time plans", { exact: true }).count() === 1;
+  await expect(page.getByText(oneTimeMode ? "one time" : "per month", { exact: true })).toHaveCount(2);
+  await expect(page.getByText(oneTimeMode ? "One-time pricing" : "Monthly pricing", { exact: true })).toBeVisible();
 });

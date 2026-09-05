@@ -61,15 +61,20 @@ type UserAggregate = {
   profile: ProfileRow | null;
 };
 
-export async function getAdminInsights(): Promise<AdminInsightsData> {
+type FunnelRow = { event_id: string; event_name: string; campaign: string | null; occurred_at: string };
+
+export async function getAdminInsights(options?: { funnelDays?: number; campaign?: string | null }): Promise<AdminInsightsData> {
   await requireAdminUser();
 
-  const [users, events, assets, entitlements, profiles] = await Promise.all([
+  const funnelDays = [7, 30, 90, 365].includes(options?.funnelDays ?? 30) ? options?.funnelDays ?? 30 : 30;
+  const [users, events, assets, entitlements, profiles, funnelEvents, funnelCampaigns] = await Promise.all([
     listAllUsers(),
     listEvents(),
     listGenerationAssets(),
     listEntitlements(),
     listProfiles(),
+    listFunnelEvents(funnelDays, options?.campaign ?? null),
+    listFunnelCampaigns(),
   ]);
 
   const aggregates = buildAggregates(users, events, assets, entitlements, profiles);
@@ -108,7 +113,44 @@ export async function getAdminInsights(): Promise<AdminInsightsData> {
       .map((aggregate) => mapInsightUser(aggregate))
       .sort((first, second) => (second.lastActivityAt ?? second.createdAt).localeCompare(first.lastActivityAt ?? first.createdAt))
       .slice(0, 100),
+    fashionFunnel: buildFashionFunnel(funnelEvents, funnelDays, options?.campaign ?? null, funnelCampaigns),
   };
+}
+
+async function listFunnelEvents(days: number, campaign: string | null): Promise<FunnelRow[]> {
+  let query = createSupabaseAdminClient().from("funnel_events")
+    .select("event_id,event_name,campaign,occurred_at")
+    .gte("occurred_at", new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
+    .order("occurred_at", { ascending: false }).limit(10_000);
+  if (campaign) query = query.eq("campaign", campaign);
+  const { data, error } = await query;
+  if (error) {
+    if (error.code === "42P01") return [];
+    throw new Error(`Could not load campaign funnel: ${error.message}`);
+  }
+  return (data ?? []) as FunnelRow[];
+}
+
+async function listFunnelCampaigns(): Promise<string[]> {
+  const { data, error } = await createSupabaseAdminClient().from("funnel_events").select("campaign").not("campaign", "is", null).order("campaign").limit(2_000);
+  if (error) return [];
+  return [...new Set((data ?? []).flatMap((row) => typeof row.campaign === "string" ? [row.campaign] : []))];
+}
+
+function buildFashionFunnel(rows: FunnelRow[], periodDays: number, campaign: string | null, campaigns: string[]): AdminInsightsData["fashionFunnel"] {
+  const definitions = [
+    ["LandingPageCTA", "Landing CTA"], ["PlaygroundView", "Playground"],
+    ["CompleteRegistration", "Registered"], ["GenerationSucceeded", "Generated"],
+    ["PaywallView", "Paywall"], ["InitiateCheckout", "Checkout"], ["Purchase", "Purchase"],
+  ] as const;
+  let previous: number | null = null;
+  const stages = definitions.map(([eventName, label]) => {
+    const count = new Set(rows.filter((row) => row.event_name === eventName).map((row) => row.event_id)).size;
+    const conversionFromPrevious = previous === null ? null : percentage(count, previous);
+    previous = count;
+    return { eventName, label, count, conversionFromPrevious };
+  });
+  return { periodDays, campaign, campaigns, stages };
 }
 
 async function listEvents(): Promise<EventRow[]> {

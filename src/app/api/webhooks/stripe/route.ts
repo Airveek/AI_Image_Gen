@@ -5,6 +5,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getStripeClient, getStripeWebhookSecret } from "@/lib/stripe/client";
 import { identifyStripePrice } from "@/lib/stripe/plans";
 import type { BillingMode, PlanKey } from "@/lib/billing/types";
+import { recordVerifiedCheckoutPurchase } from "@/lib/analytics/meta-server";
 
 export const runtime = "nodejs";
 
@@ -69,6 +70,18 @@ async function applyCheckoutEvent(event: Stripe.Event & { data: { object: Stripe
     checkoutSessionId: session.id, cancelAtPeriodEnd: false, accessExpiresAt: null, event,
   });
   await recordMembershipAnalytics(userId, resolvedPlan, status === "completed", event);
+  if (status === "completed") {
+    await recordVerifiedCheckoutPurchase({
+      provider: "stripe",
+      checkoutAttemptId: metadataAttemptId(session.metadata),
+      providerCheckoutId: session.id,
+      providerReference: idOf(session.payment_intent) ?? session.id,
+      userId,
+      amount: (session.amount_total ?? 0) / 100,
+      currency: session.currency?.toUpperCase() ?? "USD",
+      occurredAt: new Date(event.created * 1000).toISOString(),
+    });
+  }
 }
 
 async function applySubscriptionEvent(event: Stripe.Event & { data: { object: Stripe.Subscription } }): Promise<void> {
@@ -112,11 +125,15 @@ async function applyEntitlement(input: {
 async function recordStripeTransaction(event: Stripe.Event): Promise<void> {
   let fact: Record<string, unknown> | null = null;
   let fullyRefundedPaymentIntent: string | null = null;
+  let purchase: Parameters<typeof recordVerifiedCheckoutPurchase>[0] | null = null;
   if (event.type === "payment_intent.succeeded") {
     const payment = event.data.object as Stripe.PaymentIntent;
     if (payment.metadata.billing_mode !== "one_time") return;
     fact = transactionFact(event, "payment", payment.id, metadataUserId(payment.metadata), payment.id, null,
       metadataPlanKey(payment.metadata), payment.status, payment.amount_received, payment.currency);
+    purchase = { provider: "stripe", checkoutAttemptId: metadataAttemptId(payment.metadata), providerReference: payment.id,
+      userId: metadataUserId(payment.metadata), amount: payment.amount_received / 100, currency: payment.currency.toUpperCase(),
+      occurredAt: new Date(event.created * 1000).toISOString() };
   } else if (event.type === "invoice.paid" || event.type === "invoice.payment_failed") {
     const invoice = event.data.object as Stripe.Invoice;
     const subscriptionDetails = invoice.parent?.subscription_details;
@@ -127,6 +144,11 @@ async function recordStripeTransaction(event: Stripe.Event): Promise<void> {
       idOf(subscriptionDetails?.subscription), metadataPlanKey(metadata),
       event.type === "invoice.paid" ? "succeeded" : "failed",
       event.type === "invoice.paid" ? invoice.amount_paid : invoice.amount_due, invoice.currency);
+    if (event.type === "invoice.paid") {
+      purchase = { provider: "stripe", checkoutAttemptId: metadataAttemptId(metadata), providerReference: invoice.id,
+        userId: metadataUserId(metadata), amount: invoice.amount_paid / 100, currency: invoice.currency.toUpperCase(),
+        occurredAt: new Date(event.created * 1000).toISOString() };
+    }
   } else if (event.type === "refund.created" || event.type === "refund.updated") {
     const refund = event.data.object as Stripe.Refund;
     const paymentIntentId = idOf(refund.payment_intent);
@@ -148,6 +170,7 @@ async function recordStripeTransaction(event: Stripe.Event): Promise<void> {
   if (!fact) return;
   const { error } = await createSupabaseAdminClient().from("stripe_transaction_facts").insert(fact);
   if (error && error.code !== "23505") throw new Error(`Could not save Stripe transaction: ${error.message}`);
+  if (purchase) await recordVerifiedCheckoutPurchase(purchase);
   if (fullyRefundedPaymentIntent) await revokeFullyRefundedOneTimeAccess(fullyRefundedPaymentIntent, event);
 }
 
@@ -194,5 +217,6 @@ function metadataUserId(metadata: Stripe.Metadata | null): string | null { retur
 function metadataPlanKey(metadata: Stripe.Metadata | null): PlanKey | null {
   return metadata?.plan_key === "commercial" || metadata?.plan_key === "premium" ? metadata.plan_key : null;
 }
+function metadataAttemptId(metadata: Stripe.Metadata | null): string | null { return validUuid(metadata?.checkout_attempt_id); }
 function validUuid(value: unknown): string | null { return typeof value === "string" && UUID.test(value) ? value : null; }
 function idOf(value: unknown): string | null { return typeof value === "string" ? value : value && typeof value === "object" && "id" in value && typeof value.id === "string" ? value.id : null; }

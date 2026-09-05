@@ -144,6 +144,7 @@ export async function createGenerationAssetForUser(input: {
       mimeType: null,
       providerKind: input.providerKind,
       providerModel: input.providerModel,
+      generationAttemptId: input.request.generationAttemptId,
     });
     return { id: row.id, userId: input.userId };
   } catch (error) {
@@ -155,6 +156,25 @@ export async function createGenerationAssetForUser(input: {
     }
     throw error;
   }
+}
+
+export async function getGenerationAssetByAttemptForUser(
+  attemptId: string,
+  userId: string,
+): Promise<CreatorAssetRow | null> {
+  assertUuid(attemptId);
+  const { data, error } = await createSupabaseAdminClient()
+    .from("creator_assets")
+    .select("*")
+    .eq("generation_attempt_id", attemptId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new CreatorServiceError(databaseSetupMessage(error.message), "storage_failed");
+  return data ? data as CreatorAssetRow : null;
+}
+
+export function mapCreatorAssetRow(row: CreatorAssetRow): CreatorAsset {
+  return mapCreatorAsset(row);
 }
 
 export async function completeGenerationAsset(input: {
@@ -359,6 +379,7 @@ async function insertAssetRow(input: {
   mimeType: AllowedImageMimeType | null;
   providerKind: GeneratedImage["provider"] | null;
   providerModel: string | null;
+  generationAttemptId?: string | null;
 }): Promise<CreatorAssetRow> {
   const { data, error } = await createSupabaseAdminClient()
     .from("creator_assets")
@@ -374,6 +395,7 @@ async function insertAssetRow(input: {
       mime_type: input.mimeType,
       provider_kind: input.providerKind,
       provider_model: input.providerModel,
+      generation_attempt_id: input.generationAttemptId ?? null,
     })
     .select("*")
     .single();

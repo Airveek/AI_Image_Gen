@@ -19,6 +19,8 @@ type BuildSeoAttributionInput = {
   existingCookieValue: string | null;
   signingSecret: string | null;
   siteHostname: string;
+  fbp?: string | null;
+  fbc?: string | null;
   now?: Date;
 };
 
@@ -28,13 +30,13 @@ export function buildSeoAttributionCookieMutation(input: BuildSeoAttributionInpu
 
   const existing = input.existingCookieValue ? parseSeoAttributionCookie(input.existingCookieValue, input.signingSecret) : null;
   const now = input.now ?? new Date();
-  const touch = readTouch(input.currentUrl, input.referrer, input.siteHostname, now);
+  const touch = readTouch(input.currentUrl, input.referrer, input.siteHostname, now, input.fbp, input.fbc);
   if (existing && !touch) return { action: "none" };
 
   const firstTouch = existing?.firstTouch ?? touch ?? directTouch(input.currentUrl, now);
   const lastNonDirectTouch = touch && touch.medium !== "direct" ? touch : existing?.lastNonDirectTouch ?? null;
   const attribution: SeoAttributionCookie = {
-    version: 1,
+    version: 2,
     anonymousId: existing?.anonymousId ?? randomUUID(),
     firstTouch,
     lastNonDirectTouch,
@@ -56,7 +58,7 @@ export function parseSeoAttributionCookie(value: string, signingSecret: string):
   if (!safeEqual(value.slice(separator + 1), signature(encoded, signingSecret))) return null;
   try {
     const parsed = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as unknown;
-    return isSeoAttributionCookie(parsed) ? parsed : null;
+    return isSeoAttributionCookie(parsed) ? normalizeAttribution(parsed) : null;
   } catch {
     return null;
   }
@@ -82,18 +84,21 @@ function safeEqual(first: string, second: string): boolean {
   return firstBytes.length === secondBytes.length && timingSafeEqual(firstBytes, secondBytes);
 }
 
-function readTouch(currentUrl: string, referrer: string | null, siteHostname: string, now: Date): SeoTouch | null {
+function readTouch(currentUrl: string, referrer: string | null, siteHostname: string, now: Date, fbp?: string | null, fbc?: string | null): SeoTouch | null {
   let url: URL;
   try { url = new URL(currentUrl); } catch { return null; }
   const sourceParam = sanitize(url.searchParams.get("utm_source"), 120);
   const mediumParam = sanitize(url.searchParams.get("utm_medium"), 120);
   const campaign = sanitize(url.searchParams.get("utm_campaign"), 160);
   const contentId = sanitize(url.searchParams.get("contentId"), 160);
+  const utmContent = sanitize(url.searchParams.get("utm_content"), 160);
+  const utmTerm = sanitize(url.searchParams.get("utm_term"), 160);
+  const fbclid = sanitizeClickId(url.searchParams.get("fbclid"));
   const referrerHost = readReferrerHost(referrer);
   const externalReferrer = referrerHost && !isSameSite(referrerHost, siteHostname) ? referrerHost : null;
-  if (!sourceParam && !mediumParam && !campaign && !externalReferrer) return null;
+  if (!sourceParam && !mediumParam && !campaign && !utmContent && !utmTerm && !fbclid && !externalReferrer) return null;
   const classified = classifyTouch(sourceParam, mediumParam, externalReferrer);
-  return { id: randomUUID(), occurredAt: now.toISOString(), landingPath: normalizeLandingPath(url.pathname), source: classified.source, medium: classified.medium, campaign, referrerHost: externalReferrer, contentId };
+  return { id: randomUUID(), occurredAt: now.toISOString(), landingPath: normalizeLandingPath(url.pathname), source: classified.source, medium: classified.medium, campaign, referrerHost: externalReferrer, contentId, utmContent, utmTerm, fbclid, fbp: sanitizeMetaCookie(fbp), fbc: sanitizeMetaCookie(fbc) };
 }
 
 function directTouch(currentUrl: string, now: Date): SeoTouch {
@@ -104,7 +109,7 @@ function directTouch(currentUrl: string, now: Date): SeoTouch {
     path = normalizeLandingPath(url.pathname);
     contentId = sanitize(url.searchParams.get("contentId"), 160);
   } catch { /* malformed URL becomes a direct root visit */ }
-  return { id: randomUUID(), occurredAt: now.toISOString(), landingPath: path, source: "direct", medium: "direct", campaign: null, referrerHost: null, contentId };
+  return { id: randomUUID(), occurredAt: now.toISOString(), landingPath: path, source: "direct", medium: "direct", campaign: null, referrerHost: null, contentId, utmContent: null, utmTerm: null, fbclid: null, fbp: null, fbc: null };
 }
 
 function classifyTouch(sourceParam: string | null, mediumParam: string | null, referrerHost: string | null): { source: string; medium: string } {
@@ -143,14 +148,24 @@ function sanitize(value: string | null, maxLength: number): string | null { if (
 function isStrongSigningSecret(value: string | null | undefined): value is string { return typeof value === "string" && value.length >= 32; }
 
 function isSeoAttributionCookie(value: unknown): value is SeoAttributionCookie {
-  if (!isRecord(value) || value.version !== 1 || !isUuid(value.anonymousId)) return false;
+  if (!isRecord(value) || (value.version !== 1 && value.version !== 2) || !isUuid(value.anonymousId)) return false;
   return isSeoTouch(value.firstTouch) && (value.lastNonDirectTouch === null || isSeoTouch(value.lastNonDirectTouch)) && isIsoDate(value.updatedAt);
 }
 
 function isSeoTouch(value: unknown): value is SeoTouch {
   if (!isRecord(value)) return false;
-  return isUuid(value.id) && isIsoDate(value.occurredAt) && typeof value.landingPath === "string" && value.landingPath.startsWith("/") && typeof value.source === "string" && typeof value.medium === "string" && (value.campaign === null || typeof value.campaign === "string") && (value.referrerHost === null || typeof value.referrerHost === "string") && (value.contentId === null || typeof value.contentId === "string");
+  return isUuid(value.id) && isIsoDate(value.occurredAt) && typeof value.landingPath === "string" && value.landingPath.startsWith("/") && typeof value.source === "string" && typeof value.medium === "string" && (value.campaign === null || typeof value.campaign === "string") && (value.referrerHost === null || typeof value.referrerHost === "string") && (value.contentId === null || typeof value.contentId === "string") && optionalNullableString(value.utmContent) && optionalNullableString(value.utmTerm) && optionalNullableString(value.fbclid) && optionalNullableString(value.fbp) && optionalNullableString(value.fbc);
 }
+
+function normalizeAttribution(value: SeoAttributionCookie): SeoAttributionCookie {
+  return { ...value, firstTouch: normalizeTouch(value.firstTouch), lastNonDirectTouch: value.lastNonDirectTouch ? normalizeTouch(value.lastNonDirectTouch) : null };
+}
+function normalizeTouch(value: SeoTouch): SeoTouch {
+  return { ...value, utmContent: value.utmContent ?? null, utmTerm: value.utmTerm ?? null, fbclid: value.fbclid ?? null, fbp: value.fbp ?? null, fbc: value.fbc ?? null };
+}
+function optionalNullableString(value: unknown): boolean { return value === undefined || value === null || typeof value === "string"; }
+function sanitizeClickId(value: string | null): string | null { if (!value) return null; const normalized = value.trim().replace(/[^A-Za-z0-9_-]/g, "").slice(0, 300); return normalized || null; }
+function sanitizeMetaCookie(value: string | null | undefined): string | null { if (!value) return null; const normalized = value.trim().replace(/[^A-Za-z0-9._-]/g, "").slice(0, 300); return normalized || null; }
 
 function isRecord(value: unknown): value is Record<string, unknown> { return typeof value === "object" && value !== null && !Array.isArray(value); }
 function isIsoDate(value: unknown): value is string { return typeof value === "string" && Number.isFinite(Date.parse(value)); }

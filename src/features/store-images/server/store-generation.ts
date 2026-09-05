@@ -1,5 +1,7 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
+
 import { buildGenerationPrompt } from "@/features/creator/prompts";
 import { generateCreatorImageForUser } from "@/features/creator/server/generation";
 import type { CreatorAsset, ProductFashionRequest } from "@/features/creator/types";
@@ -14,6 +16,7 @@ export async function generateStoreProductImage(input: {
 }): Promise<CreatorAsset> {
   const source = await downloadStoreImage(input.sourceImageUrl);
   const request: ProductFashionRequest = {
+    generationAttemptId: randomUUID(),
     arenaId: "product-fashion",
     mode: "product-scene",
     scene: "studio",
@@ -53,6 +56,7 @@ export class StoreGenerationError extends Error {
 
 export function buildStorePromptPreview(prompt: string): string {
   return buildGenerationPrompt({
+    generationAttemptId: "00000000-0000-4000-8000-000000000001",
     arenaId: "product-fashion",
     mode: "product-scene",
     scene: "studio",

@@ -1,6 +1,9 @@
 export type AuthActionState = {
   ok: boolean;
   message: string;
+  authenticated?: boolean;
+  requiresEmailConfirmation?: boolean;
+  trackingEventId?: string;
 };
 
 export type AuthAction = (

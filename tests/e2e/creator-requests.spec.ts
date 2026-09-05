@@ -4,8 +4,11 @@ import { buildGenerationPrompt } from "@/features/creator/prompts";
 import { parseProductProfileSnapshot, studioRecipes } from "@/features/creator/quality";
 import { parseGenerationRequest } from "@/features/creator/requests";
 
+const ATTEMPT_ID = "ca2c745c-08f3-4ca7-b01a-3cb6f024bde8";
+
 test("legacy Product & Fashion requests default to a store listing goal", () => {
   const request = parseGenerationRequest({
+    generationAttemptId: ATTEMPT_ID,
     arenaId: "product-fashion",
     mode: "product-scene",
     scene: "studio",
@@ -21,6 +24,7 @@ test("legacy Product & Fashion requests default to a store listing goal", () => 
 
 test("Product & Fashion rejects invalid campaign goals", () => {
   expect(() => parseGenerationRequest({
+    generationAttemptId: ATTEMPT_ID,
     arenaId: "product-fashion",
     mode: "product-scene",
     scene: "studio",
@@ -33,6 +37,7 @@ test("Product & Fashion rejects invalid campaign goals", () => {
 
 test("Product & Fashion accepts an optional Studio recipe and preserves legacy defaults", () => {
   const legacyRequest = parseGenerationRequest({
+    generationAttemptId: ATTEMPT_ID,
     arenaId: "product-fashion",
     mode: "product-scene",
     scene: "studio",
@@ -41,6 +46,7 @@ test("Product & Fashion accepts an optional Studio recipe and preserves legacy d
     sourceAssetIds: ["9a2c745c-08f3-4ca7-b01a-3cb6f024bde8"],
   });
   const recipeRequest = parseGenerationRequest({
+    generationAttemptId: ATTEMPT_ID,
     arenaId: "product-fashion",
     mode: "product-scene",
     scene: "studio",
@@ -78,6 +84,7 @@ test("Product profile parsing is strict and safely falls back for old or malform
 
 test("Product & Fashion prompt keeps product truth and campaign direction", () => {
   const prompt = buildGenerationPrompt({
+    generationAttemptId: ATTEMPT_ID,
     arenaId: "product-fashion",
     mode: "influencer-lifestyle",
     scene: "lifestyle",
@@ -96,6 +103,7 @@ test("Product & Fashion prompt keeps product truth and campaign direction", () =
 
 test("Product prompt context compiles identity and Studio instructions without affecting other arenas", () => {
   const prompt = buildGenerationPrompt({
+    generationAttemptId: ATTEMPT_ID,
     arenaId: "product-fashion",
     mode: "product-scene",
     scene: "studio",
@@ -124,6 +132,7 @@ test("Product prompt context compiles identity and Studio instructions without a
   expect(prompt).toContain("Keep the product complete, sharp, correctly scaled, and clearly readable.");
 
   const generalPrompt = buildGenerationPrompt({
+    generationAttemptId: ATTEMPT_ID,
     arenaId: "general-image",
     outputType: "image",
     subject: "A product on a table",
@@ -139,6 +148,7 @@ test("Product prompt context compiles identity and Studio instructions without a
 
 test("Image to Sketch accepts an optional direction with one or two ordered references", () => {
   const request = parseGenerationRequest({
+    generationAttemptId: ATTEMPT_ID,
     arenaId: "image-to-sketch",
     aspectRatio: "1:1",
     prompt: "Keep the neckline and seam details exact.",
@@ -149,6 +159,7 @@ test("Image to Sketch accepts an optional direction with one or two ordered refe
   });
 
   expect(request).toEqual({
+    generationAttemptId: ATTEMPT_ID,
     arenaId: "image-to-sketch",
     aspectRatio: "1:1",
     prompt: "Keep the neckline and seam details exact.",
@@ -160,8 +171,9 @@ test("Image to Sketch accepts an optional direction with one or two ordered refe
 });
 
 test("Image to Sketch requires at least one reference and keeps the two-image limit", () => {
-  expect(() => parseGenerationRequest({ arenaId: "image-to-sketch", aspectRatio: "1:1", references: [] })).toThrow("Upload one sketch or garment image before generating.");
+  expect(() => parseGenerationRequest({ generationAttemptId: ATTEMPT_ID, arenaId: "image-to-sketch", aspectRatio: "1:1", references: [] })).toThrow("Upload one sketch or garment image before generating.");
   expect(() => parseGenerationRequest({
+    generationAttemptId: ATTEMPT_ID,
     arenaId: "image-to-sketch",
     aspectRatio: "1:1",
     references: [
@@ -170,6 +182,7 @@ test("Image to Sketch requires at least one reference and keeps the two-image li
     ],
   })).toThrow("Choose no more than two valid reference images.");
   expect(() => parseGenerationRequest({
+    generationAttemptId: ATTEMPT_ID,
     arenaId: "image-to-sketch",
     aspectRatio: "1:1",
     sourceAssetIds: [
@@ -182,6 +195,7 @@ test("Image to Sketch requires at least one reference and keeps the two-image li
 
 test("Image to Sketch prompt protects the original design and canvas", () => {
   const prompt = buildGenerationPrompt({
+    generationAttemptId: ATTEMPT_ID,
     arenaId: "image-to-sketch",
     aspectRatio: "1:1",
     prompt: "Keep the neckline and seam details exact.",

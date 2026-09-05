@@ -71,6 +71,7 @@ function shouldNoindexPrivateRoute(request: NextRequest): boolean {
     "/dashboard",
     "/library",
     "/login",
+    "/playground",
     "/preview",
     "/register",
     "/store-images",

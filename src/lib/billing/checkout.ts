@@ -12,5 +12,6 @@ export function isCheckoutRequest(value: unknown): value is CheckoutRequest {
 export function isCheckoutResponse(value: unknown): value is CheckoutResponse {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
   const url = (value as Record<string, unknown>).purchaseUrl;
-  return typeof url === "string" && url.startsWith("https://");
+  const metaEventId = (value as Record<string, unknown>).metaEventId;
+  return typeof url === "string" && url.startsWith("https://") && typeof metaEventId === "string" && UUID.test(metaEventId);
 }

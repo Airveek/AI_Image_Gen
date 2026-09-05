@@ -22,9 +22,11 @@ test("preserves access independently for recurring and one-time purchases", () =
 
 test("requires an unguessable checkout attempt id and an HTTPS response", () => {
   const checkoutAttemptId = "9a2c745c-08f3-4ca7-b01a-3cb6f024bde8";
+  const metaEventId = "aa2c745c-08f3-4ca7-b01a-3cb6f024bde8";
   assert.equal(isCheckoutRequest({ plan: "premium", checkoutAttemptId }), true);
   assert.equal(isCheckoutRequest({ plan: "premium", checkoutAttemptId: "bad" }), false);
-  assert.equal(isCheckoutResponse({ purchaseUrl: "https://checkout.stripe.com/c/pay/test" }), true);
+  assert.equal(isCheckoutResponse({ purchaseUrl: "https://checkout.stripe.com/c/pay/test", metaEventId }), true);
+  assert.equal(isCheckoutResponse({ purchaseUrl: "https://checkout.stripe.com/c/pay/test" }), false);
   assert.equal(isCheckoutResponse({ purchaseUrl: "javascript:alert(1)" }), false);
 });
 

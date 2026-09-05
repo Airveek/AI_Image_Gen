@@ -50,6 +50,7 @@ export type GenerationReference = {
 };
 
 export type GeneralImageRequest = {
+  generationAttemptId: string;
   arenaId: "general-image";
   outputType: "image" | "poster" | "illustration" | "social" | "thumbnail";
   subject: string;
@@ -62,6 +63,7 @@ export type GeneralImageRequest = {
 };
 
 export type ProductFashionRequest = {
+  generationAttemptId: string;
   arenaId: "product-fashion";
   mode: ProductFashionMode;
   scene: ProductFashionScene;
@@ -75,6 +77,7 @@ export type ProductFashionRequest = {
 };
 
 export type StorybookPageRequest = {
+  generationAttemptId: string;
   arenaId: "storybook-page";
   characterDescription: string;
   scene: string;
@@ -87,6 +90,7 @@ export type StorybookPageRequest = {
 };
 
 export type ImageToSketchRequest = {
+  generationAttemptId: string;
   arenaId: "image-to-sketch";
   aspectRatio: "1:1";
   prompt: string;
@@ -149,6 +153,7 @@ export type CreatorErrorCode =
   | "invalid_file"
   | "daily_limit"
   | "generation_in_progress"
+  | "payment_required"
   | "provider_not_configured"
   | "provider_incompatible"
   | "provider_blocked"
@@ -163,6 +168,28 @@ export type CreatorErrorCode =
 export type CreatorResult<T> =
   | { ok: true; data: T }
   | { ok: false; message: string; code: CreatorErrorCode };
+
+export type GenerationAccessSummary = {
+  hasPaidAccess: boolean;
+  granted: number;
+  used: number;
+  reserved: number;
+  remaining: number;
+};
+
+export type CreatorGenerationResult =
+  | {
+      ok: true;
+      data: CreatorAsset;
+      trackingEventId: string;
+      access: GenerationAccessSummary;
+    }
+  | {
+      ok: false;
+      message: string;
+      code: CreatorErrorCode;
+      access?: GenerationAccessSummary;
+    };
 
 export type CreatorAsset = {
   id: string;
@@ -197,6 +224,7 @@ export type CreatorAssetRow = {
   provider_kind: string | null;
   provider_model: string | null;
   error_code: string | null;
+  generation_attempt_id?: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -24,6 +24,7 @@ export async function GET(_request: Request, { params }: Props) {
       "/product-photo-prompts",
       "/use-cases",
       "/features",
+      "/ai-fashion-photoshoot",
       "/authors",
       "/tutorials",
       "/support",

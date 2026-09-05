@@ -12,7 +12,15 @@ import {
   failGenerationAsset,
   getOwnedAssetBytes,
   getAssetSettingsForUser,
+  getGenerationAssetByAttemptForUser,
+  mapCreatorAssetRow,
 } from "@/features/creator/server/assets";
+import {
+  consumeGenerationCredit,
+  getGenerationAccessForUser,
+  releaseGenerationCredit,
+  reserveGenerationCredit,
+} from "@/features/creator/server/credits";
 import { getActiveProviderConfiguration } from "@/features/creator/server/integrations";
 import { recordUserEvent, type UserEventProperties } from "@/lib/analytics/user-events";
 import {
@@ -23,18 +31,18 @@ import type {
   CreatorAsset,
   CreatorArenaId,
   CreatorErrorCode,
-  CreatorResult,
+  CreatorGenerationResult,
   GenerationRequest,
   AllowedImageMimeType,
   PromptContext,
   ReferenceRole,
 } from "@/features/creator/types";
 
-type CreatorFailure = Extract<CreatorResult<never>, { ok: false }>;
+type CreatorFailure = Extract<CreatorGenerationResult, { ok: false }>;
 
 export async function generateCreatorImage(
   request: GenerationRequest,
-): Promise<CreatorResult<CreatorAsset>> {
+): Promise<CreatorGenerationResult> {
   const user = await requireCreatorUser();
   return generateCreatorImageForUser(request, user.id);
 }
@@ -43,12 +51,67 @@ export async function generateCreatorImageForUser(
   request: GenerationRequest,
   userId: string,
   externalReferences: Array<{ bytes: Uint8Array; mimeType: AllowedImageMimeType; label: string }> = [],
-): Promise<CreatorResult<CreatorAsset>> {
+): Promise<CreatorGenerationResult> {
   let asset: { id: string; userId: string } | null = null;
+  let savedAsset: CreatorAsset | null = null;
+  let claimedAttempt = false;
   const traceId = randomUUID();
   const startedAt = performance.now();
 
   try {
+    const reservation = await reserveGenerationCredit(userId, request.generationAttemptId);
+    claimedAttempt = reservation.state === "reserved" || reservation.state === "paid";
+    if (reservation.state === "exhausted") {
+      return {
+        ok: false,
+        message: "You have used your two free images. Unlock Airveek to keep creating.",
+        code: "payment_required",
+        access: reservation,
+      };
+    }
+    const existingAsset = await getGenerationAssetByAttemptForUser(request.generationAttemptId, userId);
+    if (existingAsset?.status === "ready") {
+      await consumeGenerationCredit(userId, request.generationAttemptId, existingAsset.id);
+      return {
+        ok: true,
+        data: mapCreatorAssetRow(existingAsset),
+        trackingEventId: request.generationAttemptId,
+        access: await getGenerationAccessForUser(userId),
+      };
+    }
+    if (existingAsset?.status === "processing") {
+      return {
+        ok: false,
+        message: "This image is already being created. Keep this page open while it finishes.",
+        code: "generation_in_progress",
+        access: reservation,
+      };
+    }
+    if (existingAsset?.status === "failed") {
+      return {
+        ok: false,
+        message: "This generation attempt failed. Try again to start a new one.",
+        code: "invalid_request",
+        access: reservation,
+      };
+    }
+    if (reservation.state === "in_progress") {
+      return {
+        ok: false,
+        message: "This image is already being created. Keep this page open while it finishes.",
+        code: "generation_in_progress",
+        access: reservation,
+      };
+    }
+    if (reservation.state === "released" || reservation.state === "consumed") {
+      return {
+        ok: false,
+        message: "This generation attempt has ended. Try again to start a new one.",
+        code: "invalid_request",
+        access: reservation,
+      };
+    }
+
     const configuration = await getActiveProviderConfiguration();
     const promptContext = await loadPromptContext(request, userId);
     const prompt = buildGenerationPrompt(request, promptContext);
@@ -87,11 +150,14 @@ export async function generateCreatorImageForUser(
       traceId,
     );
     console.info(`[creator-generation] trace=${traceId} phase=provider_image_ready`);
-    const savedAsset = await completeGenerationAsset({
+    savedAsset = await completeGenerationAsset({
       assetId: asset.id,
       userId: asset.userId,
       image,
     });
+
+    await consumeGenerationCredit(userId, request.generationAttemptId, savedAsset.id);
+    claimedAttempt = false;
 
     void recordUserEvent({
       userId: asset.userId,
@@ -102,10 +168,15 @@ export async function generateCreatorImageForUser(
       `[creator-generation] trace=${traceId} phase=complete duration_ms=${Math.round(performance.now() - startedAt)}`,
     );
 
-    return { ok: true, data: savedAsset };
+    return {
+      ok: true,
+      data: savedAsset,
+      trackingEventId: request.generationAttemptId,
+      access: await getGenerationAccessForUser(userId),
+    };
   } catch (error) {
     const result = resultFromError(error);
-    if (asset) {
+    if (asset && !savedAsset) {
       await failGenerationAsset(asset.id, asset.userId, result.code).catch(() => undefined);
       void recordUserEvent({
         userId: asset.userId,
@@ -116,10 +187,14 @@ export async function generateCreatorImageForUser(
         },
       });
     }
+    if (claimedAttempt && !savedAsset) {
+      await releaseGenerationCredit(userId, request.generationAttemptId);
+    }
+    const access = await getGenerationAccessForUser(userId).catch(() => undefined);
     console.info(
       `[creator-generation] trace=${traceId} phase=failed code=${result.code} duration_ms=${Math.round(performance.now() - startedAt)}`,
     );
-    return result;
+    return access ? { ...result, access } : result;
   }
 }
 

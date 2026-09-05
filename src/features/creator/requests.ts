@@ -13,12 +13,17 @@ type UnknownRecord = Record<string, unknown>;
 export function parseGenerationRequest(value: unknown): GenerationRequest {
   const record = requireRecord(value, "Generation details are missing.");
   const arenaId = readString(record, "arenaId");
+  const generationAttemptId = readString(record, "generationAttemptId");
+  if (!isUuid(generationAttemptId)) {
+    throw new Error("Start this generation again with a valid attempt id.");
+  }
   const aspectRatio = readAspectRatio(record);
   const lighting = readLighting(record);
 
   if (arenaId === "general-image") {
     const references = readReferences(record, "reference");
     return {
+      generationAttemptId,
       arenaId,
       outputType: readEnum(record, "outputType", ["image", "poster", "illustration", "social", "thumbnail"]),
       subject: readRequiredText(record, "subject", 600),
@@ -38,6 +43,7 @@ export function parseGenerationRequest(value: unknown): GenerationRequest {
     }
     const studioRecipeId = readOptionalEnum(record, "studioRecipeId", ["clean-studio", "warm-stone", "editorial-lifestyle"]);
     return {
+      generationAttemptId,
       arenaId,
       mode: readEnum(record, "mode", ["product-scene", "on-model", "influencer-lifestyle"]),
       scene: readEnum(record, "scene", ["studio", "lifestyle", "flat-lay", "outdoor", "custom"]),
@@ -58,6 +64,7 @@ export function parseGenerationRequest(value: unknown): GenerationRequest {
       throw new Error("Describe the main character or choose a saved character reference.");
     }
     return {
+      generationAttemptId,
       arenaId,
       characterDescription,
       scene: readRequiredText(record, "scene", 800),
@@ -79,6 +86,7 @@ export function parseGenerationRequest(value: unknown): GenerationRequest {
       throw new Error("Upload one sketch or garment image before generating.");
     }
     return {
+      generationAttemptId,
       arenaId,
       aspectRatio: "1:1",
       prompt: readOptionalText(record, "prompt", 600),

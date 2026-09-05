@@ -126,6 +126,7 @@ test("shows upload save progress and safely deletes an uploaded image", async ({
   });
 
   await page.goto("/create/product-fashion");
+  await expect(page.getByTestId("creator-workspace")).toHaveAttribute("data-ready", "true");
   await page.getByTestId("asset-upload-input").setInputFiles(imagePath);
   const progress = page.locator('[data-testid="asset-upload-progress"]:visible');
   await expect(progress).toBeVisible();
@@ -172,12 +173,12 @@ test("selects a generation count, sends identical requests in parallel, and retr
     inFlight -= 1;
 
     if (requestNumber === 2) {
-      await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ ok: false, code: "provider_unavailable", message: "This image is temporarily unavailable." }) });
+      await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ ok: false, code: "provider_unavailable", message: "This image is temporarily unavailable.", access: paidAccess() }) });
       return;
     }
     await route.fulfill({
       contentType: "application/json",
-      body: JSON.stringify({ ok: true, data: assetFixture({ id: `bd9f30c8-2066-426d-8d82-9cf38f37fb${requestNumber}`, kind: "generation", name: `Image ${requestNumber}`, arenaId: "product-fashion", providerKind: "gemini-compatible", providerModel: "gemini-3.1-flash-image" }) }),
+      body: JSON.stringify({ ok: true, trackingEventId: (body as { generationAttemptId: string }).generationAttemptId, access: paidAccess(), data: assetFixture({ id: `bd9f30c8-2066-426d-8d82-9cf38f37fb${requestNumber}`, kind: "generation", name: `Image ${requestNumber}`, arenaId: "product-fashion", providerKind: "gemini-compatible", providerModel: "gemini-3.1-flash-image" }) }),
     });
   });
 
@@ -204,8 +205,9 @@ test("selects a generation count, sends identical requests in parallel, and retr
   await expect.poll(() => generationBodies.length).toBe(3);
   releaseResponses();
   expect(maxInFlight).toBe(3);
-  expect(generationBodies[1]).toEqual(generationBodies[0]);
-  expect(generationBodies[2]).toEqual(generationBodies[0]);
+  const attemptIds = generationBodies.slice(0, 3).map((body) => (body as { generationAttemptId: string }).generationAttemptId);
+  expect(new Set(attemptIds).size).toBe(3);
+  for (const body of generationBodies.slice(1, 3)) expect(withoutAttemptId(body)).toEqual(withoutAttemptId(generationBodies[0]));
   await expect(page.getByTestId("generation-item-1").getByRole("button", { name: "Open Image 1" })).toBeVisible();
   await expect(page.getByTestId("generation-item-3").getByRole("button", { name: "Open Image 3" })).toBeVisible();
   await expect(page.getByTestId("generation-item-2")).toContainText("temporarily unavailable");
@@ -215,7 +217,8 @@ test("selects a generation count, sends identical requests in parallel, and retr
   await page.getByTestId("generation-item-2").getByRole("button", { name: "Retry" }).click();
   await expect(page.getByTestId("generation-item-2").getByRole("button", { name: "Open Image 2" })).toBeVisible();
   expect(generationBodies).toHaveLength(4);
-  expect(generationBodies[3]).toEqual(generationBodies[0]);
+  expect((generationBodies[3] as { generationAttemptId: string }).generationAttemptId).not.toBe(attemptIds[1]);
+  expect(withoutAttemptId(generationBodies[3])).toEqual(withoutAttemptId(generationBodies[0]));
 });
 
 test("does not offer Character for Product & Fashion", async ({ page }) => {
@@ -365,11 +368,14 @@ test("matches the fixed-image Kive composer and progressive asset rail", async (
 
 async function mockGeneration(page: Page, onBody: (body: unknown) => void) {
   await page.route("**/api/creator/generate", async (route) => {
-    onBody(route.request().postDataJSON() as unknown);
+    const body = route.request().postDataJSON() as { generationAttemptId: string };
+    onBody(body);
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify({
         ok: true,
+        trackingEventId: body.generationAttemptId,
+        access: paidAccess(),
         data: assetFixture({
           id: "bd9f30c8-2066-426d-8d82-9cf38f37fb72",
           kind: "generation",
@@ -381,6 +387,16 @@ async function mockGeneration(page: Page, onBody: (body: unknown) => void) {
       }),
     });
   });
+}
+
+function paidAccess() {
+  return { hasPaidAccess: true, granted: 2, used: 2, reserved: 0, remaining: 0 };
+}
+
+function withoutAttemptId(value: unknown) {
+  const rest = { ...value as Record<string, unknown> };
+  delete rest.generationAttemptId;
+  return rest;
 }
 
 async function selectGenerationCount(page: Page, count: 1 | 2 | 3) {

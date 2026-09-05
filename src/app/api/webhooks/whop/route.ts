@@ -9,11 +9,13 @@ import {
 } from "@/lib/whop/client";
 import {
   getWebhookMetadataUserId,
+  getWebhookCheckoutAttemptId,
   isValidWebhookTimestamp,
   shouldIgnoreEntitlementEvent,
 } from "@/lib/whop/webhooks";
 import { buildWhopTransactionFact } from "@/lib/whop/transactions";
 import { recordUserEvent } from "@/lib/analytics/user-events";
+import { recordVerifiedCheckoutPurchase } from "@/lib/analytics/meta-server";
 
 export const runtime = "nodejs";
 
@@ -239,6 +241,18 @@ async function recordFinancialEvent(
   if (error && error.code !== "23505") {
     console.error("Unable to save Whop transaction fact.", error);
     return new Response("Unable to save transaction fact", { status: 500 });
+  }
+  if (event.type === "payment.succeeded" && userId && fact.paymentId) {
+    await recordVerifiedCheckoutPurchase({
+      provider: "whop",
+      checkoutAttemptId: getWebhookCheckoutAttemptId((event.data as { metadata?: unknown }).metadata),
+      providerCheckoutId: fact.checkoutConfigurationId,
+      providerReference: fact.paymentId,
+      userId,
+      amount: fact.usdAmount ?? fact.amount ?? 0,
+      currency: fact.usdAmount !== null ? "USD" : fact.currency ?? "USD",
+      occurredAt: fact.occurredAt,
+    });
   }
   return new Response("OK", { status: 200 });
 }

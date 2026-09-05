@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
+    "test:tracking": "node --experimental-strip-types --test tests/meta-funnel.test.mjs tests/seo-attribution.test.mjs tests/billing-core.test.mjs",
     "test:billing": "node --experimental-strip-types --test tests/billing-core.test.mjs tests/whop-plans.test.mjs tests/whop-transactions.test.mjs",
     "test:seo": "node --experimental-strip-types --test tests/seo-content-queue.test.mjs tests/seo-brief-assets.test.mjs tests/seo-agent-signature.test.mjs tests/seo-agent-retry.test.mjs tests/seo-import-watermarks.test.mjs tests/seo-draft-contract.test.mjs tests/seo-image-qa.test.mjs tests/seo-member-provision.test.mjs tests/seo-rights-review.test.mjs tests/seo-attribution.test.mjs tests/seo-ga-client-id.test.mjs tests/seo-sitemap.test.mjs tests/seo-publish-propagation.test.mjs tests/seo-publish-wave.test.mjs tests/seo-recommendation-ledger.test.mjs tests/seo-keyword-evidence.test.mjs tests/whop-transactions.test.mjs && playwright test tests/e2e/seo-foundation.spec.ts",
     "seo:validate-page": "node --experimental-strip-types .agents/skills/airveek-seo-content-autopilot/scripts/validate-page-draft.mjs",

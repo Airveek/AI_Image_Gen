@@ -11,13 +11,15 @@ const now = new Date("2026-08-30T10:00:00.000Z");
 
 test("attribution records a signed first touch and parses it back", () => {
   const mutation = buildSeoAttributionCookieMutation({
-    currentUrl: "https://airveek.com/product-photography/serum/?utm_source=google&utm_medium=organic&utm_campaign=launch&contentId=serum-guide",
+    currentUrl: "https://airveek.com/product-photography/serum/?utm_source=google&utm_medium=organic&utm_campaign=launch&utm_content=hero&utm_term=fashion&fbclid=MetaClick_123&contentId=serum-guide",
     referrer: "https://www.google.com/search?q=serum+product+photo",
     consentState: "granted",
     existingCookieValue: null,
     signingSecret: secret,
     siteHostname: "airveek.com",
     now,
+    fbp: "fb.1.1720000000000.123456789",
+    fbc: "fb.1.1720000000000.MetaClick_123",
   });
 
   assert.equal(mutation.action, "set");
@@ -26,6 +28,11 @@ test("attribution records a signed first touch and parses it back", () => {
   assert.equal(mutation.attribution.firstTouch.medium, "organic");
   assert.equal(mutation.attribution.firstTouch.contentId, "serum-guide");
   assert.equal(mutation.attribution.lastNonDirectTouch?.campaign, "launch");
+  assert.equal(mutation.attribution.version, 2);
+  assert.equal(mutation.attribution.firstTouch.utmContent, "hero");
+  assert.equal(mutation.attribution.firstTouch.utmTerm, "fashion");
+  assert.equal(mutation.attribution.firstTouch.fbclid, "MetaClick_123");
+  assert.equal(mutation.attribution.firstTouch.fbp, "fb.1.1720000000000.123456789");
   assert.deepEqual(parseSeoAttributionCookie(mutation.cookieValue, secret), mutation.attribution);
 });
 

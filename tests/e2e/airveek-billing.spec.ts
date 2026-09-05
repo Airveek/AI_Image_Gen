@@ -25,7 +25,8 @@ test("validates checkout request and response shapes", () => {
   expect(isCheckoutRequest({ plan: "commercial", checkoutAttemptId: "predictable" })).toBe(false);
   expect(isCheckoutRequest({ plan: "unknown" })).toBe(false);
   expect(isCheckoutRequest(null)).toBe(false);
-  expect(isCheckoutResponse({ purchaseUrl: "https://whop.com/checkout" })).toBe(true);
+  expect(isCheckoutResponse({ purchaseUrl: "https://whop.com/checkout", metaEventId: checkoutAttemptId })).toBe(true);
+  expect(isCheckoutResponse({ purchaseUrl: "https://whop.com/checkout" })).toBe(false);
   expect(isCheckoutResponse({ purchaseUrl: "http://localhost:3001" })).toBe(false);
   expect(isCheckoutResponse({ purchaseUrl: 42 })).toBe(false);
 });
