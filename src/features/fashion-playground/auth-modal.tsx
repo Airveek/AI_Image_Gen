@@ -54,10 +54,10 @@ export function FashionAuthModal({ open, onOpenChange, onAuthenticated }: {
           <Input id="fashion-auth-password" name="password" type="password" minLength={6} autoComplete={mode === "register" ? "new-password" : "current-password"} required />
           {mode === "register" ? <span className="mt-1 block text-xs text-muted-foreground">Use at least 6 characters. Password managers and paste are supported.</span> : null}
         </Field>
+        {mode === "register" ? <label className="flex cursor-pointer items-start gap-3 text-xs leading-5 text-muted-foreground"><input className="mt-0.5 h-5 w-5 shrink-0 accent-primary" name="legalAcceptance" required type="checkbox" value="accepted" /><span>I agree to the <Link className="font-semibold text-primary underline" href="/terms" target="_blank">Terms</Link> and acknowledge the <Link className="font-semibold text-primary underline" href="/privacy" target="_blank">Privacy Policy</Link>.</span></label> : null}
         <Button className="w-full" disabled={pending} type="submit" variant="primary">{pending ? "Please wait…" : mode === "register" ? "Create account & generate" : "Log in & generate"}</Button>
         {state.message ? <p className={`text-sm leading-6 ${state.ok ? "text-success" : "text-danger"}`} role={state.ok ? "status" : "alert"}>{state.message}</p> : null}
       </form>
-      <p className="mt-4 text-center text-xs leading-5 text-muted-foreground">By continuing, you agree to the <Link className="underline" href="/terms">Terms</Link> and acknowledge the <Link className="underline" href="/privacy">Privacy Policy</Link>.</p>
     </Dialog>
   );
 }

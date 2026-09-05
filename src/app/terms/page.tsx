@@ -21,6 +21,7 @@ const sections: LegalSection[] = [
     title: "Accounts and security",
     paragraphs: [
       <>You are responsible for providing accurate account information, protecting your login credentials, and all activity performed through your account. Tell us promptly if you believe your account has been accessed without permission.</>,
+      <>To create an account, you must actively accept these Terms and acknowledge the Privacy Policy. We record the document versions and acceptance time so that the agreement can be verified.</>,
       <>Unless your plan expressly allows team access, an account is personal to the original purchaser and may not be shared, sold, sublicensed, or transferred.</>,
     ],
   },
@@ -179,7 +180,7 @@ export default function TermsPage() {
     <LegalPage
       title="Terms of Service"
       description="These Terms explain the rules for accessing Airveek, creating with our AI tools, and using the resulting work."
-      lastUpdated="August 21, 2026"
+      lastUpdated="September 6, 2026"
       summary="By accessing or using Airveek, you confirm that you have read, understood, and agreed to these Terms. If you do not agree, do not use the Service."
       sections={sections}
     />

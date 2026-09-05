@@ -4,6 +4,7 @@ import { test } from "node:test";
 
 const { isFunnelEventName, isMetaCapiEventName, isSanitizedFunnelProperties, sanitizeFunnelProperties } = await import("../src/lib/analytics/meta.ts");
 const { normalizeAndHashMetaIdentifier } = await import("../src/lib/analytics/meta-matching.ts");
+const { hasAcceptedLegalTerms, LEGAL_ACCEPTANCE_VALUE } = await import("../src/lib/legal/acceptance.ts");
 
 test("Meta event contracts allow only the documented funnel and CAPI events", () => {
   assert.equal(isFunnelEventName("GenerationSucceeded"), true);
@@ -33,6 +34,12 @@ test("Meta matching normalizes and hashes identifiers before delivery", () => {
   assert.equal(normalizeAndHashMetaIdentifier("   "), null);
 });
 
+test("registration accepts only the explicit legal checkbox value", () => {
+  assert.equal(hasAcceptedLegalTerms(LEGAL_ACCEPTANCE_VALUE), true);
+  assert.equal(hasAcceptedLegalTerms(null), false);
+  assert.equal(hasAcceptedLegalTerms("on"), false);
+});
+
 test("database migration installs atomic credits, immutable attempts, and private outbox grants", async () => {
   const sql = await readFile(new URL("../supabase/migrations/202609060001_meta_fashion_funnel.sql", import.meta.url), "utf8");
   assert.match(sql, /reserve_creator_generation_credit/);
@@ -44,6 +51,14 @@ test("database migration installs atomic credits, immutable attempts, and privat
   assert.match(sql, /uses_free_credit boolean/);
   assert.match(sql, /assets\.status = 'ready'/);
   assert.match(sql, /revoke all on public\.meta_event_outbox from anon, authenticated/);
+});
+
+test("legal acceptance migration creates a private immutable signup audit", async () => {
+  const sql = await readFile(new URL("../supabase/migrations/202609060002_legal_acceptance_audit.sql", import.meta.url), "utf8");
+  assert.match(sql, /user_legal_acceptances/);
+  assert.match(sql, /after insert on auth\.users/);
+  assert.match(sql, /revoke all on table public\.user_legal_acceptances from anon, authenticated/);
+  assert.doesNotMatch(sql, /create policy/i);
 });
 
 test("checkout redirect pages never emit Purchase", async () => {

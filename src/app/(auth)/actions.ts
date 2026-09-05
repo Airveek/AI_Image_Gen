@@ -15,6 +15,7 @@ import { getSeoAttributionSigningSecret, parseSeoAttributionCookie, SEO_ATTRIBUT
 import { SITE_URL } from "@/lib/seo/site";
 import { isUuid } from "@/lib/analytics/meta";
 import { readAnalyticsConsent, recordServerFunnelEvent } from "@/lib/analytics/meta-server";
+import { hasAcceptedLegalTerms, LEGAL_ACCEPTANCE_VALUE, PRIVACY_VERSION, TERMS_VERSION } from "@/lib/legal/acceptance";
 
 export async function signInAction(
   _previousState: AuthActionState,
@@ -53,6 +54,10 @@ export async function registerAction(
     return { ok: false, message: "Complete all fields before registering." };
   }
 
+  if (!hasAcceptedLegalTerms(formData.get("legalAcceptance"))) {
+    return { ok: false, message: "You must agree to the Terms and acknowledge the Privacy Policy to register." };
+  }
+
   if (password.length < 6) {
     return { ok: false, message: "Your password must be at least 6 characters." };
   }
@@ -64,7 +69,13 @@ export async function registerAction(
     email,
     password,
     options: {
-      data: { name: displayName },
+      data: {
+        name: displayName,
+        legal_acceptance: LEGAL_ACCEPTANCE_VALUE,
+        legal_acceptance_source: "register_page",
+        privacy_version: PRIVACY_VERSION,
+        terms_version: TERMS_VERSION,
+      },
       emailRedirectTo: `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(nextPath)}`,
     },
   });
@@ -120,6 +131,7 @@ export async function modalRegisterAction(
   const email = readField(formData, "email");
   const password = readField(formData, "password");
   if (!displayName || !email || !password) return { ok: false, message: "Complete all fields before registering." };
+  if (!hasAcceptedLegalTerms(formData.get("legalAcceptance"))) return { ok: false, message: "You must agree to the Terms and acknowledge the Privacy Policy to register." };
   if (password.length < 6) return { ok: false, message: "Your password must be at least 6 characters." };
   const nextPath = getSafeRedirectPath(readField(formData, "next"));
   const supabase = await createSupabaseServerClient();
@@ -127,7 +139,13 @@ export async function modalRegisterAction(
     email,
     password,
     options: {
-      data: { name: displayName },
+      data: {
+        name: displayName,
+        legal_acceptance: LEGAL_ACCEPTANCE_VALUE,
+        legal_acceptance_source: "fashion_auth_modal",
+        privacy_version: PRIVACY_VERSION,
+        terms_version: TERMS_VERSION,
+      },
       emailRedirectTo: `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(nextPath)}`,
     },
   });

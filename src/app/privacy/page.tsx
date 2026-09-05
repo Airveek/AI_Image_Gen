@@ -44,7 +44,7 @@ const sections: LegalSection[] = [
     id: "cookies",
     title: "Cookies and similar technologies",
     paragraphs: [
-      <>Airveek may use essential cookies for authentication, security, preferences, and checkout. With your permission, we also use optional analytics and a signed first-party acquisition cookie to understand which public guides lead to product use and purchases.</>,
+      <>Airveek uses essential cookies for authentication, security, preferences, and checkout. We also use optional analytics, advertising measurement, and a signed first-party acquisition cookie to understand which public pages lead to product use and purchases.</>,
       <>You can control cookies through your browser. Blocking essential cookies may prevent account, checkout, or other Service features from working correctly.</>,
     ],
   },
@@ -166,7 +166,7 @@ export default function PrivacyPage() {
     <LegalPage
       title="Privacy Policy"
       description="This Policy explains what information Airveek handles, why we use it, and the choices available to you."
-      lastUpdated="August 21, 2026"
+      lastUpdated="September 6, 2026"
       summary="We use personal information to provide and secure Airveek, process creative requests, support customers, and improve the Service. We do not sell personal information."
       sections={sections}
     />

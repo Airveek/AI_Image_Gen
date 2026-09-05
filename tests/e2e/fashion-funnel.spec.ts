@@ -84,10 +84,9 @@ test("Meta endpoint gates consent and rejects unknown properties and cross-origi
   await context.dispose();
 });
 
-test("granted consent pairs browser and server ViewContent with one event ID", async ({ page }) => {
+test("a first visit pairs browser and server ViewContent with one event ID", async ({ page }) => {
   const serverEvents: Array<Record<string, unknown>> = [];
   await page.addInitScript(() => {
-    document.cookie = "airveek_analytics_consent=granted; Path=/; SameSite=Lax";
     (window as typeof window & { airveekPixelCalls: unknown[][] }).airveekPixelCalls = [];
     window.fbq = Object.assign((...args: unknown[]) => {
       (window as typeof window & { airveekPixelCalls: unknown[][] }).airveekPixelCalls.push(args);
@@ -103,17 +102,12 @@ test("granted consent pairs browser and server ViewContent with one event ID", a
   const pixelCalls = await page.evaluate(() => (window as typeof window & { airveekPixelCalls: unknown[][] }).airveekPixelCalls);
   const pixelEvent = pixelCalls.find((call) => call[1] === "ViewContent");
   expect(pixelEvent?.[3]).toEqual({ eventID: serverEvent?.eventId });
+  await expect(page.getByRole("button", { name: "Allow measurement" })).toHaveCount(0);
 });
 
-test("denied consent keeps campaign navigation free of Meta and internal funnel calls", async ({ page }) => {
-  const analyticsCalls: string[] = [];
-  page.on("request", (request) => {
-    if (request.url().includes("facebook.net") || request.url().includes("/api/analytics/meta")) analyticsCalls.push(request.url());
-  });
-  await page.goto("/ai-fashion-photoshoot");
-  await page.getByRole("button", { name: "Decline" }).click();
-  await page.getByRole("link", { name: "Create 2 Images Free" }).first().click();
-  await expect(page).toHaveURL(/\/playground\/fashion-photoshoot/);
-  await page.waitForTimeout(300);
-  expect(analyticsCalls).toEqual([]);
+test("registration requires explicit Terms acceptance", async ({ page }) => {
+  await page.goto("/register");
+  const checkbox = page.getByRole("checkbox", { name: /I agree to the Terms/i });
+  await expect(checkbox).toBeVisible();
+  await expect(checkbox).toHaveAttribute("required", "");
 });

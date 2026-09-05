@@ -91,6 +91,13 @@ export function AuthForm({
           {isRegister ? <p className="text-xs text-muted-foreground">Use at least 6 characters.</p> : null}
         </div>
 
+        {isRegister ? (
+          <label className="flex cursor-pointer items-start gap-3 text-sm leading-6 text-muted-foreground">
+            <input className="mt-1 h-5 w-5 shrink-0 accent-primary" name="legalAcceptance" required type="checkbox" value="accepted" />
+            <span>I agree to the <Link className="font-semibold text-primary underline underline-offset-4" href="/terms" target="_blank">Terms</Link> and acknowledge the <Link className="font-semibold text-primary underline underline-offset-4" href="/privacy" target="_blank">Privacy Policy</Link>.</span>
+          </label>
+        ) : null}
+
         <Button className="w-full" disabled={pending} type="submit" variant="primary">
           {pending ? "Please wait..." : isRegister ? "Create account" : "Log in"}
         </Button>
