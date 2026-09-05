@@ -4,6 +4,7 @@ import { recordUserEvent } from "@/lib/analytics/user-events";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { replacePreviousEntitlement } from "@/features/billing/server/entitlement-replacement";
 import { getStripeClient, getStripeWebhookSecret } from "@/lib/stripe/client";
+import { getWhopClient } from "@/lib/whop/client";
 import { identifyStripePrice } from "@/lib/stripe/plans";
 import { readUpgradeSource } from "@/lib/billing/upgrade";
 import type { UpgradeSource } from "@/lib/billing/upgrade";
@@ -106,17 +107,22 @@ async function applySubscriptionEvent(event: Stripe.Event & { data: { object: St
 }
 
 async function replaceStripeEntitlement(userId: string, currentReference: string, upgrade: UpgradeSource, event: Stripe.Event): Promise<void> {
-  if (upgrade.provider !== "stripe") throw new Error("Stripe upgrade metadata references another provider.");
+
   await replacePreviousEntitlement({
     userId,
-    provider: "stripe",
+    previousProvider: upgrade.provider,
+    currentProvider: "stripe",
     previousReference: upgrade.reference,
     currentReference,
     eventId: event.id,
     eventAt: new Date(event.created * 1000).toISOString(),
     cancelRemote: async () => {
-      if (upgrade.billingMode !== "subscription") return;
-      await getStripeClient().subscriptions.cancel(upgrade.reference);
+      if (upgrade.provider === "stripe") {
+        if (upgrade.billingMode !== "subscription") return;
+        await getStripeClient().subscriptions.cancel(upgrade.reference);
+        return;
+      }
+      await getWhopClient().memberships.cancel(upgrade.reference, { cancellation_mode: "immediate" });
     },
   });
 }

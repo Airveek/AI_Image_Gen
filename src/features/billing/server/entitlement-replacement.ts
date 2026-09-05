@@ -5,21 +5,22 @@ import type { BillingProvider } from "@/lib/billing/types";
 
 export async function replacePreviousEntitlement(input: {
   userId: string;
-  provider: BillingProvider;
+  previousProvider: BillingProvider;
+  currentProvider: BillingProvider;
   previousReference: string;
   currentReference: string;
   eventId: string;
   eventAt: string;
   cancelRemote: () => Promise<void>;
 }): Promise<void> {
-  if (input.previousReference === input.currentReference) return;
+  if (input.previousProvider === input.currentProvider && input.previousReference === input.currentReference) return;
 
   const supabase = createSupabaseAdminClient();
   const { data: canonical, error: canonicalError } = await supabase
     .from("billing_entitlements")
     .select("provider_reference")
     .eq("user_id", input.userId)
-    .eq("provider", input.provider)
+    .eq("provider", input.previousProvider)
     .eq("provider_reference", input.previousReference)
     .eq("has_access", true)
     .maybeSingle();
@@ -27,7 +28,7 @@ export async function replacePreviousEntitlement(input: {
   if (canonicalError) throw new Error(`Could not locate previous entitlement: ${canonicalError.message}`);
 
   let hasActivePreviousEntitlement = Boolean(canonical);
-  if (!hasActivePreviousEntitlement && input.provider === "whop") {
+  if (!hasActivePreviousEntitlement && input.previousProvider === "whop") {
     const { data: legacy, error: legacyError } = await supabase
       .from("whop_entitlements")
       .select("whop_membership_id")
@@ -56,13 +57,13 @@ export async function replacePreviousEntitlement(input: {
       updated_at: input.eventAt,
     })
     .eq("user_id", input.userId)
-    .eq("provider", input.provider)
+    .eq("provider", input.previousProvider)
     .eq("provider_reference", input.previousReference)
     .eq("has_access", true);
 
   if (updateError) throw new Error(`Could not replace previous entitlement: ${updateError.message}`);
 
-  if (input.provider === "whop") {
+  if (input.previousProvider === "whop") {
     const { error: legacyUpdateError } = await supabase
       .from("whop_entitlements")
       .update({ status: "canceled", updated_at: input.eventAt })
