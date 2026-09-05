@@ -3,7 +3,7 @@ import "server-only";
 import Whop from "@whop/sdk";
 
 import { identifyWhopPlan, type WhopPlanIdentity } from "@/lib/whop/plans";
-import type { PlanKey } from "@/lib/whop/types";
+import type { BillingMode, PlanKey } from "@/lib/billing/types";
 
 let whopClient: Whop | null = null;
 
@@ -48,10 +48,9 @@ export function getWhopAccountId(): string {
   return getRequiredEnv("WHOP_COMPANY_ID");
 }
 
-export function getWhopCheckoutPlanId(plan: PlanKey): string {
-  const envName = plan === "commercial"
-    ? "WHOP_COMMERCIAL_MONTHLY_PLAN_ID"
-    : "WHOP_PREMIUM_MONTHLY_PLAN_ID";
+export function getWhopCheckoutPlanId(plan: PlanKey, mode: BillingMode = "subscription"): string {
+  const prefix = plan === "commercial" ? "WHOP_COMMERCIAL" : "WHOP_PREMIUM";
+  const envName = `${prefix}_${mode === "subscription" ? "MONTHLY_PLAN_ID" : "PLAN_ID"}`;
 
   return getRequiredEnv(envName);
 }

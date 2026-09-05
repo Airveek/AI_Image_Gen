@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getCurrentPurchaseHistory } from "@/features/account/server/billing";
 import { getCurrentAccountBilling } from "@/features/creator/server/entitlements";
 import type { PurchaseHistoryItem } from "@/lib/whop/types";
+import { openStripeBillingPortal } from "@/features/account/server/billing-actions";
 
 export const metadata: Metadata = { title: "Purchase History" };
 
@@ -24,7 +25,7 @@ export default async function PurchaseHistoryPage() {
       <Card className="mt-8">
         <CardHeader>
           <CardTitle>Transaction history</CardTitle>
-          <CardDescription>Amounts are shown in the currency recorded by Whop.</CardDescription>
+          <CardDescription>Amounts are shown in the currency recorded by the payment provider.</CardDescription>
         </CardHeader>
         <CardContent>
           {!history.available ? (
@@ -46,7 +47,9 @@ export default async function PurchaseHistoryPage() {
 
           <div className="mt-6 flex flex-wrap gap-3">
             {billing.manageUrl ? (
-              <a className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground transition hover:bg-primary-hover" href={billing.manageUrl} target="_blank" rel="noreferrer">Open Whop billing history <ExternalLink className="size-4" aria-hidden="true" /></a>
+              <a className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground transition hover:bg-primary-hover" href={billing.manageUrl} target="_blank" rel="noreferrer">Open billing history <ExternalLink className="size-4" aria-hidden="true" /></a>
+            ) : billing.provider === "stripe" && billing.canManageBilling ? (
+              <form action={openStripeBillingPortal}><button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground transition hover:bg-primary-hover" type="submit">Open billing history <ExternalLink className="size-4" aria-hidden="true" /></button></form>
             ) : null}
             <Link className="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-surface px-5 text-sm font-bold text-foreground transition hover:border-primary/50 hover:bg-surface-muted" href="/support">Billing support</Link>
           </div>

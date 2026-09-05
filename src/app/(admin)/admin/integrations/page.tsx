@@ -7,6 +7,8 @@ import { getDriveConnectionStatus } from "@/features/creator/server/drive";
 import { getBridgePoolStatus, listImageProviderSettings } from "@/features/creator/server/integrations";
 import { getR2Status } from "@/features/creator/server/r2";
 import type { BridgePoolStatus, ImageProviderSetting } from "@/features/creator/types";
+import { BillingSettings } from "@/features/billing/components/billing-settings";
+import { getAdminBillingSettings } from "@/features/billing/server/settings";
 
 export const metadata: Metadata = { title: "Integrations" };
 
@@ -44,16 +46,20 @@ export default async function IntegrationsPage({
     getDriveConnectionStatus(),
     getR2Status(),
   ]);
+  const billing = await getAdminBillingSettings();
 
   return (
-    <IntegrationSettings
-      providers={providers}
-      bridgePool={bridgePool}
-      bridgeMessage={bridgeMessage}
-      drive={drive}
-      r2={r2}
-      setupMessage={setupMessage}
-      initialMessage={query.error ?? (query.drive === "connected" ? "Google Drive connected successfully." : "")}
-    />
+    <div className="space-y-6">
+      <BillingSettings settings={billing} />
+      <IntegrationSettings
+        providers={providers}
+        bridgePool={bridgePool}
+        bridgeMessage={bridgeMessage}
+        drive={drive}
+        r2={r2}
+        setupMessage={setupMessage}
+        initialMessage={query.error ?? (query.drive === "connected" ? "Google Drive connected successfully." : "")}
+      />
+    </div>
   );
 }

@@ -74,7 +74,7 @@ export function CreatorDashboard({
         </div>
         <p className="mt-2 text-sm leading-6 text-muted">
           {access.hasActiveAccess
-            ? "Your Whop entitlement is active."
+            ? "Your paid entitlement is active."
             : "Complete checkout to update your Airveek access status."}
         </p>
       </section>

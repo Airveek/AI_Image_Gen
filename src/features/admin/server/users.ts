@@ -254,7 +254,7 @@ async function listUserInsightMetadata(): Promise<Map<string, UserInsightMetadat
     const adminClient = createSupabaseAdminClient();
     const [{ data: profiles, error: profilesError }, { data: entitlements, error: entitlementsError }] = await Promise.all([
       adminClient.from("user_profiles").select("user_id,user_type,primary_goal,first_touch_source"),
-      adminClient.from("whop_entitlements").select("user_id,whop_plan_id,status,updated_at").order("updated_at", { ascending: false }),
+      adminClient.from("billing_entitlements").select("user_id,provider_plan_id,plan_key,status,updated_at").order("updated_at", { ascending: false }),
     ]);
 
     if (profilesError || entitlementsError) return new Map();
@@ -279,7 +279,8 @@ async function listUserInsightMetadata(): Promise<Map<string, UserInsightMetadat
     for (const row of entitlements ?? []) {
       const entitlement = row as {
         user_id: string;
-        whop_plan_id: string;
+        provider_plan_id: string;
+        plan_key: string | null;
         status: string;
         updated_at: string;
       };
@@ -291,7 +292,9 @@ async function listUserInsightMetadata(): Promise<Map<string, UserInsightMetadat
         acquisitionSource: null,
       };
       if (!current.paidStatus) {
-        current.paidPlan = planLabel(entitlement.whop_plan_id);
+        current.paidPlan = entitlement.plan_key === "premium" ? "Premium"
+          : entitlement.plan_key === "commercial" ? "Commercial"
+          : planLabel(entitlement.provider_plan_id);
         current.paidStatus = entitlement.status;
         metadata.set(entitlement.user_id, current);
       }
@@ -364,7 +367,9 @@ function isAdminSeoRole(value: unknown): value is AdminSeoRole {
 }
 
 function planLabel(planId: string): string {
-  if (planId === process.env.WHOP_PREMIUM_PLAN_ID) return "Premium";
-  if (planId === process.env.WHOP_COMMERCIAL_PLAN_ID) return "Commercial";
+  if ([process.env.WHOP_PREMIUM_PLAN_ID, process.env.WHOP_PREMIUM_MONTHLY_PLAN_ID,
+    process.env.STRIPE_PREMIUM_ONE_TIME_PRICE_ID, process.env.STRIPE_PREMIUM_SUBSCRIPTION_PRICE_ID].includes(planId)) return "Premium";
+  if ([process.env.WHOP_COMMERCIAL_PLAN_ID, process.env.WHOP_COMMERCIAL_MONTHLY_PLAN_ID,
+    process.env.STRIPE_COMMERCIAL_ONE_TIME_PRICE_ID, process.env.STRIPE_COMMERCIAL_SUBSCRIPTION_PRICE_ID].includes(planId)) return "Commercial";
   return "Paid plan";
 }

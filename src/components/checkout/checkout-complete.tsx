@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { trackGa4Event } from "@/lib/analytics/browser";
 
 type CheckoutCompleteProps = {
   status: string | null;
@@ -18,10 +17,6 @@ export function CheckoutComplete({ status }: CheckoutCompleteProps) {
       : "Your checkout status is being confirmed.";
 
   useEffect(() => {
-    if (status === "success" && !window.sessionStorage.getItem("airveek_purchase_tracked")) {
-      window.sessionStorage.setItem("airveek_purchase_tracked", "1");
-      trackGa4Event("purchase", { transaction_status: "success" });
-    }
     const redirectTimer = window.setTimeout(() => router.replace("/dashboard"), 1200);
     return () => window.clearTimeout(redirectTimer);
   }, [router, status]);

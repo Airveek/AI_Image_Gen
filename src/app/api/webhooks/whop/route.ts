@@ -82,6 +82,31 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const supabase = createSupabaseAdminClient();
+    const identity = getWhopPlanIdentity(membership.plan.id);
+    const billingMode = identity.billingKind === "legacy-lifetime" ? "one_time" : "subscription";
+    const { error: canonicalError } = await supabase.rpc("apply_billing_entitlement_event", {
+      p_user_id: userId,
+      p_provider: "whop",
+      p_provider_reference: membership.id,
+      p_provider_plan_id: membership.plan.id,
+      p_plan_key: identity.planKey,
+      p_billing_mode: billingMode,
+      p_status: membership.status,
+      p_provider_customer_id: null,
+      p_provider_payment_id: null,
+      p_checkout_session_id: null,
+      p_cancel_at_period_end: membership.cancel_at_period_end,
+      p_access_expires_at: readIsoTimestamp(membership.renewal_period_end),
+      p_event_id: event.id,
+      p_event_type: event.type,
+      p_event_at: event.timestamp,
+    });
+
+    if (canonicalError) {
+      console.error("Unable to save canonical Whop entitlement.", canonicalError);
+      return new Response("Unable to save entitlement", { status: 500 });
+    }
+
     const { data: existingEntitlement, error: lookupError } = await supabase
       .from("whop_entitlements")
       .select("last_event_id, updated_at")
@@ -220,4 +245,8 @@ async function recordFinancialEvent(
 
 function readPlanKey(planId: string): "commercial" | "premium" | undefined {
   return getWhopPlanIdentity(planId).planKey ?? undefined;
+}
+
+function readIsoTimestamp(value: string | null): string | null {
+  return value && Number.isFinite(Date.parse(value)) ? new Date(value).toISOString() : null;
 }
