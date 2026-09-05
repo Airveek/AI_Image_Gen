@@ -8,6 +8,7 @@ import {
   getWhopPlanIdentity,
   getWhopWebhookKey,
 } from "@/lib/whop/client";
+import { getStripeClient } from "@/lib/stripe/client";
 import {
   getWebhookMetadataUserId,
   isValidWebhookTimestamp,
@@ -177,16 +178,23 @@ export async function POST(request: Request): Promise<Response> {
 }
 
 async function replaceWhopEntitlement(userId: string, currentReference: string, upgrade: UpgradeSource, event: Extract<UnwrapWebhookEvent, { type: "membership.activated" }>): Promise<void> {
-  if (upgrade.provider !== "whop") throw new Error("Whop upgrade metadata references another provider.");
+
   await replacePreviousEntitlement({
     userId,
-    provider: "whop",
+    previousProvider: upgrade.provider,
+    currentProvider: "whop",
     previousReference: upgrade.reference,
     currentReference,
     eventId: event.id,
     eventAt: event.timestamp,
     cancelRemote: async () => {
-      await getWhopClient().memberships.cancel(upgrade.reference, { cancellation_mode: "immediate" });
+      if (upgrade.provider === "whop") {
+        await getWhopClient().memberships.cancel(upgrade.reference, { cancellation_mode: "immediate" });
+        return;
+      }
+      if (upgrade.billingMode === "subscription") {
+        await getStripeClient().subscriptions.cancel(upgrade.reference);
+      }
     },
   });
 }

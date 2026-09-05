@@ -44,10 +44,9 @@ export async function POST(request: NextRequest): Promise<Response> {
       return activePlanRedirect();
     }
 
-    const configuration = upgrade ? null : await requireActiveBillingConfiguration();
-    const provider = upgrade?.provider ?? configuration?.provider;
-    const mode = upgrade?.mode ?? configuration?.mode;
-    if (!provider || !mode) return activePlanRedirect();
+    const configuration = await requireActiveBillingConfiguration();
+    const provider = configuration.provider;
+    const mode = upgrade?.mode ?? configuration.mode;
 
     const metadata = checkoutMetadata({
       userId: user.id,
@@ -62,7 +61,7 @@ export async function POST(request: NextRequest): Promise<Response> {
           plan: requestBody.plan,
           mode,
           checkoutAttemptId: requestBody.checkoutAttemptId,
-          customerId: access.hasActiveAccess ? access.providerCustomerId ?? undefined : undefined,
+          customerId: upgrade?.provider === "stripe" ? access.providerCustomerId ?? undefined : undefined,
           metadata,
         })
       : await createWhopCheckout(requestBody.plan, mode, metadata);
