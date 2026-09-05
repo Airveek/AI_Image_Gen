@@ -1,5 +1,6 @@
 import type { UnwrapWebhookEvent } from "@whop/sdk/resources.js";
 
+import { replacePreviousEntitlement } from "@/features/billing/server/entitlement-replacement";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   getWhopAccountId,
@@ -14,6 +15,8 @@ import {
 } from "@/lib/whop/webhooks";
 import { buildWhopTransactionFact } from "@/lib/whop/transactions";
 import { recordUserEvent } from "@/lib/analytics/user-events";
+import { readUpgradeSource } from "@/lib/billing/upgrade";
+import type { UpgradeSource } from "@/lib/billing/upgrade";
 
 export const runtime = "nodejs";
 
@@ -47,12 +50,18 @@ function isFinancialEvent(event: UnwrapWebhookEvent): event is Extract<
 export async function POST(request: Request): Promise<Response> {
   const requestBody = await request.text();
 
+  let event: UnwrapWebhookEvent;
   try {
-    const event = getWhopClient().webhooks.unwrap(requestBody, {
+    event = getWhopClient().webhooks.unwrap(requestBody, {
       headers: Object.fromEntries(request.headers.entries()),
       key: getWhopWebhookKey(),
     });
+  } catch (error: unknown) {
+    console.error("Invalid Whop webhook.", error);
+    return new Response("Invalid webhook", { status: 400 });
+  }
 
+  try {
     const accountId = getWhopAccountId();
 
     if (isFinancialEvent(event)) {
@@ -84,6 +93,10 @@ export async function POST(request: Request): Promise<Response> {
     const supabase = createSupabaseAdminClient();
     const identity = getWhopPlanIdentity(membership.plan.id);
     const billingMode = identity.billingKind === "legacy-lifetime" ? "one_time" : "subscription";
+    const upgrade = readUpgradeSource(membership.metadata);
+    if (event.type === "membership.activated" && isActiveMembershipStatus(membership.status) && upgrade) {
+      await replaceWhopEntitlement(userId, membership.id, upgrade, event);
+    }
     const { error: canonicalError } = await supabase.rpc("apply_billing_entitlement_event", {
       p_user_id: userId,
       p_provider: "whop",
@@ -158,9 +171,28 @@ export async function POST(request: Request): Promise<Response> {
 
     return new Response("OK", { status: 200 });
   } catch (error: unknown) {
-    console.error("Invalid Whop webhook.", error);
-    return new Response("Invalid webhook", { status: 400 });
+    console.error(`Unable to process Whop webhook ${event.id}.`, error);
+    return new Response("Webhook processing failed", { status: 500 });
   }
+}
+
+async function replaceWhopEntitlement(userId: string, currentReference: string, upgrade: UpgradeSource, event: Extract<UnwrapWebhookEvent, { type: "membership.activated" }>): Promise<void> {
+  if (upgrade.provider !== "whop") throw new Error("Whop upgrade metadata references another provider.");
+  await replacePreviousEntitlement({
+    userId,
+    provider: "whop",
+    previousReference: upgrade.reference,
+    currentReference,
+    eventId: event.id,
+    eventAt: event.timestamp,
+    cancelRemote: async () => {
+      await getWhopClient().memberships.cancel(upgrade.reference, { cancellation_mode: "immediate" });
+    },
+  });
+}
+
+function isActiveMembershipStatus(status: string): boolean {
+  return status === "active" || status === "trialing" || status === "completed" || status === "canceling";
 }
 
 async function recordFinancialEvent(
