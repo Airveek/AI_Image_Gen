@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-import { isCheckoutResponse } from "@/lib/billing/checkout";
+import { isCheckoutRedirectResponse, isCheckoutResponse } from "@/lib/billing/checkout";
 import type { PlanKey } from "@/lib/billing/types";
 import { trackGa4Event } from "@/lib/analytics/browser";
 import { trackServerMirroredPixelEvent } from "@/lib/analytics/meta-browser";
@@ -35,6 +35,13 @@ export function CheckoutLauncher({ plan }: CheckoutLauncherProps) {
         });
 
         const responseBody: unknown = await response.json();
+
+        if (response.status === 409 && isCheckoutRedirectResponse(responseBody)) {
+          if (!cancelled) {
+            window.location.replace(responseBody.redirectTo);
+          }
+          return;
+        }
 
         if (!response.ok || !isCheckoutResponse(responseBody)) {
           throw new Error("Checkout could not be started.");

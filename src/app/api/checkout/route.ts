@@ -5,6 +5,8 @@ import { recordUserEvent } from "@/lib/analytics/user-events";
 import { requireActiveBillingConfiguration } from "@/features/billing/server/settings";
 import { getCurrentCreatorAccess } from "@/features/creator/server/entitlements";
 import { isCheckoutRequest } from "@/lib/billing/checkout";
+import { billingModeForBillingKind, PLAN_DEFINITIONS } from "@/lib/billing/plans";
+import type { BillingConfiguration, BillingMode, BillingProvider, CheckoutMetadata, PlanKey } from "@/lib/billing/types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAppUrl, getStripeClient, getStripePriceId } from "@/lib/stripe/client";
@@ -14,8 +16,6 @@ import {
   getWhopCheckoutRedirectUrl,
   getWhopClient,
 } from "@/lib/whop/client";
-import { PLAN_DEFINITIONS } from "@/lib/billing/plans";
-import type { BillingConfiguration, PlanKey } from "@/lib/billing/types";
 import {
   buildMetaUserData,
   readAnalyticsConsent,
@@ -45,21 +45,37 @@ export async function POST(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: "Choose a valid plan." }, { status: 400 });
   }
 
-  if ((await getCurrentCreatorAccess()).hasActiveAccess) {
-    return NextResponse.json({ error: "This account already has paid access. Manage the current plan instead." }, { status: 409 });
-  }
-
   try {
+    const access = await getCurrentCreatorAccess();
+    const upgrade = access.hasActiveAccess ? getUpgradeSource(access) : null;
+    if (access.hasActiveAccess && (!upgrade || access.planKey === requestBody.plan)) {
+      return activePlanRedirect();
+    }
+
+    const activeConfiguration = await requireActiveBillingConfiguration();
+    const requestedConfiguration: BillingConfiguration = {
+      provider: activeConfiguration.provider,
+      mode: upgrade?.mode ?? activeConfiguration.mode,
+    };
     const attempt = await getOrCreateCheckoutAttempt({
       attemptId: requestBody.checkoutAttemptId,
       userId: user.id,
       email: user.email,
       plan: requestBody.plan,
       request,
+      configuration: requestedConfiguration,
     });
     if (attempt.purchaseUrl) {
       return NextResponse.json({ purchaseUrl: attempt.purchaseUrl, metaEventId: attempt.initiateEventId });
     }
+
+    const metadata = checkoutMetadata({
+      userId: user.id,
+      plan: requestBody.plan,
+      mode: attempt.configuration.mode,
+      checkoutAttemptId: requestBody.checkoutAttemptId,
+      upgrade,
+    });
     const checkout = attempt.configuration.provider === "stripe"
       ? await createStripeCheckout({
           userId: user.id,
@@ -67,8 +83,10 @@ export async function POST(request: NextRequest): Promise<Response> {
           plan: requestBody.plan,
           mode: attempt.configuration.mode,
           checkoutAttemptId: requestBody.checkoutAttemptId,
+          customerId: upgrade?.provider === "stripe" ? access.providerCustomerId ?? undefined : undefined,
+          metadata,
         })
-      : await createWhopCheckout(user.id, requestBody.plan, attempt.configuration.mode, requestBody.checkoutAttemptId);
+      : await createWhopCheckout(requestBody.plan, attempt.configuration.mode, metadata);
 
     const { error: updateError } = await createSupabaseAdminClient().from("billing_checkout_attempts").update({
       provider_checkout_id: checkout.id,
@@ -113,10 +131,51 @@ export async function POST(request: NextRequest): Promise<Response> {
   }
 }
 
-async function createWhopCheckout(userId: string, plan: "commercial" | "premium", mode: "one_time" | "subscription", checkoutAttemptId: string): Promise<{ id: string; url: string }> {
+function activePlanRedirect(): Response {
+  return NextResponse.json({
+    code: "active_plan",
+    redirectTo: "/plans",
+    error: "This account already has paid access. Manage the current plan instead.",
+  }, { status: 409 });
+}
+
+type UpgradeSource = {
+  provider: BillingProvider;
+  reference: string;
+  mode: BillingMode;
+};
+
+function getUpgradeSource(access: Awaited<ReturnType<typeof getCurrentCreatorAccess>>): UpgradeSource | null {
+  const mode = billingModeForBillingKind(access.billingKind);
+  if (!access.provider || !access.providerReference || !mode) return null;
+  return { provider: access.provider, reference: access.providerReference, mode };
+}
+
+function checkoutMetadata(input: {
+  userId: string;
+  plan: PlanKey;
+  mode: BillingMode;
+  checkoutAttemptId: string;
+  upgrade: UpgradeSource | null;
+}): CheckoutMetadata {
+  const metadata: CheckoutMetadata = {
+    supabase_user_id: input.userId,
+    plan_key: input.plan,
+    billing_mode: input.mode,
+    checkout_attempt_id: input.checkoutAttemptId,
+  };
+  if (input.upgrade) {
+    metadata.upgrade_from_provider = input.upgrade.provider;
+    metadata.upgrade_from_reference = input.upgrade.reference;
+    metadata.upgrade_from_billing_mode = input.upgrade.mode;
+  }
+  return metadata;
+}
+
+async function createWhopCheckout(plan: PlanKey, mode: BillingMode, metadata: CheckoutMetadata): Promise<{ id: string; url: string }> {
   const checkout = await getWhopClient().checkoutConfigurations.create({
     account_id: getWhopAccountId(),
-    metadata: { supabase_user_id: userId, plan_key: plan, billing_mode: mode, checkout_attempt_id: checkoutAttemptId },
+    metadata: providerMetadata(metadata),
     mode: "payment",
     plan_id: getWhopCheckoutPlanId(plan, mode),
     redirect_url: getWhopCheckoutRedirectUrl(),
@@ -131,17 +190,19 @@ async function createStripeCheckout(input: {
   plan: "commercial" | "premium";
   mode: "one_time" | "subscription";
   checkoutAttemptId: string;
+  customerId?: string;
+  metadata: CheckoutMetadata;
 }): Promise<{ id: string; url: string }> {
-  const metadata = { supabase_user_id: input.userId, plan_key: input.plan, billing_mode: input.mode, checkout_attempt_id: input.checkoutAttemptId };
   const session = await getStripeClient().checkout.sessions.create({
     mode: input.mode === "subscription" ? "subscription" : "payment",
     line_items: [{ price: getStripePriceId(input.plan, input.mode), quantity: 1 }],
     client_reference_id: input.userId,
-    customer_email: input.email,
-    customer_creation: input.mode === "one_time" ? "always" : undefined,
-    metadata,
-    payment_intent_data: input.mode === "one_time" ? { metadata } : undefined,
-    subscription_data: input.mode === "subscription" ? { metadata } : undefined,
+    customer: input.customerId,
+    customer_email: input.customerId ? undefined : input.email,
+    customer_creation: input.customerId ? undefined : input.mode === "one_time" ? "always" : undefined,
+    metadata: providerMetadata(input.metadata),
+    payment_intent_data: input.mode === "one_time" ? { metadata: providerMetadata(input.metadata) } : undefined,
+    subscription_data: input.mode === "subscription" ? { metadata: providerMetadata(input.metadata) } : undefined,
     allow_promotion_codes: true,
     success_url: getAppUrl("/checkout/complete?status=success&session_id={CHECKOUT_SESSION_ID}"),
     cancel_url: getAppUrl("/checkout/complete?status=error"),
@@ -165,6 +226,7 @@ async function getOrCreateCheckoutAttempt(input: {
   email?: string | null;
   plan: PlanKey;
   request: NextRequest;
+  configuration: BillingConfiguration;
 }): Promise<CheckoutAttempt> {
   const client = createSupabaseAdminClient();
   const existing = await client.from("billing_checkout_attempts").select("*")
@@ -175,7 +237,6 @@ async function getOrCreateCheckoutAttempt(input: {
     return mapCheckoutAttempt(existing.data);
   }
 
-  const configuration = await requireActiveBillingConfiguration();
   const cookieHeader = input.request.headers.get("cookie");
   const attribution = readAttributionSnapshot(cookieHeader);
   const marketingConsent = readAnalyticsConsent(cookieHeader);
@@ -193,8 +254,8 @@ async function getOrCreateCheckoutAttempt(input: {
     id: input.attemptId,
     user_id: input.userId,
     plan_key: input.plan,
-    provider: configuration.provider,
-    billing_mode: configuration.mode,
+    provider: input.configuration.provider,
+    billing_mode: input.configuration.mode,
     amount_cents: PLAN_DEFINITIONS[input.plan].priceUsdCents,
     currency: "USD",
     anonymous_id_hash: attribution.anonymousIdHash,
@@ -232,4 +293,19 @@ function readStoredAttribution(value: unknown): ReturnType<typeof readAttributio
   const row = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
   const text = (key: string) => typeof row[key] === "string" ? row[key] as string : null;
   return { anonymousIdHash: text("anonymousIdHash"), source: text("source"), medium: text("medium"), campaign: text("campaign"), content: text("content"), term: text("term"), fbclid: text("fbclid") };
+}
+
+function providerMetadata(metadata: CheckoutMetadata): Record<string, string> {
+  const result: Record<string, string> = {
+    supabase_user_id: metadata.supabase_user_id,
+    plan_key: metadata.plan_key,
+    billing_mode: metadata.billing_mode,
+    checkout_attempt_id: metadata.checkout_attempt_id,
+  };
+  if (metadata.upgrade_from_provider && metadata.upgrade_from_reference && metadata.upgrade_from_billing_mode) {
+    result.upgrade_from_provider = metadata.upgrade_from_provider;
+    result.upgrade_from_reference = metadata.upgrade_from_reference;
+    result.upgrade_from_billing_mode = metadata.upgrade_from_billing_mode;
+  }
+  return result;
 }

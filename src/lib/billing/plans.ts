@@ -1,4 +1,4 @@
-import type { BillingMode, PlanKey } from "@/lib/billing/types";
+import type { BillingKind, BillingMode, PlanKey } from "@/lib/billing/types";
 
 export type PlanDefinition = {
   key: PlanKey;
@@ -27,6 +27,11 @@ export const PLAN_DEFINITIONS: Readonly<Record<PlanKey, PlanDefinition>> = {
 export function getPlanDefinition(plan: PlanKey): PlanDefinition { return PLAN_DEFINITIONS[plan]; }
 export function billingKindForMode(mode: BillingMode): "monthly" | "one-time" {
   return mode === "subscription" ? "monthly" : "one-time";
+}
+export function billingModeForBillingKind(kind: BillingKind): BillingMode | null {
+  if (kind === "monthly") return "subscription";
+  if (kind === "one-time" || kind === "legacy-lifetime") return "one_time";
+  return null;
 }
 export function hasBillingAccess(mode: BillingMode, status: string | null): boolean {
   if (!status) return false;

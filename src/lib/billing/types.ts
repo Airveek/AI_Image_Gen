@@ -10,9 +10,21 @@ export type BillingStatus =
 
 export type CheckoutRequest = { plan: PlanKey; checkoutAttemptId: string };
 export type CheckoutResponse = { purchaseUrl: string; metaEventId: string };
+export type CheckoutRedirectResponse = { code: "active_plan"; redirectTo: "/plans" };
+export type CheckoutMetadata = {
+  supabase_user_id: string;
+  plan_key: PlanKey;
+  billing_mode: BillingMode;
+  checkout_attempt_id: string;
+  upgrade_from_provider?: BillingProvider;
+  upgrade_from_reference?: string;
+  upgrade_from_billing_mode?: BillingMode;
+};
 
 export type CreatorAccessSummary = {
   provider: BillingProvider | null;
+  providerReference: string | null;
+  providerCustomerId: string | null;
   planName: string;
   planKey: PlanKey | null;
   billingKind: BillingKind;
