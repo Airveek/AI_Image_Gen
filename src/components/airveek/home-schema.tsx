@@ -1,7 +1,8 @@
 import { JsonLd } from "@/components/seo/json-ld";
 import { absoluteUrl } from "@/lib/seo/site";
+import type { BillingMode } from "@/lib/billing/types";
 
-export function HomeSchema() {
+export function HomeSchema({ billingMode }: { billingMode: BillingMode }) {
   const organizationId = `${absoluteUrl("/")}#organization`;
   const websiteId = `${absoluteUrl("/")}#website`;
 
@@ -43,11 +44,16 @@ export function HomeSchema() {
           url: absoluteUrl("/"),
           description: "Create images, logos, and commercial artwork from a keyword with Airveek.",
           offers: [
-            { "@type": "Offer", name: "Commercial monthly", price: "49", priceCurrency: "USD", url: absoluteUrl("/#pricing"), priceSpecification: { "@type": "UnitPriceSpecification", price: "49", priceCurrency: "USD", billingDuration: "P1M" } },
-            { "@type": "Offer", name: "Premium monthly", price: "147", priceCurrency: "USD", url: absoluteUrl("/#pricing"), priceSpecification: { "@type": "UnitPriceSpecification", price: "147", priceCurrency: "USD", billingDuration: "P1M" } },
+            offer("Commercial", "49", billingMode),
+            offer("Premium", "147", billingMode),
           ],
         },
       ]}
     />
   );
+}
+
+function offer(name: string, price: string, mode: BillingMode) {
+  return { "@type": "Offer", name: `${name} ${mode === "subscription" ? "monthly" : "one-time"}`, price, priceCurrency: "USD", url: absoluteUrl("/#pricing"),
+    priceSpecification: { "@type": "UnitPriceSpecification", price, priceCurrency: "USD", ...(mode === "subscription" ? { billingDuration: "P1M" } : {}) } };
 }

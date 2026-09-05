@@ -22,6 +22,28 @@ import type {
   IntegrationActionState,
   ProviderModelResult,
 } from "@/features/creator/types";
+import { updateBillingConfiguration } from "@/features/billing/server/settings";
+import { isBillingMode, isBillingProvider } from "@/lib/billing/types";
+
+type BillingActionState = { status: "idle" | "success" | "error"; message: string };
+
+export async function setBillingConfigurationAction(
+  _previousState: BillingActionState,
+  formData: FormData,
+): Promise<BillingActionState> {
+  try {
+    const provider = formData.get("provider");
+    const mode = formData.get("mode");
+    if (!isBillingProvider(provider) || !isBillingMode(mode)) throw new Error("Choose a valid provider and billing mode.");
+    await updateBillingConfiguration(provider, mode);
+    revalidatePath("/");
+    revalidatePath("/plans");
+    revalidatePath("/admin/integrations");
+    return { status: "success", message: `${provider === "whop" ? "Whop" : "Stripe"} ${mode === "subscription" ? "monthly subscriptions" : "one-time payments"} activated.` };
+  } catch (error) {
+    return { status: "error", message: getActionErrorMessage(error) };
+  }
+}
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 

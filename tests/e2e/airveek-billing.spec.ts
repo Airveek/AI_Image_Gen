@@ -19,7 +19,10 @@ test("accepts only supported Whop plans", () => {
 });
 
 test("validates checkout request and response shapes", () => {
-  expect(isCheckoutRequest({ plan: "commercial" })).toBe(true);
+  const checkoutAttemptId = "9a2c745c-08f3-4ca7-b01a-3cb6f024bde8";
+  expect(isCheckoutRequest({ plan: "commercial", checkoutAttemptId })).toBe(true);
+  expect(isCheckoutRequest({ plan: "commercial" })).toBe(false);
+  expect(isCheckoutRequest({ plan: "commercial", checkoutAttemptId: "predictable" })).toBe(false);
   expect(isCheckoutRequest({ plan: "unknown" })).toBe(false);
   expect(isCheckoutRequest(null)).toBe(false);
   expect(isCheckoutResponse({ purchaseUrl: "https://whop.com/checkout" })).toBe(true);

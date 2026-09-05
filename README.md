@@ -102,7 +102,7 @@ R2_BUCKET=
 DAILY_GENERATION_LIMIT=5
 WHOP_API_KEY=
 WHOP_COMPANY_ID=
-# Keep the existing one-time IDs for legacy lifetime access.
+# Keep the existing one-time IDs for legacy access and optional one-time checkout.
 WHOP_COMMERCIAL_PLAN_ID=
 WHOP_PREMIUM_PLAN_ID=
 # New recurring monthly plans ($49 Commercial / $147 Premium).
@@ -110,6 +110,13 @@ WHOP_COMMERCIAL_MONTHLY_PLAN_ID=
 WHOP_PREMIUM_MONTHLY_PLAN_ID=
 WHOP_WEBHOOK_SECRET=
 WHOP_SANDBOX=false
+# Configure both Stripe modes once, then switch provider/mode in Admin > Integrations.
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_COMMERCIAL_ONE_TIME_PRICE_ID=
+STRIPE_PREMIUM_ONE_TIME_PRICE_ID=
+STRIPE_COMMERCIAL_SUBSCRIPTION_PRICE_ID=
+STRIPE_PREMIUM_SUBSCRIPTION_PRICE_ID=
 # SEO measurement and publishing (see .env.example for the complete list)
 GSC_SITE_URL=sc-domain:airveek.com
 NEXT_PUBLIC_GA4_MEASUREMENT_ID=
@@ -131,6 +138,14 @@ Apply the Supabase migrations in `supabase/migrations` before opening the creato
 ```text
 https://your-domain.example/api/webhooks/whop
 ```
+
+The Stripe webhook endpoint is:
+
+```text
+https://your-domain.example/api/webhooks/stripe
+```
+
+Create separate active Stripe Prices for Commercial and Premium in both one-time and monthly-recurring modes. Subscribe the Stripe endpoint to `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`, `payment_intent.succeeded`, `invoice.paid`, `invoice.payment_failed`, `refund.created`, `refund.updated`, `charge.dispute.created`, and `charge.dispute.closed`. Use the endpoint signing secret as `STRIPE_WEBHOOK_SECRET`, and configure Stripe's customer portal before activating Stripe subscriptions.
 
 In Whop, configure the monthly plan IDs as recurring USD plans billed every month at $49 for Commercial and $147 for Premium. Keep the two legacy plan IDs unchanged so earlier lifetime purchases continue to resolve correctly. Configure the webhook URL and subscribe to membership activation/deactivation, payment created/pending/succeeded/failed, and refund created/updated events. For local checkout testing, use an HTTPS tunnel and set `NEXT_PUBLIC_APP_URL` to the tunnel URL. Localhost HTTP is supported only for the local prototype and cannot receive a public Whop webhook.
 

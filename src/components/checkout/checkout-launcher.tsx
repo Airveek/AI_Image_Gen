@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-import { isCheckoutResponse } from "@/lib/whop/checkout";
-import type { PlanKey } from "@/lib/whop/types";
+import { isCheckoutResponse } from "@/lib/billing/checkout";
+import type { PlanKey } from "@/lib/billing/types";
 import { trackGa4Event } from "@/lib/analytics/browser";
 
 type CheckoutLauncherProps = {
@@ -13,6 +13,7 @@ type CheckoutLauncherProps = {
 
 export function CheckoutLauncher({ plan }: CheckoutLauncherProps) {
   const started = useRef(false);
+  const attemptId = useRef<string>(crypto.randomUUID());
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ export function CheckoutLauncher({ plan }: CheckoutLauncherProps) {
         const response = await fetch("/api/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ plan }),
+          body: JSON.stringify({ plan, checkoutAttemptId: attemptId.current }),
         });
 
         const responseBody: unknown = await response.json();
@@ -69,7 +70,7 @@ export function CheckoutLauncher({ plan }: CheckoutLauncherProps) {
           <>
             <div className="mx-auto mb-5 h-10 w-10 animate-pulse rounded-full bg-primary/20" aria-hidden="true" />
             <h1 id="checkout-title" className="font-display text-3xl font-extrabold text-foreground">Opening secure checkout</h1>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">You are being redirected to Whop to complete your purchase.</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">You are being redirected to secure checkout to complete your purchase.</p>
           </>
         )}
       </section>

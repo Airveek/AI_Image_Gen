@@ -34,7 +34,8 @@ type AssetRow = {
 
 type EntitlementRow = {
   user_id: string;
-  whop_plan_id: string;
+  provider_plan_id: string;
+  plan_key: string | null;
   status: string;
   updated_at: string;
 };
@@ -124,7 +125,7 @@ async function listGenerationAssets(): Promise<AssetRow[]> {
 }
 
 async function listEntitlements(): Promise<EntitlementRow[]> {
-  return listRows<EntitlementRow>("whop_entitlements", "user_id,whop_plan_id,status,updated_at", "updated_at");
+  return listRows<EntitlementRow>("billing_entitlements", "user_id,provider_plan_id,plan_key,status,updated_at", "updated_at");
 }
 
 async function listProfiles(): Promise<ProfileRow[]> {
@@ -186,7 +187,7 @@ function buildAggregates(
     const current = entitlementByUser.get(row.user_id);
     if (!current || row.updated_at > current.updatedAt) {
       entitlementByUser.set(row.user_id, {
-        plan: planLabel(row.whop_plan_id),
+        plan: row.plan_key === "premium" ? "Premium" : row.plan_key === "commercial" ? "Commercial" : planLabel(row.provider_plan_id),
         status: row.status,
         updatedAt: row.updated_at,
       });
@@ -299,12 +300,14 @@ function percentage(numerator: number, denominator: number): number {
 }
 
 function isPaidStatus(status: string | undefined): boolean {
-  return status === "active" || status === "trialing";
+  return status === "active" || status === "trialing" || status === "canceling" || status === "completed";
 }
 
 function planLabel(planId: string): string {
-  if (planId === process.env.WHOP_PREMIUM_PLAN_ID) return "Premium";
-  if (planId === process.env.WHOP_COMMERCIAL_PLAN_ID) return "Commercial";
+  if ([process.env.WHOP_PREMIUM_PLAN_ID, process.env.WHOP_PREMIUM_MONTHLY_PLAN_ID,
+    process.env.STRIPE_PREMIUM_ONE_TIME_PRICE_ID, process.env.STRIPE_PREMIUM_SUBSCRIPTION_PRICE_ID].includes(planId)) return "Premium";
+  if ([process.env.WHOP_COMMERCIAL_PLAN_ID, process.env.WHOP_COMMERCIAL_MONTHLY_PLAN_ID,
+    process.env.STRIPE_COMMERCIAL_ONE_TIME_PRICE_ID, process.env.STRIPE_COMMERCIAL_SUBSCRIPTION_PRICE_ID].includes(planId)) return "Commercial";
   return "Paid plan";
 }
 

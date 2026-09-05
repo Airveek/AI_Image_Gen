@@ -1,0 +1,35 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+
+const { billingKindForMode, hasBillingAccess } = await import("../src/lib/billing/plans.ts");
+const { isCheckoutRequest, isCheckoutResponse } = await import("../src/lib/billing/checkout.ts");
+process.env.STRIPE_COMMERCIAL_ONE_TIME_PRICE_ID = "price_commercial_once";
+process.env.STRIPE_PREMIUM_SUBSCRIPTION_PRICE_ID = "price_premium_monthly";
+const { identifyStripePrice } = await import("../src/lib/stripe/plans.ts");
+
+test("maps the global mode to customer-facing billing semantics", () => {
+  assert.equal(billingKindForMode("subscription"), "monthly");
+  assert.equal(billingKindForMode("one_time"), "one-time");
+});
+
+test("preserves access independently for recurring and one-time purchases", () => {
+  assert.equal(hasBillingAccess("subscription", "active"), true);
+  assert.equal(hasBillingAccess("subscription", "canceling"), true);
+  assert.equal(hasBillingAccess("subscription", "canceled"), false);
+  assert.equal(hasBillingAccess("one_time", "completed"), true);
+  assert.equal(hasBillingAccess("one_time", "refunded"), false);
+});
+
+test("requires an unguessable checkout attempt id and an HTTPS response", () => {
+  const checkoutAttemptId = "9a2c745c-08f3-4ca7-b01a-3cb6f024bde8";
+  assert.equal(isCheckoutRequest({ plan: "premium", checkoutAttemptId }), true);
+  assert.equal(isCheckoutRequest({ plan: "premium", checkoutAttemptId: "bad" }), false);
+  assert.equal(isCheckoutResponse({ purchaseUrl: "https://checkout.stripe.com/c/pay/test" }), true);
+  assert.equal(isCheckoutResponse({ purchaseUrl: "javascript:alert(1)" }), false);
+});
+
+test("never confuses Stripe tiers or billing modes", () => {
+  assert.deepEqual(identifyStripePrice("price_commercial_once"), { planKey: "commercial", mode: "one_time" });
+  assert.deepEqual(identifyStripePrice("price_premium_monthly"), { planKey: "premium", mode: "subscription" });
+  assert.deepEqual(identifyStripePrice("price_unknown"), { planKey: null, mode: null });
+});
