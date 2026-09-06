@@ -66,7 +66,7 @@ export function ConsentAndAttribution() {
   return <>
     {consent === "granted" && !analyticsExcludedRoute ? <GoogleAnalyticsTag /> : null}
     {consent === "granted" && !analyticsExcludedRoute ? <Analytics /> : null}
-    {consent === "granted" && !analyticsExcludedRoute && META_PIXEL_ID ? <Script id="airveek-meta-pixel" async src="https://connect.facebook.net/en_US/fbevents.js" strategy="afterInteractive" /> : null}
+    {consent === "granted" && !analyticsExcludedRoute && META_PIXEL_ID ? <Script id="airveek-meta-pixel" async src="https://connect.facebook.net/en_US/fbevents.js" strategy="afterInteractive" onLoad={() => window.dispatchEvent(new Event("airveek:meta-pixel-ready"))} /> : null}
     {consent === "granted" && !privateRoute ? <CoreWebVitalsReporter /> : null}
   </>;
 }

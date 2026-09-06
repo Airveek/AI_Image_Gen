@@ -3,19 +3,31 @@
 import Link from "next/link";
 import { useEffect, useRef, type ReactNode } from "react";
 
-import { hasAnalyticsConsent, trackFunnelEvent } from "@/lib/analytics/meta-browser";
+import { hasAnalyticsConsent, trackFunnelEvent, trackPixelEvent } from "@/lib/analytics/meta-browser";
+
+const VIEW_CONTENT_PROPERTIES = { content_name: "AI Fashion Photoshoot", content_category: "fashion_ecommerce" } as const;
 
 export function FashionViewTracker() {
   const tracked = useRef(false);
+  const eventId = useRef<string | null>(null);
   useEffect(() => {
     const track = () => {
       if (tracked.current || !hasAnalyticsConsent()) return;
+      eventId.current ??= crypto.randomUUID();
       tracked.current = true;
-      trackFunnelEvent("ViewContent", { content_name: "AI Fashion Photoshoot", content_category: "fashion_ecommerce" });
+      trackFunnelEvent("ViewContent", VIEW_CONTENT_PROPERTIES, eventId.current);
+    };
+    const retryBrowserCopy = () => {
+      if (!tracked.current || !eventId.current || !hasAnalyticsConsent()) return;
+      trackPixelEvent("ViewContent", eventId.current, VIEW_CONTENT_PROPERTIES);
     };
     track();
     window.addEventListener("airveek:analytics-consent", track);
-    return () => window.removeEventListener("airveek:analytics-consent", track);
+    window.addEventListener("airveek:meta-pixel-ready", retryBrowserCopy);
+    return () => {
+      window.removeEventListener("airveek:analytics-consent", track);
+      window.removeEventListener("airveek:meta-pixel-ready", retryBrowserCopy);
+    };
   }, []);
   return null;
 }

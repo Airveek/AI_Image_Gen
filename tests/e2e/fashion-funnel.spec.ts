@@ -92,6 +92,13 @@ test("a first visit pairs browser and server ViewContent with one event ID", asy
       (window as typeof window & { airveekPixelCalls: unknown[][] }).airveekPixelCalls.push(args);
     }, { queue: [] as unknown[][], loaded: true, version: "2.0" });
   });
+  await page.route("https://connect.facebook.net/en_US/fbevents.js", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/javascript",
+      body: "window.fbq.callMethod=(...args)=>window.airveekPixelCalls.push(args);",
+    });
+  });
   await page.route("**/api/analytics/meta", async (route) => {
     serverEvents.push(route.request().postDataJSON() as Record<string, unknown>);
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
@@ -100,8 +107,9 @@ test("a first visit pairs browser and server ViewContent with one event ID", asy
   await expect.poll(() => serverEvents.some((event) => event.eventName === "ViewContent")).toBe(true);
   const serverEvent = serverEvents.find((event) => event.eventName === "ViewContent");
   const pixelCalls = await page.evaluate(() => (window as typeof window & { airveekPixelCalls: unknown[][] }).airveekPixelCalls);
-  const pixelEvent = pixelCalls.find((call) => call[1] === "ViewContent");
-  expect(pixelEvent?.[3]).toEqual({ eventID: serverEvent?.eventId });
+  const pixelEvents = pixelCalls.filter((call) => call[1] === "ViewContent");
+  expect(pixelEvents.length).toBeGreaterThanOrEqual(2);
+  expect(pixelEvents.every((call) => JSON.stringify(call[3]) === JSON.stringify({ eventID: serverEvent?.eventId }))).toBe(true);
   await expect(page.getByRole("button", { name: "Allow measurement" })).toHaveCount(0);
 });
 
