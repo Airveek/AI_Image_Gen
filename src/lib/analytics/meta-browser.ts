@@ -17,6 +17,7 @@ declare global {
 
 type MetaPixelFunction = ((...args: unknown[]) => void) & {
   callMethod?: (...args: unknown[]) => void;
+  disablePushState?: boolean;
   queue: unknown[][];
   loaded: boolean;
   version: string;
@@ -41,6 +42,9 @@ export function ensureMetaPixel(pixelId: string): void {
     window.fbq = fbq;
     window._fbq = fbq;
   }
+  // Next.js routes with the History API. Keep Meta from creating its own
+  // plugin-set PageViews so our explicitly tracked UUID events stay canonical.
+  window.fbq.disablePushState = true;
   window.fbq("set", "autoConfig", false, pixelId);
   window.fbq("init", pixelId);
   window._airveekMetaInitialized = true;
