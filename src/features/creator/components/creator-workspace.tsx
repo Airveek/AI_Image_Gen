@@ -184,7 +184,7 @@ export function CreatorWorkspace({ arenaId, initialAssets, initialAccess, billin
     const hasSuccess = settled.some((outcome) => outcome.status === "fulfilled" && outcome.value.ok);
     const accessResults = settled.flatMap((outcome) => outcome.status === "fulfilled" && outcome.value.access ? [outcome.value.access] : []);
     const finalAccess = accessResults.find((summary) => summary.hasPaidAccess)
-      ?? accessResults.sort((left, right) => right.remaining - left.remaining)[0];
+      ?? accessResults.sort((left, right) => left.remaining - right.remaining)[0];
     if (finalAccess) {
       setAccess(finalAccess);
       if (!finalAccess.hasPaidAccess && finalAccess.remaining === 0 && hasSuccess) setPaywallOpen(true);

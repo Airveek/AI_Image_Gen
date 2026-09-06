@@ -121,7 +121,11 @@ export function FashionPlayground({ authenticated, initialAccess, billingMode }:
       setMessage(`Creating ${count} ecommerce image${count === 1 ? "" : "s"}…`);
       trackFunnelEvent("GenerationStarted", { arena_id: "product-fashion", generation_count: count as 1 | 2, placement: "fashion_playground" });
       const requests = Array.from({ length: count }, () => generationRequest(productId, modelId, scene, lighting, aspectRatio));
-      const responses = await Promise.all(requests.map(requestGeneration));
+      // The image provider can reject simultaneous requests from the same
+      // account. Keep the two-output experience reliable by completing each
+      // independently while retaining a unique idempotency ID per output.
+      const responses: CreatorGenerationResult[] = [];
+      for (const request of requests) responses.push(await requestGeneration(request));
       const successful = responses.filter((result): result is Extract<CreatorGenerationResult, { ok: true }> => result.ok);
       const failure = responses.find((result) => !result.ok);
       for (const result of successful) {
@@ -134,7 +138,7 @@ export function FashionPlayground({ authenticated, initialAccess, billingMode }:
         ...(failure && !failure.ok && failure.access ? [failure.access] : []),
       ];
       const newestAccess = accessResults.find((summary) => summary.hasPaidAccess)
-        ?? accessResults.sort((left, right) => right.remaining - left.remaining)[0];
+        ?? accessResults.sort((left, right) => left.remaining - right.remaining)[0];
       if (newestAccess) setAccess(newestAccess);
       if (failure && !failure.ok && failure.code === "payment_required") setPaywallOpen(true);
       if (!successful.length) throw new Error(failure && !failure.ok ? failure.message : "The photoshoot could not be created.");
