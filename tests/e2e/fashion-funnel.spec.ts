@@ -107,6 +107,7 @@ test("a first visit pairs browser and server ViewContent with one event ID", asy
   await expect.poll(() => serverEvents.some((event) => event.eventName === "ViewContent")).toBe(true);
   const serverEvent = serverEvents.find((event) => event.eventName === "ViewContent");
   const pixelCalls = await page.evaluate(() => (window as typeof window & { airveekPixelCalls: unknown[][] }).airveekPixelCalls);
+  expect(pixelCalls.some((call) => call[0] === "set" && call[1] === "autoConfig" && call[2] === false)).toBe(true);
   const pixelEvents = pixelCalls.filter((call) => call[1] === "ViewContent");
   expect(pixelEvents.length).toBeGreaterThanOrEqual(2);
   expect(pixelEvents.every((call) => JSON.stringify(call[3]) === JSON.stringify({ eventID: serverEvent?.eventId }))).toBe(true);

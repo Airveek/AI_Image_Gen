@@ -41,6 +41,7 @@ export function ensureMetaPixel(pixelId: string): void {
     window.fbq = fbq;
     window._fbq = fbq;
   }
+  window.fbq("set", "autoConfig", false, pixelId);
   window.fbq("init", pixelId);
   window._airveekMetaInitialized = true;
 }
